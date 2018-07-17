@@ -21,7 +21,7 @@ public class PropertyTest {
 
         property.setBiomeDefault(Biome.DESERT, "two");
         property.setBiomeDefault(Biome.DESERT_HILLS, "six");
-        assertEquals("zero", property.get(world, Biome.COLD_BEACH));
+        assertEquals("zero", property.get(world, Biome.SNOWY_BEACH));
         assertEquals("two", property.get(world, Biome.DESERT));
         assertEquals("six", property.get(world, Biome.DESERT_HILLS));
     }
@@ -32,11 +32,11 @@ public class PropertyTest {
         WorldRef world = WorldRef.ofName("test");
 
         property.setWorldDefault(world, "five");
-        property.setBiomeDefault(Biome.COLD_BEACH, "six");
-        assertEquals("six", property.get(world, Biome.COLD_BEACH));
+        property.setBiomeDefault(Biome.SNOWY_BEACH, "six");
+        assertEquals("six", property.get(world, Biome.SNOWY_BEACH));
 
         property.setWorldDefault(world, "seven");
-        assertEquals("six", property.get(world, Biome.COLD_BEACH)); // Value must not have been changed
+        assertEquals("six", property.get(world, Biome.SNOWY_BEACH)); // Value must not have been changed
     }
 
     @Test
@@ -45,10 +45,10 @@ public class PropertyTest {
         WorldRef world = WorldRef.ofName("some_world");
         WorldRef otherWorld = WorldRef.ofName("other_world");
 
-        property.setBiomeDefault(Biome.COLD_BEACH, "three");
-        property.setBiomeInWorldDefault(world, Biome.COLD_BEACH, "six");
-        assertEquals("six", property.get(world, Biome.COLD_BEACH));
-        assertEquals("three", property.get(otherWorld, Biome.COLD_BEACH));
+        property.setBiomeDefault(Biome.SNOWY_BEACH, "three");
+        property.setBiomeInWorldDefault(world, Biome.SNOWY_BEACH, "six");
+        assertEquals("six", property.get(world, Biome.SNOWY_BEACH));
+        assertEquals("three", property.get(otherWorld, Biome.SNOWY_BEACH));
     }
 
     @Test
@@ -57,11 +57,11 @@ public class PropertyTest {
         WorldRef world = WorldRef.ofName("test");
 
         property.setWorldDefault(world, "two");
-        property.setBiomeInWorldDefault(world, Biome.COLD_BEACH, "six");
+        property.setBiomeInWorldDefault(world, Biome.SNOWY_BEACH, "six");
         property.setBiomeInWorldDefault(world, Biome.BIRCH_FOREST, "ten");
 
-        assertEquals("two", property.get(world, Biome.BEACHES));
-        assertEquals("six", property.get(world, Biome.COLD_BEACH));
+        assertEquals("two", property.get(world, Biome.BEACH));
+        assertEquals("six", property.get(world, Biome.SNOWY_BEACH));
         assertEquals("ten", property.get(world, Biome.BIRCH_FOREST));
     }
 
@@ -77,9 +77,9 @@ public class PropertyTest {
         Property<String> property = new Property<>(NamespacedKey.minecraft("test"), "zero");
         WorldRef world = WorldRef.ofName("test");
 
-        assertEquals("zero", property.get(world, Biome.COLD_BEACH));
+        assertEquals("zero", property.get(world, Biome.SNOWY_BEACH));
         property.setDefault("three");
-        assertEquals("three", property.get(world, Biome.COLD_BEACH));
+        assertEquals("three", property.get(world, Biome.SNOWY_BEACH));
     }
 
     @Test
@@ -95,6 +95,6 @@ public class PropertyTest {
 
         property.setWorldDefault(world, "five");
         assertEquals("five", property.get(world));
-        assertEquals("five", property.get(world, Biome.COLD_BEACH));
+        assertEquals("five", property.get(world, Biome.SNOWY_BEACH));
     }
 }
