@@ -1,8 +1,9 @@
 package nl.rutgerkok.worldgeneratorapi;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import org.bukkit.World;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -38,17 +39,15 @@ public interface WorldGeneratorApi {
     }
 
     /**
-     * If you want to create a terrain generator, this method is the place to start.
+     * Creates a custom world generator for the given world.
      *
      * @param world
-     *            The world for creating a terrain generator for.
-     * @param base
-     *            A base chunk generator. Will only be created once the world is
-     *            loaded. (Otherwise you couldn't initialize the chunk generator
-     *            with the world seed & other settings.)
-     * @return A terrain generator builder.
+     *            The world to create a custom world generator for.
+     * @param consumer
+     *            The custom world generator.
+     * @return The world generator.
      */
-    WorldGeneratorBuilder buildTerrainGenerator(WorldRef world, Function<World, BaseChunkGenerator> base);
+    ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer);
 
     /**
      * Gets the version of the API.

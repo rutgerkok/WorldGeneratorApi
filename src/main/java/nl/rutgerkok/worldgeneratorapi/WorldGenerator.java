@@ -1,5 +1,7 @@
 package nl.rutgerkok.worldgeneratorapi;
 
+import org.bukkit.World;
+
 /**
  * Represents the world generator of a single world.
  *
@@ -25,9 +27,23 @@ public interface WorldGenerator {
     BiomeGenerator getBiomeGenerator();
 
     /**
+     * Gets the world this generator is active for.
+     *
+     * @return The world.
+     */
+    World getWorld();
+
+    /**
+     * Gets a reference to the world this generator is active for.
+     *
+     * @return The world reference.
+     */
+    WorldRef getWorldRef();
+
+    /**
      * Sets the basic chunk generator. <strong>Calling this method only has effect
      * if the world was created using {@link WorldGeneratorApi}.</strong>
-     * 
+     *
      * @param base
      *            The base.
      */
