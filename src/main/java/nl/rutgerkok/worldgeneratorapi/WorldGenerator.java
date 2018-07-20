@@ -2,6 +2,8 @@ package nl.rutgerkok.worldgeneratorapi;
 
 import org.bukkit.World;
 
+import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
+
 /**
  * Represents the world generator of a single world.
  *
@@ -32,6 +34,14 @@ public interface WorldGenerator {
      * @return The world.
      */
     World getWorld();
+
+    /**
+     * Gets the decorator of this wolrd, which generates decorations ranging from
+     * flowers and ores to villages and strongholds.
+     * 
+     * @return The decorator.
+     */
+    WorldDecorator getWorldDecorator();
 
     /**
      * Gets a reference to the world this generator is active for.

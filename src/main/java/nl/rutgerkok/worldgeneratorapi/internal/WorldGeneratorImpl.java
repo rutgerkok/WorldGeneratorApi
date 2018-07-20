@@ -17,6 +17,7 @@ import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
+import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 
 final class WorldGeneratorImpl implements WorldGenerator {
 
@@ -58,6 +59,18 @@ final class WorldGeneratorImpl implements WorldGenerator {
     @Override
     public World getWorld() {
         return world;
+    }
+
+    @Override
+    public WorldDecorator getWorldDecorator() {
+        InjectedChunkGenerator injected = this.injected;
+        if (injected == null) {
+            throw new IllegalStateException("At the moment, it is required to"
+                    + " set a custom base chunk generator before decorations"
+                    + " can be added. It is not possible to modify the default"
+                    + " Minecraft generator yet.");
+        }
+        return injected.worldDecorator;
     }
 
     private WorldServer getWorldHandle() {

@@ -36,8 +36,7 @@ import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
 final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault> {
 
-    private static class CustomBiomeGrid implements BiomeGrid
-    {
+    private static class CustomBiomeGrid implements BiomeGrid {
         private final BiomeBase[] biomeArray;
 
         private CustomBiomeGrid(BiomeBase[] biome) {
@@ -63,6 +62,7 @@ final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSetti
     private final MobSpawnerPhantom phantomSpawner = new MobSpawnerPhantom();
     private final GeneratorSettingsDefault defaultSettings = new GeneratorSettingsDefault();
     private final NoiseGenerator3 surfaceNoise;
+    final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
 
     private BaseChunkGenerator baseChunkGenerator;
     private final BiomeGenerator biomeGenerator;
@@ -89,6 +89,11 @@ final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSetti
         final byte b0 = 0;
         final int i = b0 + this.phantomSpawner.a(world, flag, flag1);
         return i;
+    }
+
+    @Override
+    public void addDecorations(RegionLimitedWorldAccess populationArea) {
+        this.worldDecorator.spawnDecorations(this, populationArea);
     }
 
     @Override

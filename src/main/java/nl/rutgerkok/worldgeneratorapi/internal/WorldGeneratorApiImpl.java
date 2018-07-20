@@ -58,7 +58,6 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
     @EventHandler
     public void onWorldInit(WorldInitEvent event) {
-        getLogger().info("Hello, worldinit for " + event.getWorld().getName());
         World world = event.getWorld();
         WorldGenerator worldGenerator = this.getForWorld(world);
 
