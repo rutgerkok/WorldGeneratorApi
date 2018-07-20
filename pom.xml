@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.rutgerkok</groupId>
 	<artifactId>worldgeneratorapi</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.2</version>
 	<name>WorldGeneratorApi</name>
 	<description>Extension of the Bukkit API, aimed at world generation.</description>
 	<properties>
