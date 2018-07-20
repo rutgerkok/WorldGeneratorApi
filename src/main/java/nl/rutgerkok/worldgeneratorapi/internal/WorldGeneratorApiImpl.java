@@ -33,7 +33,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
             throw new IllegalArgumentException(
                     "World " + world.getName() + " was already assigned to a world generator, namely " + previous);
         }
-        return new DummyBukkitChunkGenerator();
+        return new DummyBukkitChunkGenerator(this);
     }
 
     @Override
@@ -43,7 +43,22 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
     @Override
     public WorldGenerator getForWorld(World world) {
-        return worldGenerators.computeIfAbsent(world.getUID(), uuid -> new WorldGeneratorImpl(world));
+        return worldGenerators.computeIfAbsent(world.getUID(), uuid -> {
+            // Initialize world generator
+            WorldGeneratorImpl worldGenerator = new WorldGeneratorImpl(world);
+
+            // Allow registered plugin to modify the world
+            Consumer<WorldGenerator> worldGeneratorModifier = this.worldGeneratorModifiers
+                    .get(worldGenerator.getWorldRef());
+            if (worldGeneratorModifier != null) {
+                worldGeneratorModifier.accept(worldGenerator);
+            }
+
+            // Allow other plugins to modify the world
+            getServer().getPluginManager().callEvent(new WorldGeneratorInitEvent(worldGenerator));
+
+            return worldGenerator;
+        });
     }
 
     @Override
@@ -58,18 +73,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
     @EventHandler
     public void onWorldInit(WorldInitEvent event) {
-        World world = event.getWorld();
-        WorldGenerator worldGenerator = this.getForWorld(world);
-
-        // Allow registered plugin to modify the world
-        Consumer<WorldGenerator> worldGeneratorModifier = this.worldGeneratorModifiers
-                .get(worldGenerator.getWorldRef());
-        if (worldGeneratorModifier != null) {
-            worldGeneratorModifier.accept(worldGenerator);
-        }
-
-        // Allow other plugins to modify the world
-        getServer().getPluginManager().callEvent(new WorldGeneratorInitEvent(worldGenerator));
+        getForWorld(event.getWorld()); // Force initialization
     }
 
     @EventHandler
