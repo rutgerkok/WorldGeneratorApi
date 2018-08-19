@@ -28,11 +28,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
     @Override
     public ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer) {
-        Consumer<WorldGenerator> previous = this.worldGeneratorModifiers.putIfAbsent(world, consumer);
-        if (previous != null) {
-            throw new IllegalArgumentException(
-                    "World " + world.getName() + " was already assigned to a world generator, namely " + previous);
-        }
+        this.worldGeneratorModifiers.putIfAbsent(world, consumer);
         return new DummyBukkitChunkGenerator(this);
     }
 
