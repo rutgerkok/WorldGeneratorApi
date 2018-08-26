@@ -6,13 +6,13 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_13_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
 
-import net.minecraft.server.v1_13_R1.ChunkGenerator;
-import net.minecraft.server.v1_13_R1.ChunkProviderServer;
-import net.minecraft.server.v1_13_R1.ChunkTaskScheduler;
-import net.minecraft.server.v1_13_R1.WorldChunkManager;
-import net.minecraft.server.v1_13_R1.WorldServer;
+import net.minecraft.server.v1_13_R2.ChunkGenerator;
+import net.minecraft.server.v1_13_R2.ChunkProviderServer;
+import net.minecraft.server.v1_13_R2.ChunkTaskScheduler;
+import net.minecraft.server.v1_13_R2.WorldChunkManager;
+import net.minecraft.server.v1_13_R2.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
