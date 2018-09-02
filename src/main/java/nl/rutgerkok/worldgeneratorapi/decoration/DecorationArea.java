@@ -2,6 +2,9 @@ package nl.rutgerkok.worldgeneratorapi.decoration;
 
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
+import org.bukkit.block.Furnace;
 import org.bukkit.block.data.BlockData;
 
 /**
@@ -33,6 +36,15 @@ public interface DecorationArea {
      */
     public static final int DECORATION_RADIUS = 8;
 
+    /**
+     * Gets the biome at the given position.
+     *
+     * @param x
+     *            Block x in the world.
+     * @param z
+     *            Block z in the world.
+     * @return The biome.
+     */
     Biome getBiome(int x, int z);
 
     /**
@@ -60,6 +72,36 @@ public interface DecorationArea {
      * @return The material.
      */
     BlockData getBlockData(int x, int y, int z);
+
+    /**
+     * Gets the block state at the given position. This block state can then be cast
+     * to a {@link Chest}, {@link Furnace}, etc. Use
+     * {@link #setBlockState(int, int, int, BlockState)} after you have made your
+     * changes, otherwise your changes will have absolutely no effect.
+     *
+     * <p>
+     * Note that the decoration area is not yet part of the world. Therefore,
+     * <strong>no location information is included</strong> in the returned block
+     * state. If location information would be included, then various methods of
+     * CraftBukkit would mistakenly attempt to access the live world, which would
+     * fail: this decoration area is not yet part of the world, after all.
+     *
+     * <p>
+     * As a result, {@link BlockState#isPlaced()} will return false.
+     * {@link BlockState#getWorld()} will throw an {@link IllegalStateException} and
+     * {@link BlockState#getX()}/Y/Z will all return 0. {@link BlockState#update()}
+     * will also fail with an {@link IllegalStateException}. Instead, you must use a
+     * {@link #setBlockState(int, int, int, BlockState)}.
+     *
+     * @param x
+     *            Block x in the world.
+     * @param y
+     *            Block y in the world.
+     * @param z
+     *            Block z in the world.
+     * @return The block state.
+     */
+    BlockState getBlockState(int x, int y, int z);
 
     /**
      * Gets the center block x. This value minus 16 is the lowest valid x
@@ -108,4 +150,23 @@ public interface DecorationArea {
      *            state of {@link Material#AIR}.
      */
     void setBlockData(int x, int y, int z, BlockData blockData);
+
+    /**
+     * Sets the block state at the given position in the world. It is no problem if
+     * the block state was retrieved from another position, or even another world.
+     * First, the block at the position specified by the x, y and z parameters is
+     * set to whatever {@link BlockState#getBlockData()} returns. Then, any NBT data
+     * from the block state is copied to the chunk. Modifying the block state after
+     * calling this method has no effect on the chunk.
+     *
+     * @param x
+     *            Block x in the world.
+     * @param y
+     *            Block y in the world.
+     * @param z
+     *            Block z in the world.
+     * @param blockState
+     *            The block state.
+     */
+    void setBlockState(int x, int y, int z, BlockState blockState);
 }
