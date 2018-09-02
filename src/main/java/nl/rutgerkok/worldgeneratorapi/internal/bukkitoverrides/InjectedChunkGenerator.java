@@ -1,11 +1,9 @@
-package nl.rutgerkok.worldgeneratorapi.internal;
+package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
 
-import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_13_R2.generator.CraftChunkData;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
@@ -34,26 +32,10 @@ import net.minecraft.server.v1_13_R2.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
+import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
+import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
 
-final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault> {
-
-    private static class CustomBiomeGrid implements BiomeGrid {
-        private final BiomeBase[] biomeArray;
-
-        private CustomBiomeGrid(BiomeBase[] biome) {
-            this.biomeArray = biome;
-        }
-
-        @Override
-        public Biome getBiome(final int x, final int z) {
-            return CraftBlock.biomeBaseToBiome(this.biomeArray[z << 4 | x]);
-        }
-
-        @Override
-        public void setBiome(final int x, final int z, final Biome bio) {
-            this.biomeArray[z << 4 | x] = CraftBlock.biomeToBiomeBase(bio);
-        }
-    }
+public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault> {
 
     private final org.bukkit.World world;
 
@@ -63,12 +45,12 @@ final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSetti
     private final MobSpawnerPhantom phantomSpawner = new MobSpawnerPhantom();
     private final GeneratorSettingsDefault defaultSettings = new GeneratorSettingsDefault();
     private final NoiseGenerator3 surfaceNoise;
-    final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
+    public final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
 
     private BaseChunkGenerator baseChunkGenerator;
     private final BiomeGenerator biomeGenerator;
 
-    InjectedChunkGenerator(WorldServer world, BaseChunkGenerator baseChunkGenerator) {
+    public InjectedChunkGenerator(WorldServer world, BaseChunkGenerator baseChunkGenerator) {
         super(world, world.getChunkProvider().getChunkGenerator().getWorldChunkManager());
         this.world = world.getWorld();
 
@@ -182,11 +164,11 @@ final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSetti
         }
     }
 
-    BaseChunkGenerator getBaseChunkGenerator() {
+    public BaseChunkGenerator getBaseChunkGenerator() {
         return baseChunkGenerator;
     }
 
-    BiomeGenerator getBiomeGenerator() {
+    public BiomeGenerator getBiomeGenerator() {
         return biomeGenerator;
     }
 
@@ -212,7 +194,7 @@ final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSetti
         return world.getSeaLevel() + 1;
     }
 
-    void setBaseChunkGenerator(BaseChunkGenerator baseChunkGenerator) {
+    public void setBaseChunkGenerator(BaseChunkGenerator baseChunkGenerator) {
         this.baseChunkGenerator = Objects.requireNonNull(baseChunkGenerator, "baseChunkGenerator");
     }
 

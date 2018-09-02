@@ -18,6 +18,7 @@ import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
+import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator;
 
 final class WorldGeneratorImpl implements WorldGenerator {
 

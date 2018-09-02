@@ -1,4 +1,4 @@
-package nl.rutgerkok.worldgeneratorapi.internal;
+package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +21,11 @@ import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
  * brand new world), {@link #getDefaultPopulators(World)} takes over this task.
  *
  */
-final class DummyBukkitChunkGenerator extends ChunkGenerator {
+public final class DummyBukkitChunkGenerator extends ChunkGenerator {
 
     private final WorldGeneratorApi impl;
 
-    DummyBukkitChunkGenerator(WorldGeneratorApi impl) {
+    public DummyBukkitChunkGenerator(WorldGeneratorApi impl) {
         this.impl = Objects.requireNonNull(impl);
     }
 

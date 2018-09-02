@@ -7,13 +7,14 @@ import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
 
 import net.minecraft.server.v1_13_R2.BiomeBase;
 import net.minecraft.server.v1_13_R2.WorldChunkManager;
+
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
-final class BiomeGeneratorImpl implements BiomeGenerator {
+public final class BiomeGeneratorImpl implements BiomeGenerator {
 
     private final WorldChunkManager internal;
 
-    BiomeGeneratorImpl(WorldChunkManager worldChunkManager) {
+    public BiomeGeneratorImpl(WorldChunkManager worldChunkManager) {
         internal = Objects.requireNonNull(worldChunkManager, "worldChunkManager");
     }
 

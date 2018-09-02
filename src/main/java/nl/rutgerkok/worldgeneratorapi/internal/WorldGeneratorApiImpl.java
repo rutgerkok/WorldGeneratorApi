@@ -18,6 +18,7 @@ import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
+import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.DummyBukkitChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorApi, Listener {
