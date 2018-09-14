@@ -3,6 +3,8 @@ package nl.rutgerkok.worldgeneratorapi;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
+import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
+
 /**
  * Generates the basic blocks (just air, stone and water usually) of a chunk.
  *
@@ -56,6 +58,15 @@ public interface BaseChunkGenerator {
     /**
      * Sets the basic blocks (air, stone and water usually) in the chunk. No
      * decorations are applied yet.
+     *
+     * <p>
+     * Note: <strong>this method can be called on any thread</strong>, including the
+     * main server thread. As long as you only use the methods contained in the
+     * chunk and in the {@link PropertyRegistry property registry}, there's no need
+     * to worry about this. However, if you use/call code from other areas (like the
+     * rest of the world or an ordinary hash map from your plugin) you will get into
+     * trouble. Exceptions may be thrown, or worse: your world may be corrupted
+     * silently.
      *
      * @param chunk
      *            The chunk.

@@ -1,7 +1,7 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -17,7 +17,6 @@ import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
 
 import net.minecraft.server.v1_13_R2.BiomeBase;
 import net.minecraft.server.v1_13_R2.Biomes;
-
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.property.FloatProperty;
@@ -31,7 +30,29 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
  */
 public final class PropertyRegistryImpl implements PropertyRegistry {
 
-    private final Map<NamespacedKey, Keyed> properties = new HashMap<>();
+    /**
+     * Be careful with thread safety. For example, this is wrong:
+     *
+     * <pre>
+     * if (map.containsKey("example")) {
+     *     map.get("example").doSomething();
+     * }
+     * </pre>
+     *
+     * After all, another thread could delete the value in between the first and
+     * second line, making your code throw an exception. Instead, use this:
+     *
+     * <pre>
+     * var value = map.get("example");
+     * if (value != null) {
+     *     value.doSomething();
+     * }
+     * </pre>
+     *
+     * See for example the {@link Map#computeIfAbsent(Object, Function)} function
+     * for safely putting a value if (and only if) there is no value yet.
+     */
+    private final Map<NamespacedKey, Keyed> properties = new ConcurrentHashMap<>();
 
     public PropertyRegistryImpl() {
         addMinecraftBiomeFloatProperty(TEMPERATURE, BiomeBase::getTemperature);

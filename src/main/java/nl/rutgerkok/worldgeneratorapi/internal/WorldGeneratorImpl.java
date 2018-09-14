@@ -88,16 +88,24 @@ final class WorldGeneratorImpl implements WorldGenerator {
         Objects.requireNonNull(base, "base");
         InjectedChunkGenerator injected = this.injected;
         if (injected == null) {
+
             // Need to inject ourselves into the world
             injected = new InjectedChunkGenerator(getWorldHandle(), base);
             ChunkProviderServer chunkProvider = getWorldHandle().getChunkProviderServer();
             try {
                 Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
                 chunkGeneratorField.set(chunkProvider, injected);
+
+                if (chunkProvider.getClass().getSimpleName().equals("PaperAsyncChunkProvider")) {
+                    // Do not act as a custom generator - otherwise overriding population will fail
+                    InjectorForPaper.inject(worldRef.getName(), chunkProvider);
+                }
+
                 Field chunkTaskSchedulerField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkTaskScheduler.class);
                 ChunkTaskScheduler scheduler = (ChunkTaskScheduler) chunkTaskSchedulerField.get(chunkProvider);
                 chunkGeneratorField = ReflectionUtil.getFieldOfType(scheduler, ChunkGenerator.class);
                 chunkGeneratorField.set(scheduler, injected);
+
                 this.injected = injected;
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException("Failed to inject world generator", e);

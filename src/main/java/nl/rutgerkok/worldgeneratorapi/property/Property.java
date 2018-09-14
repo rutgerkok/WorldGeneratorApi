@@ -1,10 +1,10 @@
 package nl.rutgerkok.worldgeneratorapi.property;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nullable;
 
@@ -17,6 +17,10 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
 
 /**
  * Some abstract property, which can take world-specific or biome-specific
+ * values.
+ * <p>
+ * This class is thread-safe. However, most getters in this class can produce
+ * slightly outdated values if another thread is currently modifying those
  * values.
  *
  * @param <T>
@@ -39,9 +43,28 @@ public class Property<T> implements Keyed {
         return Arrays.asList(singleArray);
     }
 
-    private final Map<WorldRef, List<T>> allWorldValues = new HashMap<>();
+    private final Map<WorldRef, List<T>> allWorldValues = new ConcurrentHashMap<>();
     private List<T> defaultValues = singletonArrayList(null);
     protected final NamespacedKey name;
+
+    /**
+     * Only one thread may modify the class at a time. This is necessary. Imagine
+     * that this lock wasn't there, and one method (say
+     * {@link #setBiomeDefault(Biome, float)} needs to replace an array, while
+     * another method changes a value in the old array (say
+     * {@link #setDefault(float)}): then the second method may silently fail.
+     *
+     * <p>
+     * For reading values no lock is necessary. If a getter runs at the same time as
+     * a setter, then the getter may return a now slightly outdated value. This
+     * shouldn't be a problem in practice. There is one other risk though: lists
+     * normally aren't thread safe. We counter that risk by only using
+     * {@link Arrays#asList(Object...)} as a list, which cannot be resized. So to
+     * resize the list, the old list needs to be replaced by a new one. Getters take
+     * a local reference to any list they use, so they can continue working on that
+     * list, even if another thread provides a new list.
+     */
+    private final Object mutationLock = new Object();
 
     public Property(NamespacedKey name, T defaultValue) {
         this.name = Objects.requireNonNull(name);
@@ -96,6 +119,7 @@ public class Property<T> implements Keyed {
      * @return The default value.
      */
     protected @Nullable T getBiomeDefault(Biome biome) {
+        List<T> defaultValues = this.defaultValues;
         if (defaultValues.size() == 1) {
             return null;
         }
@@ -127,6 +151,7 @@ public class Property<T> implements Keyed {
      * @return A default value.
      */
     public T getDefault() {
+        List<T> defaultValues = this.defaultValues;
         return defaultValues.get(defaultValues.size() - 1);
     }
 
@@ -172,16 +197,18 @@ public class Property<T> implements Keyed {
         Objects.requireNonNull(biome, "biome");
         Objects.requireNonNull(value, "value");
 
-        if (defaultValues.size() == 1) {
-            // Make biome-specific default values possible
-            T globalDefault = defaultValues.get(0);
-            defaultValues = (List<T>) Arrays.asList(new Object[Biome.values().length + 1]);
+        synchronized (mutationLock) {
+            if (defaultValues.size() == 1) {
+                // Make biome-specific default values possible
+                T globalDefault = defaultValues.get(0);
+                defaultValues = (List<T>) Arrays.asList(new Object[Biome.values().length + 1]);
 
-            // Restore all-default value, always stored in last slot
-            defaultValues.set(defaultValues.size() - 1, globalDefault);
+                // Restore all-default value, always stored in last slot
+                defaultValues.set(defaultValues.size() - 1, globalDefault);
+            }
+
+            defaultValues.set(biome.ordinal(), value);
         }
-
-        defaultValues.set(biome.ordinal(), value);
     }
 
     /**
@@ -203,17 +230,19 @@ public class Property<T> implements Keyed {
         Objects.requireNonNull(biome, "biome");
         Objects.requireNonNull(value, "value");
 
-        List<T> worldValues = this.allWorldValues.get(world);
-        if (worldValues == null) {
-            worldValues = (List<T>) Arrays.asList(new Object[Biome.values().length + 1]);
-            this.allWorldValues.put(world, worldValues);
-        } else if (worldValues.size() == 1) {
-            T worldDefault = worldValues.get(0);
-            worldValues = (List<T>) Arrays.asList(new Object[Biome.values().length + 1]);
-            worldValues.set(worldValues.size() - 1, worldDefault);
-            this.allWorldValues.put(world, worldValues);
+        synchronized (mutationLock) {
+            List<T> worldValues = this.allWorldValues.get(world);
+            if (worldValues == null) {
+                worldValues = (List<T>) Arrays.asList(new Object[Biome.values().length + 1]);
+                this.allWorldValues.put(world, worldValues);
+            } else if (worldValues.size() == 1) {
+                T worldDefault = worldValues.get(0);
+                worldValues = (List<T>) Arrays.asList(new Object[Biome.values().length + 1]);
+                worldValues.set(worldValues.size() - 1, worldDefault);
+                this.allWorldValues.put(world, worldValues);
+            }
+            worldValues.set(biome.ordinal(), value);
         }
-        worldValues.set(biome.ordinal(), value);
     }
 
     /**
@@ -224,7 +253,9 @@ public class Property<T> implements Keyed {
      */
     public void setDefault(T value) {
         Objects.requireNonNull(value, "value");
-        defaultValues.set(defaultValues.size() - 1, value);
+        synchronized (mutationLock) {
+            defaultValues.set(defaultValues.size() - 1, value);
+        }
     }
 
     /**
@@ -242,16 +273,18 @@ public class Property<T> implements Keyed {
         Objects.requireNonNull(world, "world");
         Objects.requireNonNull(value, "value");
 
-        List<T> worldValues = this.allWorldValues.get(world);
-        if (worldValues == null) {
-            // Make world-specific values possible
-            worldValues = singletonArrayList(value);
-            this.allWorldValues.put(world, worldValues);
-            return;
-        }
+        synchronized (mutationLock) {
+            List<T> worldValues = this.allWorldValues.get(world);
+            if (worldValues == null) {
+                // Make world-specific values possible
+                worldValues = singletonArrayList(value);
+                this.allWorldValues.put(world, worldValues);
+                return;
+            }
 
-        // Default value is stored in last slot
-        worldValues.set(worldValues.size() - 1, value);
+            // Default value is stored in last slot
+            worldValues.set(worldValues.size() - 1, value);
+        }
     }
 
     @Override

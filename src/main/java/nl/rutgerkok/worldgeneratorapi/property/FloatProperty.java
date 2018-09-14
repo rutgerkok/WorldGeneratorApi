@@ -1,9 +1,9 @@
 package nl.rutgerkok.worldgeneratorapi.property;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
@@ -16,12 +16,34 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * Some abstract property, which can take world-specific or biome-specific
  * values. This class is more efficient than the generic {@link Property}, as
  * boxing and unboxing can be avoided.
+ * <p>
+ * This class is thread-safe. However, most getters in this class can produce
+ * slightly outdated values if another thread is currently modifying those
+ * values.
  */
 public class FloatProperty implements Keyed {
 
-    private final Map<WorldRef, float[]> allWorldValues = new HashMap<>();
-    private float[] defaultValues = { 0 };
+    private final Map<WorldRef, float[]> allWorldValues = new ConcurrentHashMap<>(1);
+    private volatile float[] defaultValues = { 0 };
     protected final NamespacedKey name;
+
+    /**
+     * Only one thread may modify the class at a time. This is necessary. Imagine
+     * that this lock wasn't there, and one method (say
+     * {@link #setBiomeDefault(Biome, float)} needs to replace an array, while
+     * another method changes a value in the old array (say
+     * {@link #setDefault(float)}): then the second method may silently fail.
+     *
+     * <p>
+     * For reading values no lock is necessary. If a getter runs at the same time as
+     * a setter, then the getter may return a now slightly outdated value. This
+     * shouldn't be a problem in practise. There is one other risk though: an array
+     * might suddenly be replaced by one with a different length. To protect against
+     * this, each getter stats by taking a local reference to the old array, so it
+     * can continue working with that array even if another thread makes a new array
+     * available.
+     */
+    private final Object mutationLock = new Object();
 
     public FloatProperty(NamespacedKey name, float defaultValue) {
         this.name = Objects.requireNonNull(name);
@@ -83,6 +105,7 @@ public class FloatProperty implements Keyed {
      * @return The default value.
      */
     protected float getBiomeDefault(Biome biome) {
+        float[] defaultValues = this.defaultValues;
         if (defaultValues.length == 1) {
             return Float.NaN;
         }
@@ -114,6 +137,7 @@ public class FloatProperty implements Keyed {
      * @return A default value.
      */
     protected float getDefault() {
+        float[] defaultValues = this.defaultValues;
         return defaultValues[defaultValues.length - 1];
     }
 
@@ -158,17 +182,19 @@ public class FloatProperty implements Keyed {
         Objects.requireNonNull(biome, "biome");
         checkForNaN(value);
 
-        if (defaultValues.length == 1) {
-            // Make biome-specific default values possible
-            float globalDefault = defaultValues[0];
-            defaultValues = new float[Biome.values().length + 1];
-            Arrays.fill(defaultValues, Float.NaN);
+        synchronized (mutationLock) {
+            if (defaultValues.length == 1) {
+                // Make biome-specific default values possible
+                float globalDefault = defaultValues[0];
+                defaultValues = new float[Biome.values().length + 1];
+                Arrays.fill(defaultValues, Float.NaN);
 
-            // Restore all-default value, always stored in last slot
-            defaultValues[defaultValues.length - 1] = globalDefault;
+                // Restore all-default value, always stored in last slot
+                defaultValues[defaultValues.length - 1] = globalDefault;
+            }
+
+            defaultValues[biome.ordinal()] = value;
         }
-
-        defaultValues[biome.ordinal()] = value;
     }
 
     /**
@@ -189,19 +215,21 @@ public class FloatProperty implements Keyed {
         Objects.requireNonNull(biome, "biome");
         checkForNaN(value);
 
-        float[] worldValues = this.allWorldValues.get(world);
-        if (worldValues == null) {
-            worldValues = new float[Biome.values().length + 1];
-            Arrays.fill(worldValues, Float.NaN);
-            this.allWorldValues.put(world, worldValues);
-        } else if (worldValues.length == 1) {
-            float worldDefault = worldValues[0];
-            worldValues = new float[Biome.values().length + 1];
-            Arrays.fill(worldValues, Float.NaN);
-            worldValues[worldValues.length - 1] = worldDefault;
-            this.allWorldValues.put(world, worldValues);
+        synchronized (mutationLock) {
+            float[] worldValues = this.allWorldValues.get(world);
+            if (worldValues == null) {
+                worldValues = new float[Biome.values().length + 1];
+                Arrays.fill(worldValues, Float.NaN);
+                this.allWorldValues.put(world, worldValues);
+            } else if (worldValues.length == 1) {
+                float worldDefault = worldValues[0];
+                worldValues = new float[Biome.values().length + 1];
+                Arrays.fill(worldValues, Float.NaN);
+                worldValues[worldValues.length - 1] = worldDefault;
+                this.allWorldValues.put(world, worldValues);
+            }
+            worldValues[biome.ordinal()] = value;
         }
-        worldValues[biome.ordinal()] = value;
     }
 
     /**
@@ -212,7 +240,9 @@ public class FloatProperty implements Keyed {
      */
     public void setDefault(float value) {
         checkForNaN(value);
-        defaultValues[defaultValues.length - 1] = value;
+        synchronized (mutationLock) {
+            defaultValues[defaultValues.length - 1] = value;
+        }
     }
 
     /**
@@ -230,15 +260,17 @@ public class FloatProperty implements Keyed {
         Objects.requireNonNull(world, "world");
         checkForNaN(value);
 
-        float[] worldValues = this.allWorldValues.get(world);
-        if (worldValues == null) {
-            // Make world-specific values possible
-            worldValues = new float[1];
-            this.allWorldValues.put(world, worldValues);
-        }
+        synchronized (mutationLock) {
+            float[] worldValues = this.allWorldValues.get(world);
+            if (worldValues == null) {
+                // Make world-specific values possible
+                worldValues = new float[1];
+                this.allWorldValues.put(world, worldValues);
+            }
 
-        // Default value is stored in last slot
-        worldValues[worldValues.length - 1] = value;
+            // Default value is stored in last slot
+            worldValues[worldValues.length - 1] = value;
+        }
     }
 
     @Override

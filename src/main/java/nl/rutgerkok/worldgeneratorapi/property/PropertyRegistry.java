@@ -4,37 +4,44 @@ import javax.annotation.Nullable;
 
 import org.bukkit.NamespacedKey;
 
+/**
+ * Stores all configurable values of a terrain generator. You are encouraged to
+ * put all your terrain generator settings here. Some terrain generation setings
+ * of Minecraft are also stored here, and can often even be modified. All method
+ * in this class can be called from any thread.
+ *
+ */
 public interface PropertyRegistry {
 
     /**
      * The temperature of a biome (float), from 0 (frozen) to 2 (desert).
      */
-    public static NamespacedKey TEMPERATURE = NamespacedKey.minecraft("temperature");
+    NamespacedKey TEMPERATURE = NamespacedKey.minecraft("temperature");
 
     /**
      * The wetness of a biome (float), from 0 (dry) to 1 (wet).
      */
-    public static NamespacedKey WETNESS = NamespacedKey.minecraft("wetness");
+    NamespacedKey WETNESS = NamespacedKey.minecraft("wetness");
 
     /**
      * Variable used in height generation (float).
      */
-    public static NamespacedKey BASE_HEIGHT = NamespacedKey.minecraft("base_height");
+    NamespacedKey BASE_HEIGHT = NamespacedKey.minecraft("base_height");
 
     /**
      * Variable used in height generation (float).
      */
-    public static NamespacedKey HEIGHT_VARIATION = NamespacedKey.minecraft("height_variation");
+    NamespacedKey HEIGHT_VARIATION = NamespacedKey.minecraft("height_variation");
 
     /**
      * The world seed (long).
      */
-    public static NamespacedKey WORLD_SEED = NamespacedKey.minecraft("world_seed");
+    NamespacedKey WORLD_SEED = NamespacedKey.minecraft("world_seed");
 
     /**
      * The sea level (float).
      */
-    public static NamespacedKey SEA_LEVEL = NamespacedKey.minecraft("sea_level");
+    NamespacedKey SEA_LEVEL = NamespacedKey.minecraft("sea_level");
 
     /**
      * Gets the property with the given name. If no such property exists, it is

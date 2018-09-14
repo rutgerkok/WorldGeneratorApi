@@ -28,7 +28,6 @@ import net.minecraft.server.v1_13_R2.World;
 import net.minecraft.server.v1_13_R2.WorldGenFeatureSwampHut;
 import net.minecraft.server.v1_13_R2.WorldGenerator;
 import net.minecraft.server.v1_13_R2.WorldServer;
-
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;

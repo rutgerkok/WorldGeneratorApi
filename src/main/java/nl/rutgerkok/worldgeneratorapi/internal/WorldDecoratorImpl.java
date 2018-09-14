@@ -69,7 +69,6 @@ import net.minecraft.server.v1_13_R2.TileEntitySign;
 import net.minecraft.server.v1_13_R2.TileEntitySkull;
 import net.minecraft.server.v1_13_R2.TileEntityStructure;
 import net.minecraft.server.v1_13_R2.WorldGenStage;
-
 import nl.rutgerkok.worldgeneratorapi.decoration.Decoration;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationArea;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationType;
@@ -80,6 +79,11 @@ public final class WorldDecoratorImpl implements WorldDecorator {
     private static class DecorationAreaImpl implements DecorationArea {
 
         final RegionLimitedWorldAccess internal;
+
+        /**
+         * Only one thread is working on a single decoration area, so no need to worry
+         * about thread-safety for this mutable field.
+         */
         private final MutableBlockPosition reusableBlockPos = new MutableBlockPosition();
 
         private DecorationAreaImpl(RegionLimitedWorldAccess internal) {
