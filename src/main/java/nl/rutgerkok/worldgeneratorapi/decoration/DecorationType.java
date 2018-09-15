@@ -5,18 +5,29 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 /**
- * The type of a decoration. The type of the decoration only influences when it
- * is spawned.
+ * The type of a decoration. The type of the decoration only influences the
+ * moment it is spawned.
  *
  */
 public enum DecorationType {
     /*
-     * Keep this enum in sync with Minecraft's equivalent. Also keep the order the
-     * same! It is the order in which Minecraft generates the decorations.
+     * Keep the names in sync with Minecraft's equivalent. Also, for clarity, try to
+     * keep the order here the same as the order in which Minecraft generates them.
      */
 
     /**
-     * First stage of decoration. Seems to be unused by Minecraft.
+     * Used to generate caves and ravines.
+     */
+    CARVING_AIR,
+
+    /**
+     * Used to generate underwater caves and ravines.
+     */
+    CARVING_LIQUID,
+
+    /**
+     * Early stage of decoration, just after the two carving stages. Seems to be
+     * unused by Minecraft.
      */
     RAW_GENERATION,
 

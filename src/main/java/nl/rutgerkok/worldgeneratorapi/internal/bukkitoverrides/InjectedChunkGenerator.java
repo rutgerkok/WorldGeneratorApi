@@ -23,6 +23,7 @@ import net.minecraft.server.v1_13_R2.SeededRandom;
 import net.minecraft.server.v1_13_R2.SpawnerCreature;
 import net.minecraft.server.v1_13_R2.World;
 import net.minecraft.server.v1_13_R2.WorldGenFeatureSwampHut;
+import net.minecraft.server.v1_13_R2.WorldGenStage;
 import net.minecraft.server.v1_13_R2.WorldGenerator;
 import net.minecraft.server.v1_13_R2.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
@@ -121,6 +122,11 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     }
 
     @Override
+    public void addFeatures(RegionLimitedWorldAccess world, WorldGenStage.Features stage) {
+        this.worldDecorator.spawnCarvers(world, stage, new SeededRandom(this.b));
+    }
+
+    @Override
     public void addMobs(RegionLimitedWorldAccess regionlimitedworldaccess) {
         final int i = regionlimitedworldaccess.a();
         final int j = regionlimitedworldaccess.b();
@@ -129,6 +135,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         seededrandom.a(regionlimitedworldaccess.getSeed(), i << 4, j << 4);
         SpawnerCreature.a(regionlimitedworldaccess, biomebase, i, j, seededrandom);
     }
+
     @Override
     public void createChunk(IChunkAccess ichunkaccess) {
         ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
