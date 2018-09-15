@@ -6,10 +6,10 @@ import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 
 import net.minecraft.server.v1_13_R2.BiomeBase;
 
-class CustomBiomeGrid implements BiomeGrid {
+class BiomeGridImpl implements BiomeGrid {
     final BiomeBase[] biomeArray;
 
-    CustomBiomeGrid(BiomeBase[] biome) {
+    BiomeGridImpl(BiomeBase[] biome) {
         this.biomeArray = biome;
     }
 

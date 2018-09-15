@@ -1,10 +1,8 @@
 package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
 
-import org.bukkit.craftbukkit.v1_13_R2.generator.CraftChunkData;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
@@ -13,7 +11,6 @@ import net.minecraft.server.v1_13_R2.BiomeBase.BiomeMeta;
 import net.minecraft.server.v1_13_R2.BlockPosition;
 import net.minecraft.server.v1_13_R2.ChunkCoordIntPair;
 import net.minecraft.server.v1_13_R2.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_13_R2.ChunkSection;
 import net.minecraft.server.v1_13_R2.ChunkStatus;
 import net.minecraft.server.v1_13_R2.EnumCreatureType;
 import net.minecraft.server.v1_13_R2.GeneratorSettingsDefault;
@@ -31,22 +28,67 @@ import net.minecraft.server.v1_13_R2.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
+import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
 
 public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault> {
 
-    private final org.bukkit.World world;
+    private static class GeneratingChunkImpl implements GeneratingChunk {
 
+        private final int chunkX;
+        private final int chunkZ;
+        private final ChunkDataImpl blocks;
+        private final BiomeGenerator biomeGenerator;
+        private final BiomeGrid biomeGrid;
+
+        GeneratingChunkImpl(IChunkAccess internal, BiomeGenerator biomeGenerator) {
+            this.chunkX = internal.getPos().x;
+            this.chunkZ = internal.getPos().z;
+            this.blocks = new ChunkDataImpl(internal);
+            this.biomeGrid = new BiomeGridImpl(internal.getBiomeIndex());
+
+            this.biomeGenerator = biomeGenerator;
+        }
+
+        @Override
+        public BiomeGenerator getBiomeGenerator() {
+            return biomeGenerator;
+        }
+
+        @Override
+        public BiomeGrid getBiomesForChunk() {
+            return biomeGrid;
+        }
+
+        @Override
+        public ChunkData getBlocksForChunk() {
+            return blocks;
+        }
+
+        @Override
+        public int getChunkX() {
+            return chunkX;
+        }
+
+        @Override
+        public int getChunkZ() {
+            return chunkZ;
+        }
+
+    }
+
+    private final org.bukkit.World world;
     /**
      * Could someone ask Mojang why world generation controls Phantom spawning?
      */
     private final MobSpawnerPhantom phantomSpawner = new MobSpawnerPhantom();
     private final GeneratorSettingsDefault defaultSettings = new GeneratorSettingsDefault();
     private final NoiseGenerator3 surfaceNoise;
-    public final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
 
+    public final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
     private BaseChunkGenerator baseChunkGenerator;
+
     private final BiomeGenerator biomeGenerator;
 
     public InjectedChunkGenerator(WorldServer world, BaseChunkGenerator baseChunkGenerator) {
@@ -87,7 +129,6 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         seededrandom.a(regionlimitedworldaccess.getSeed(), i << 4, j << 4);
         SpawnerCreature.a(regionlimitedworldaccess, biomebase, i, j, seededrandom);
     }
-
     @Override
     public void createChunk(IChunkAccess ichunkaccess) {
         ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
@@ -97,70 +138,32 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         seededrandom.a(i, j);
 
         // Generate zoomed-in biomes
-        CustomBiomeGrid biomes = new CustomBiomeGrid(this.c.getBiomeBlock(i * 16, j * 16, 16, 16));
+        ichunkaccess.a(this.c.getBiomeBlock(i * 16, j * 16, 16, 16));
 
         // Generate blocks
-        this.generateBaseChunk(i, j, ichunkaccess, biomes);
-        ichunkaccess.a(biomes.biomeArray);
+        GeneratingChunkImpl chunk = new GeneratingChunkImpl(ichunkaccess, biomeGenerator);
+        baseChunkGenerator.setBlocksInChunk(chunk);
+
+        // Generate early decorations
+        this.worldDecorator.spawnCustomBaseDecorations(BaseDecorationType.RAW_GENERATION, chunk);
+
+        // Heightmap calculations
         ichunkaccess.a(HeightMap.Type.WORLD_SURFACE_WG, HeightMap.Type.OCEAN_FLOOR_WG);
 
         // Generate surface
-        this.a(ichunkaccess, biomes.biomeArray, seededrandom, world.getSeaLevel());
+        if (this.worldDecorator.isDefaultEnabled(BaseDecorationType.SURFACE)) {
+            this.a(ichunkaccess, ichunkaccess.getBiomeIndex(), seededrandom, world.getSeaLevel());
+        }
+        this.worldDecorator.spawnCustomBaseDecorations(BaseDecorationType.SURFACE, chunk);
 
         // Generate bedrock
-        this.a(ichunkaccess, seededrandom);
+        if (this.worldDecorator.isDefaultEnabled(BaseDecorationType.BEDROCK)) {
+            this.a(ichunkaccess, seededrandom);
+        }
+        this.worldDecorator.spawnCustomBaseDecorations(BaseDecorationType.BEDROCK, chunk);
+
         ichunkaccess.a(HeightMap.Type.WORLD_SURFACE_WG, HeightMap.Type.OCEAN_FLOOR_WG);
         ichunkaccess.a(ChunkStatus.BASE);
-    }
-
-    private void generateBaseChunk(int i, int j, IChunkAccess ichunkaccess, BiomeGrid biomes) {
-        int chunkX = ichunkaccess.getPos().x;
-        int chunkZ = ichunkaccess.getPos().z;
-        CraftChunkData chunkData = new CraftChunkData(this.world);
-        GeneratingChunk chunk = new GeneratingChunk() {
-
-            @Override
-            public BiomeGenerator getBiomeGenerator() {
-                return biomeGenerator;
-            }
-
-            @Override
-            public BiomeGrid getBiomesForChunk() {
-                return biomes;
-            }
-
-            @Override
-            public ChunkData getBlocksForChunk() {
-                return chunkData;
-            }
-
-            @Override
-            public int getChunkX() {
-                return chunkX;
-            }
-
-            @Override
-            public int getChunkZ() {
-                return chunkZ;
-            }
-        };
-
-        // Generate blocks and update chunk
-        baseChunkGenerator.setBlocksInChunk(chunk);
-        try {
-            Field sectionsField = CraftChunkData.class.getDeclaredField("sections");
-            sectionsField.setAccessible(true);
-            ChunkSection[] sections = (ChunkSection[]) sectionsField.get(chunkData);
-            ChunkSection[] csect = ichunkaccess.getSections();
-            for (int scnt = Math.min(csect.length, sections.length), sec = 0; sec < scnt; ++sec) {
-                if (sections[sec] != null) {
-                    final ChunkSection section = sections[sec];
-                    csect[sec] = section;
-                }
-            }
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public BaseChunkGenerator getBaseChunkGenerator() {
@@ -192,6 +195,8 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     public int getSpawnHeight() {
         return world.getSeaLevel() + 1;
     }
+
+
 
     public void setBaseChunkGenerator(BaseChunkGenerator baseChunkGenerator) {
         this.baseChunkGenerator = Objects.requireNonNull(baseChunkGenerator, "baseChunkGenerator");
