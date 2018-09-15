@@ -1,6 +1,7 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import net.minecraft.server.v1_13_R2.SeededRandom;
 import net.minecraft.server.v1_13_R2.WorldGenCarverWrapper;
 import net.minecraft.server.v1_13_R2.WorldGenFeatureConfiguration;
 import net.minecraft.server.v1_13_R2.WorldGenStage;
+
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
@@ -98,10 +100,10 @@ public final class WorldDecoratorImpl implements WorldDecorator {
             BitSet bitset = world.b(chunkX, chunkZ).a(stage);
             for (int lookingChunkX = chunkX - 8; lookingChunkX <= chunkX + 8; ++lookingChunkX) {
                 for (int lookingChunkZ = chunkZ - 8; lookingChunkZ <= chunkZ + 8; ++lookingChunkZ) {
-                    List<WorldGenCarverWrapper<?>> list = world.getChunkProvider().getChunkGenerator()
+                    BiomeBase biome = world.getChunkProvider().getChunkGenerator()
                             .getWorldChunkManager()
-                            .getBiome(new BlockPosition(lookingChunkX * 16, 0, lookingChunkZ * 16), null)
-                            .a(stage);
+                            .getBiome(new BlockPosition(lookingChunkX * 16, 0, lookingChunkZ * 16), null);
+                    List<WorldGenCarverWrapper<?>> list = biome == null ? Collections.emptyList() : biome.a(stage);
                     ListIterator<WorldGenCarverWrapper<?>> listiterator = list.listIterator();
                     while (listiterator.hasNext()) {
                         int i2 = listiterator.nextIndex();
