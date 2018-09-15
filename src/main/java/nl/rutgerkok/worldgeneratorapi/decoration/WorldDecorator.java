@@ -109,6 +109,20 @@ public interface WorldDecorator {
     }
 
     /**
+     * Disables all default Minecraft base decorations of the given type. Equivalent to
+     * calling {@link #setDefaultBaseDecoratorsEnabled(BaseDecorationType, boolean)} with
+     * {@code enabled} set to {@code false}.
+     *
+     * @param type
+     *            The type of decoration.
+     * @return This, for chaining.
+     */
+    default WorldDecorator withoutDefaultBaseDecorations(BaseDecorationType type) {
+        setDefaultBaseDecoratorsEnabled(type, false);
+        return this;
+    }
+
+    /**
      * Disables all default Minecraft decorations of the given type. Equivalent to
      * calling {@link #setDefaultDecoratorsEnabled(DecorationType, boolean)} with
      * {@code enabled} set to {@code false}.
