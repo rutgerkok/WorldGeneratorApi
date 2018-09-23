@@ -23,6 +23,12 @@ import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
  */
 public final class DummyBukkitChunkGenerator extends ChunkGenerator {
 
+    /**
+     * Marks the chunk generator as async-safe. See the following link for info:
+     * https://github.com/PaperMC/Paper/commit/e91eb53286395dcb2932e84c7240aa0e1baa1447
+     */
+    public final boolean PAPER_ASYNC_SAFE = true;
+
     private final WorldGeneratorApi impl;
 
     public DummyBukkitChunkGenerator(WorldGeneratorApi impl) {
