@@ -66,7 +66,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
     public WorldDecorator getWorldDecorator() {
         InjectedChunkGenerator injected = this.injected;
         if (injected == null) {
-            throw new IllegalStateException("At the moment, it is required to"
+            throw new UnsupportedOperationException("At the moment, it is required to"
                     + " set a custom base chunk generator before decorations"
                     + " can be added. It is not possible to modify the default"
                     + " Minecraft generator yet.");

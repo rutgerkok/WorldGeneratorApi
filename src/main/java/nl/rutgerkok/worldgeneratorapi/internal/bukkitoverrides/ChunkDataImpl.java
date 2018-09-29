@@ -29,6 +29,7 @@ final class ChunkDataImpl implements ChunkData {
     }
 
     @Override
+    @Deprecated
     public byte getData(int x, int y, int z) {
         throw new UnsupportedOperationException("block data bytes are deprecated, use the BlockData class");
     }
