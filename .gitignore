@@ -3,6 +3,9 @@
 .classpath
 .settings/
 
+# IntelliJ
+.idea/
+
 # Tests
 logs/
 
