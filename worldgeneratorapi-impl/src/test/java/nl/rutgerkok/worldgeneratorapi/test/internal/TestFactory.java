@@ -1,9 +1,6 @@
-package nl.rutgerkok.worldgeneratorapi.test;
+package nl.rutgerkok.worldgeneratorapi.test.internal;
 
-import java.util.Collections;
 import java.util.logging.Logger;
-
-import javax.annotation.Nonnull;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -38,21 +35,6 @@ public class TestFactory {
         return plugin;
     }
 
-    /**
-     * Returns {@code null} that is annotated {@link Nonnull}, as to confuse the
-     * type checker.
-     *
-     * Say that your annotation type checker forbids testing
-     * {@code someMethod(null)}, then you can use this method to call
-     * {@code someMethod(unsafeNull())}.
-     *
-     * @return {@code null}, but annotated as {@link Nonnull}
-     */
-    @SuppressWarnings("unchecked") // It is unsafe, that is the purpose
-    public static <T> T unsafeNull() {
-        return (T) Collections.EMPTY_MAP.get("some string");
-    }
-
     public static World world(String name) {
         World world = Mockito.mock(World.class);
         Mockito.when(world.getName()).thenReturn(name);
@@ -61,4 +43,5 @@ public class TestFactory {
 
         return world;
     }
+
 }

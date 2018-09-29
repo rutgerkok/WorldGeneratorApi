@@ -15,7 +15,6 @@ import nl.rutgerkok.worldgeneratorapi.internal.PropertyRegistryImpl;
 import nl.rutgerkok.worldgeneratorapi.property.FloatProperty;
 import nl.rutgerkok.worldgeneratorapi.property.Property;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
-import nl.rutgerkok.worldgeneratorapi.test.TestFactory;
 
 public class PropertyRegistryImplTest {
 
