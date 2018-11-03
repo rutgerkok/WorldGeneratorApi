@@ -7,6 +7,7 @@ import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 public interface WorldGeneratorApi {
@@ -42,7 +43,26 @@ public interface WorldGeneratorApi {
 
 
     /**
-     * Creates a custom world generator for the given world.
+     * Registers a custom world generator for the given world. Once the world is
+     * loaded, the code passed as the second argument of this method will be run.
+     * This code must first set the base chunk generator using
+     * {@link WorldGenerator#setBaseChunkGenerator(BaseChunkGenerator)}, and can
+     * then (optionally) make other modifications.
+     *
+     * <p>
+     * This method is intended to be called from within the
+     * {@link Plugin#getDefaultWorldGenerator(String, String)} method. It returns a
+     * dummy {@link ChunkGenerator} that can be passed back to Bukkit. This returned
+     * {@link ChunkGenerator} is not actually capable of generating terrain: this is
+     * why it must be replaced using
+     * {@link WorldGenerator#setBaseChunkGenerator(BaseChunkGenerator)}.
+     *
+     * <p>
+     * If you don't want to modify the base terrain, then you must not use this
+     * method. You also must not override Bukkit's
+     * {@link Plugin#getDefaultWorldGenerator(String, String)} method. Instead, you
+     * must listen for the {@link WorldGeneratorInitEvent} and modify the world
+     * generator inside that event.
      *
      * @param world
      *            The world to create a custom world generator for.

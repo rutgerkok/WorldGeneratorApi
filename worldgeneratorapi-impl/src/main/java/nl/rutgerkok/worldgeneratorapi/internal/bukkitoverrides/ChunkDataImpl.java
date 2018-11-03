@@ -9,7 +9,7 @@ import net.minecraft.server.v1_13_R2.BlockPosition.MutableBlockPosition;
 import net.minecraft.server.v1_13_R2.IBlockData;
 import net.minecraft.server.v1_13_R2.IChunkAccess;
 
-final class ChunkDataImpl implements ChunkData {
+public final class ChunkDataImpl implements ChunkData {
     private final IChunkAccess internal;
 
     private final int xOffset;
@@ -32,6 +32,10 @@ final class ChunkDataImpl implements ChunkData {
     @Deprecated
     public byte getData(int x, int y, int z) {
         throw new UnsupportedOperationException("block data bytes are deprecated, use the BlockData class");
+    }
+
+    public IChunkAccess getHandle() {
+        return this.internal;
     }
 
     @Override

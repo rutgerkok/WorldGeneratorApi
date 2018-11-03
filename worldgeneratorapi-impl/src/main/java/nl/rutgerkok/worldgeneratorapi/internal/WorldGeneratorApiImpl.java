@@ -49,6 +49,16 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
                     .get(worldGenerator.getWorldRef());
             if (worldGeneratorModifier != null) {
                 worldGeneratorModifier.accept(worldGenerator);
+                try {
+                    worldGenerator.getBaseChunkGenerator();
+                } catch (UnsupportedOperationException e) {
+                    throw new IllegalStateException(
+                            "The custom world generator forgot to set a base"
+                                    + " chunk generator. If the custom world generator"
+                                    + " does not intend to replace the base terrain, it"
+                                    + " should modify the world using the"
+                                    + " WorldGeneratorInitEvent instead of using ");
+                }
             }
 
             // Allow other plugins to modify the world

@@ -6,8 +6,8 @@ import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 
 import net.minecraft.server.v1_13_R2.BiomeBase;
 
-class BiomeGridImpl implements BiomeGrid {
-    final BiomeBase[] biomeArray;
+public final class BiomeGridImpl implements BiomeGrid {
+    private final BiomeBase[] biomeArray;
 
     BiomeGridImpl(BiomeBase[] biome) {
         this.biomeArray = biome;
@@ -16,6 +16,15 @@ class BiomeGridImpl implements BiomeGrid {
     @Override
     public Biome getBiome(final int x, final int z) {
         return CraftBlock.biomeBaseToBiome(this.biomeArray[z << 4 | x]);
+    }
+
+    /**
+     * Gets the internal biome array.
+     * 
+     * @return The biome array.
+     */
+    public BiomeBase[] getHandle() {
+        return biomeArray;
     }
 
     @Override

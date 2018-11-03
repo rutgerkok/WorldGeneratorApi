@@ -27,19 +27,13 @@ final class WorldGeneratorImpl implements WorldGenerator {
     private final WorldRef worldRef;
 
     WorldGeneratorImpl(World world) {
-        this.world = world;
+        this.world = Objects.requireNonNull(world, "world");
         this.worldRef = WorldRef.of(world);
     }
 
     @Override
     public BaseChunkGenerator getBaseChunkGenerator() throws UnsupportedOperationException {
-        InjectedChunkGenerator injected = this.injected;
-        if (injected == null) {
-            // In the future, it would be interesting to somehow extract this from the world
-            throw new UnsupportedOperationException("I don't know what base chunk generator has been set for world \""
-                    + world.getName() + "\" - Minecraft itself or some other plugin is used as the world generator.");
-        }
-        return injected.getBaseChunkGenerator();
+        return BaseChunkGeneratorImpl.fromMinecraft(world);
     }
 
     @Override
@@ -66,10 +60,8 @@ final class WorldGeneratorImpl implements WorldGenerator {
     public WorldDecorator getWorldDecorator() {
         InjectedChunkGenerator injected = this.injected;
         if (injected == null) {
-            throw new UnsupportedOperationException("At the moment, it is required to"
-                    + " set a custom base chunk generator before decorations"
-                    + " can be added. It is not possible to modify the default"
-                    + " Minecraft generator yet.");
+            replaceChunkGenerator(BaseChunkGeneratorImpl.fromMinecraft(world));
+            return this.injected.worldDecorator;
         }
         return injected.worldDecorator;
     }
@@ -83,28 +75,39 @@ final class WorldGeneratorImpl implements WorldGenerator {
         return worldRef;
     }
 
+    /**
+     * Injects {@link InjectedChunkGenerator} into the world, so that we can
+     * customize how blocks are generated.
+     * 
+     * @param base
+     *            Base chunk generator.
+     */
+    private void replaceChunkGenerator(BaseChunkGenerator base) {
+        InjectedChunkGenerator injected;
+        // Need to inject ourselves into the world
+        injected = new InjectedChunkGenerator(getWorldHandle(), base);
+        ChunkProviderServer chunkProvider = getWorldHandle().getChunkProviderServer();
+        try {
+            Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
+            chunkGeneratorField.set(chunkProvider, injected);
+
+            Field chunkTaskSchedulerField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkTaskScheduler.class);
+            ChunkTaskScheduler scheduler = (ChunkTaskScheduler) chunkTaskSchedulerField.get(chunkProvider);
+            chunkGeneratorField = ReflectionUtil.getFieldOfType(scheduler, ChunkGenerator.class);
+            chunkGeneratorField.set(scheduler, injected);
+
+            this.injected = injected;
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to inject world generator", e);
+        }
+    }
+
     @Override
     public void setBaseChunkGenerator(BaseChunkGenerator base) {
         Objects.requireNonNull(base, "base");
         InjectedChunkGenerator injected = this.injected;
         if (injected == null) {
-
-            // Need to inject ourselves into the world
-            injected = new InjectedChunkGenerator(getWorldHandle(), base);
-            ChunkProviderServer chunkProvider = getWorldHandle().getChunkProviderServer();
-            try {
-                Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
-                chunkGeneratorField.set(chunkProvider, injected);
-
-                Field chunkTaskSchedulerField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkTaskScheduler.class);
-                ChunkTaskScheduler scheduler = (ChunkTaskScheduler) chunkTaskSchedulerField.get(chunkProvider);
-                chunkGeneratorField = ReflectionUtil.getFieldOfType(scheduler, ChunkGenerator.class);
-                chunkGeneratorField.set(scheduler, injected);
-
-                this.injected = injected;
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException("Failed to inject world generator", e);
-            }
+            replaceChunkGenerator(base);
         } else {
             injected.setBaseChunkGenerator(base);
         }

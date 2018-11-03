@@ -41,7 +41,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         private final int chunkZ;
         private final ChunkDataImpl blocks;
         private final BiomeGenerator biomeGenerator;
-        private final BiomeGrid biomeGrid;
+        private final BiomeGridImpl biomeGrid;
 
         GeneratingChunkImpl(IChunkAccess internal, BiomeGenerator biomeGenerator) {
             this.chunkX = internal.getPos().x;
