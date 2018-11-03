@@ -57,7 +57,7 @@ final class ChunkDataImpl implements ChunkData {
 
     private void setBlock(int x, int y, int z, IBlockData blockData) {
         reusableBlockPos.c(xOffset + x, y, zOffset + z);
-        internal.a(reusableBlockPos, blockData, false);
+        internal.setType(reusableBlockPos, blockData, false);
     }
 
     @Override
