@@ -130,7 +130,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     public void addMobs(RegionLimitedWorldAccess regionlimitedworldaccess) {
         final int i = regionlimitedworldaccess.a();
         final int j = regionlimitedworldaccess.b();
-        final BiomeBase biomebase = regionlimitedworldaccess.b(i, j).getBiomeIndex()[0];
+        final BiomeBase biomebase = regionlimitedworldaccess.getChunkAt(i, j).getBiomeIndex()[0];
         final SeededRandom seededrandom = new SeededRandom();
         seededrandom.a(regionlimitedworldaccess.getSeed(), i << 4, j << 4);
         SpawnerCreature.a(regionlimitedworldaccess, biomebase, i, j, seededrandom);

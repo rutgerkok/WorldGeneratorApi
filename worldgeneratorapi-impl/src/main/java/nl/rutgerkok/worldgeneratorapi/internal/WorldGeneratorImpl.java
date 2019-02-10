@@ -86,7 +86,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
         InjectedChunkGenerator injected;
         // Need to inject ourselves into the world
         injected = new InjectedChunkGenerator(getWorldHandle(), base);
-        ChunkProviderServer chunkProvider = getWorldHandle().getChunkProviderServer();
+        ChunkProviderServer chunkProvider = getWorldHandle().getChunkProvider();
         try {
             Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
             chunkGeneratorField.set(chunkProvider, injected);

@@ -21,7 +21,6 @@ import net.minecraft.server.v1_13_R2.SeededRandom;
 import net.minecraft.server.v1_13_R2.WorldGenCarverWrapper;
 import net.minecraft.server.v1_13_R2.WorldGenFeatureConfiguration;
 import net.minecraft.server.v1_13_R2.WorldGenStage;
-
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
@@ -97,7 +96,7 @@ public final class WorldDecoratorImpl implements WorldDecorator {
             // Spawn default carvers (code based on ChunkGeneratorAbstract.addFeatures)
             int chunkX = world.a();
             int chunkZ = world.b();
-            BitSet bitset = world.b(chunkX, chunkZ).a(stage);
+            BitSet bitset = world.getChunkAt(chunkX, chunkZ).a(stage);
             for (int lookingChunkX = chunkX - 8; lookingChunkX <= chunkX + 8; ++lookingChunkX) {
                 for (int lookingChunkZ = chunkZ - 8; lookingChunkZ <= chunkZ + 8; ++lookingChunkZ) {
                     BiomeBase biome = world.getChunkProvider().getChunkGenerator()
@@ -149,7 +148,7 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         int k = i * 16;
         int l = j * 16;
         BlockPosition blockposition = new BlockPosition(k, 0, l);
-        BiomeBase biomebase = populationArea.b(i + 1, j + 1).getBiomeIndex()[0];
+        BiomeBase biomebase = populationArea.getChunkAt(i + 1, j + 1).getBiomeIndex()[0];
         SeededRandom seededrandom = new SeededRandom();
         DecorationArea decorationArea = new DecorationAreaImpl(populationArea);
         long chunkSeed = seededrandom.a(populationArea.getSeed(), k, l);
