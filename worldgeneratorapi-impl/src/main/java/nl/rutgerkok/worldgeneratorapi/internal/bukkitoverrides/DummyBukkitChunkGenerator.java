@@ -55,5 +55,10 @@ public final class DummyBukkitChunkGenerator extends ChunkGenerator {
         return new ArrayList<>(); // We don't use Bukkit's populators
     }
 
+    @Override
+    public boolean isParallelCapable() {
+        return true;
+    }
+
 
 }
