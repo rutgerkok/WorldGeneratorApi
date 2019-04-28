@@ -12,6 +12,7 @@ import net.minecraft.server.v1_14_R1.ChunkGenerator;
 import net.minecraft.server.v1_14_R1.ChunkProviderServer;
 import net.minecraft.server.v1_14_R1.WorldChunkManager;
 import net.minecraft.server.v1_14_R1.WorldServer;
+
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
@@ -84,7 +85,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
     /**
      * Injects {@link InjectedChunkGenerator} into the world, so that we can
      * customize how blocks are generated.
-     * 
+     *
      * @param base
      *            Base chunk generator.
      */
@@ -92,11 +93,17 @@ final class WorldGeneratorImpl implements WorldGenerator {
         InjectedChunkGenerator injected;
         // Need to inject ourselves into the world
         injected = new InjectedChunkGenerator(getWorldHandle(), base);
+
         ChunkProviderServer chunkProvider = getWorldHandle().getChunkProvider();
         try {
             Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
             chunkGeneratorField.set(chunkProvider, injected);
 
+            // Also replace chunk generator in PlayerChunkMap
+            chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider.playerChunkMap, ChunkGenerator.class);
+            chunkGeneratorField.set(chunkProvider.playerChunkMap, injected);
+
+            // Paper only: replace chunk generator in ChunkTaskScheduler
             try {
                 Field chunkTaskSchedulerField = ReflectionUtil.getFieldOfType(chunkProvider,
                         nmsClass("ChunkTaskScheduler"));
@@ -108,6 +115,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
             }
 
             this.injected = injected;
+            getWorldHandle().generator = null; // Clear out the custom generator
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to inject world generator", e);
         }
