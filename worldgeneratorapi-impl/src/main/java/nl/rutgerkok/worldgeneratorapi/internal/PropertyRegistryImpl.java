@@ -12,11 +12,11 @@ import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
 
-import net.minecraft.server.v1_13_R2.BiomeBase;
-import net.minecraft.server.v1_13_R2.Biomes;
+import net.minecraft.server.v1_14_R1.BiomeBase;
+import net.minecraft.server.v1_14_R1.Biomes;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.property.FloatProperty;
@@ -57,11 +57,11 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
     public PropertyRegistryImpl() {
         addMinecraftBiomeFloatProperty(TEMPERATURE, BiomeBase::getTemperature);
         addMinecraftBiomeFloatProperty(WETNESS, BiomeBase::getHumidity);
-        addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::h);
-        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::l);
+        addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::g);
+        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::k);
         addMinecraftWorldProperty(WORLD_SEED, world -> (Long) world.getSeed(), -1L);
         addMinecraftWorldFloatProperty(SEA_LEVEL, world -> (float) world.getSeaLevel(), (world, level) -> {
-            ((CraftWorld) world).getHandle().b(level.intValue());
+            ((CraftWorld) world).getHandle().c(level.intValue());
             if (world.getSeaLevel() != level.intValue()) {
                 throw new UnsupportedOperationException("Failed to set sea level to " + level.intValue());
             }

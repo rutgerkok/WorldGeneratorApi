@@ -1,7 +1,6 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -12,15 +11,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.minecraft.server.v1_13_R2.BiomeBase;
-import net.minecraft.server.v1_13_R2.BlockFalling;
-import net.minecraft.server.v1_13_R2.BlockPosition;
-import net.minecraft.server.v1_13_R2.ChunkGenerator;
-import net.minecraft.server.v1_13_R2.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_13_R2.SeededRandom;
-import net.minecraft.server.v1_13_R2.WorldGenCarverWrapper;
-import net.minecraft.server.v1_13_R2.WorldGenFeatureConfiguration;
-import net.minecraft.server.v1_13_R2.WorldGenStage;
+import net.minecraft.server.v1_14_R1.BiomeBase;
+import net.minecraft.server.v1_14_R1.BlockPosition;
+import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
+import net.minecraft.server.v1_14_R1.ChunkGenerator;
+import net.minecraft.server.v1_14_R1.IChunkAccess;
+import net.minecraft.server.v1_14_R1.RegionLimitedWorldAccess;
+import net.minecraft.server.v1_14_R1.SeededRandom;
+import net.minecraft.server.v1_14_R1.WorldGenCarverWrapper;
+import net.minecraft.server.v1_14_R1.WorldGenStage;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
@@ -52,18 +51,22 @@ public final class WorldDecoratorImpl implements WorldDecorator {
     private final Map<BaseDecorationType, List<BaseChunkGenerator>> customBaseDecorations = new ConcurrentHashMap<>();
     private final Set<BaseDecorationType> disabledBaseDecorations = EnumSet.noneOf(BaseDecorationType.class);
 
+    private BiomeBase getCarvingBiome(IChunkAccess ichunkaccess) {
+        return ichunkaccess.getBiome(BlockPosition.ZERO);
+    }
+
     @Override
     public List<BaseChunkGenerator> getCustomBaseDecorations(BaseDecorationType type) {
         Objects.requireNonNull(type, "type");
         return customBaseDecorations.computeIfAbsent(type, t -> new CopyOnWriteArrayList<>());
     }
 
+
     @Override
     public List<Decoration> getCustomDecorations(DecorationType type) {
         Objects.requireNonNull(type, "type");
         return customDecorations.computeIfAbsent(type, t -> new CopyOnWriteArrayList<>());
     }
-
 
     public boolean isDefaultEnabled(BaseDecorationType type) {
         return !this.disabledBaseDecorations.contains(type);
@@ -89,29 +92,27 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    public void spawnCarvers(RegionLimitedWorldAccess world, WorldGenStage.Features stage, SeededRandom seededrandom) {
+    public void spawnCarvers(IChunkAccess ichunkaccess, WorldGenStage.Features stage, int seaLevel, long seed) {
+        SeededRandom seededrandom = new SeededRandom(seed);
         DecorationType decorationType = CARVER_TRANSLATION.get(stage);
         if (!this.disabledDecorations.contains(decorationType)) {
-            // Spawn default carvers (code based on ChunkGeneratorAbstract.addFeatures)
-            int chunkX = world.a();
-            int chunkZ = world.b();
-            BitSet bitset = world.getChunkAt(chunkX, chunkZ).a(stage);
-            for (int lookingChunkX = chunkX - 8; lookingChunkX <= chunkX + 8; ++lookingChunkX) {
-                for (int lookingChunkZ = chunkZ - 8; lookingChunkZ <= chunkZ + 8; ++lookingChunkZ) {
-                    BiomeBase biome = world.getChunkProvider().getChunkGenerator()
-                            .getWorldChunkManager()
-                            .getBiome(new BlockPosition(lookingChunkX * 16, 0, lookingChunkZ * 16), null);
-                    List<WorldGenCarverWrapper<?>> list = biome == null ? Collections.emptyList() : biome.a(stage);
+            // Spawn default carvers (code based on ChunkGenerator.doCarving)
+            ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
+            int i = chunkcoordintpair.x;
+            int j = chunkcoordintpair.z;
+            BitSet bitset = ichunkaccess.a(stage);
+
+            for (int k = i - 8; k <= i + 8; ++k) {
+                for (int l = j - 8; l <= j + 8; ++l) {
+                    List<WorldGenCarverWrapper<?>> list = this.getCarvingBiome(ichunkaccess).a(stage);
                     ListIterator<WorldGenCarverWrapper<?>> listiterator = list.listIterator();
+
                     while (listiterator.hasNext()) {
-                        int i2 = listiterator.nextIndex();
+                        int i1 = listiterator.nextIndex();
                         WorldGenCarverWrapper<?> worldgencarverwrapper = listiterator.next();
-                        seededrandom.c(world.getMinecraftWorld().getSeed() + i2, lookingChunkX, lookingChunkZ);
-                        if (worldgencarverwrapper.a(world, seededrandom, lookingChunkX, lookingChunkZ,
-                                WorldGenFeatureConfiguration.e)) {
-                            worldgencarverwrapper.a(world, seededrandom, lookingChunkX, lookingChunkZ, chunkX, chunkZ,
-                                    bitset, WorldGenFeatureConfiguration.e);
+                        seededrandom.c(seed + i1, k, l);
+                        if (worldgencarverwrapper.a(seededrandom, k, l)) {
+                            worldgencarverwrapper.a(ichunkaccess, seededrandom, seaLevel, k, l, i, j, bitset);
                         }
                     }
                 }
@@ -119,14 +120,7 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         }
 
         // Spawn custom carvers
-        List<Decoration> decorations = this.customDecorations.get(decorationType);
-        if (decorations == null) {
-            return;
-        }
-        DecorationArea decorationArea = new DecorationAreaImpl(world);
-        for (Decoration decoration : decorations) {
-            decoration.decorate(decorationArea, seededrandom);
-        }
+        // TODO re-enable now that it operates
     }
 
     public void spawnCustomBaseDecorations(BaseDecorationType type, GeneratingChunk chunk) {
@@ -142,7 +136,6 @@ public final class WorldDecoratorImpl implements WorldDecorator {
     }
 
     public void spawnDecorations(ChunkGenerator<?> chunkGenerator, RegionLimitedWorldAccess populationArea) {
-        BlockFalling.instaFall = true;
         int i = populationArea.a();
         int j = populationArea.b();
         int k = i * 16;
@@ -175,7 +168,6 @@ public final class WorldDecoratorImpl implements WorldDecorator {
                 decorationIndex++;
             }
         }
-        BlockFalling.instaFall = false;
     }
 
 }

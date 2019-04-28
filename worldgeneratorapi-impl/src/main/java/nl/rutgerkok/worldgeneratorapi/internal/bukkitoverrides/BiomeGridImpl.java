@@ -1,10 +1,10 @@
 package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 
-import net.minecraft.server.v1_13_R2.BiomeBase;
+import net.minecraft.server.v1_14_R1.BiomeBase;
 
 public final class BiomeGridImpl implements BiomeGrid {
     private final BiomeBase[] biomeArray;

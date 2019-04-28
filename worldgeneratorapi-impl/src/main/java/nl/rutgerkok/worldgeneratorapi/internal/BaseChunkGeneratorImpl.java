@@ -3,18 +3,18 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 import java.util.Objects;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_13_R2.generator.NormalChunkGenerator;
+import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 
-import net.minecraft.server.v1_13_R2.ChunkGenerator;
-import net.minecraft.server.v1_13_R2.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_13_R2.ChunkProviderDebug;
-import net.minecraft.server.v1_13_R2.ChunkProviderFlat;
-import net.minecraft.server.v1_13_R2.ChunkProviderGenerate;
-import net.minecraft.server.v1_13_R2.ChunkProviderHell;
-import net.minecraft.server.v1_13_R2.ChunkProviderTheEnd;
-import net.minecraft.server.v1_13_R2.SeededRandom;
-import net.minecraft.server.v1_13_R2.WorldServer;
+import net.minecraft.server.v1_14_R1.ChunkGenerator;
+import net.minecraft.server.v1_14_R1.ChunkGeneratorAbstract;
+import net.minecraft.server.v1_14_R1.ChunkProviderDebug;
+import net.minecraft.server.v1_14_R1.ChunkProviderFlat;
+import net.minecraft.server.v1_14_R1.ChunkProviderGenerate;
+import net.minecraft.server.v1_14_R1.ChunkProviderHell;
+import net.minecraft.server.v1_14_R1.ChunkProviderTheEnd;
+import net.minecraft.server.v1_14_R1.GeneratorAccess;
+import net.minecraft.server.v1_14_R1.SeededRandom;
+import net.minecraft.server.v1_14_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.ChunkDataImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator;
@@ -38,20 +38,11 @@ final class BaseChunkGeneratorImpl implements BaseChunkGenerator {
     static BaseChunkGenerator fromMinecraft(World world) {
         WorldServer worldServer = ((CraftWorld) world).getHandle();
         ChunkGenerator<?> chunkGenerator = worldServer.getChunkProvider().getChunkGenerator();
-        if (chunkGenerator instanceof NormalChunkGenerator<?>) {
-            try {
-                chunkGenerator = (ChunkGenerator<?>) ReflectionUtil
-                        .getFieldOfType(chunkGenerator, ChunkGenerator.class)
-                        .get(chunkGenerator);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException("Error getting chunkGenerator from NormalChunkGenerator", e);
-            }
-        }
         if (chunkGenerator instanceof InjectedChunkGenerator) {
             return ((InjectedChunkGenerator) chunkGenerator).getBaseChunkGenerator();
         }
         if (isSupported(chunkGenerator)) {
-            return new BaseChunkGeneratorImpl(chunkGenerator);
+            return new BaseChunkGeneratorImpl(worldServer, chunkGenerator);
         }
 
         throw new UnsupportedOperationException(
@@ -71,11 +62,13 @@ final class BaseChunkGeneratorImpl implements BaseChunkGenerator {
     }
 
     private final ChunkGenerator<?> internal;
+    private final GeneratorAccess world;
 
-    private BaseChunkGeneratorImpl(ChunkGenerator<?> chunkGenerator) {
+    private BaseChunkGeneratorImpl(GeneratorAccess world, ChunkGenerator<?> chunkGenerator) {
         if (chunkGenerator instanceof InjectedChunkGenerator) {
             throw new IllegalArgumentException("Double-wrapping");
         }
+        this.world = Objects.requireNonNull(world, "world");
         this.internal = Objects.requireNonNull(chunkGenerator, "internal");
     }
 
@@ -87,13 +80,13 @@ final class BaseChunkGeneratorImpl implements BaseChunkGenerator {
 
         // Make sure this matches isSupported above
         if (internal instanceof ChunkProviderGenerate) {
-            ((ChunkProviderGenerate) internal).a(chunk.getChunkX(), chunk.getChunkZ(), blocks.getHandle());
+            ((ChunkProviderGenerate) internal).buildNoise(world, blocks.getHandle());
         } else if (internal instanceof ChunkProviderFlat) {
-            ((ChunkProviderFlat) internal).a(chunk.getChunkX(), chunk.getChunkZ(), blocks.getHandle());
+            ((ChunkProviderFlat) internal).buildNoise(world, blocks.getHandle());
         } else if (internal instanceof ChunkProviderHell) {
-            ((ChunkProviderHell) internal).a(chunk.getChunkX(), chunk.getChunkZ(), blocks.getHandle());
+            ((ChunkProviderHell) internal).buildNoise(world, blocks.getHandle());
         } else if (internal instanceof ChunkProviderTheEnd) {
-            ((ChunkProviderTheEnd) internal).a(chunk.getChunkX(), chunk.getChunkZ(), blocks.getHandle());
+            ((ChunkProviderTheEnd) internal).buildNoise(world, blocks.getHandle());
         } else if (internal instanceof ChunkProviderDebug) {
             // Generate nothing - there is no base terrain
         } else {

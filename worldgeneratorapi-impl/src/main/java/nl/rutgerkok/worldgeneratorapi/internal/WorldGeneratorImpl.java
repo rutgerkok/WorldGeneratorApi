@@ -6,13 +6,12 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 
-import net.minecraft.server.v1_13_R2.ChunkGenerator;
-import net.minecraft.server.v1_13_R2.ChunkProviderServer;
-import net.minecraft.server.v1_13_R2.ChunkTaskScheduler;
-import net.minecraft.server.v1_13_R2.WorldChunkManager;
-import net.minecraft.server.v1_13_R2.WorldServer;
+import net.minecraft.server.v1_14_R1.ChunkGenerator;
+import net.minecraft.server.v1_14_R1.ChunkProviderServer;
+import net.minecraft.server.v1_14_R1.WorldChunkManager;
+import net.minecraft.server.v1_14_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
@@ -75,6 +74,13 @@ final class WorldGeneratorImpl implements WorldGenerator {
         return worldRef;
     }
 
+    private Class<?> nmsClass(String simpleName) throws ClassNotFoundException {
+        // Returns a class in the net.mineraft.server package
+        Class<?> exampleNmsClass = ChunkGenerator.class;
+        String name = exampleNmsClass.getName().replace(exampleNmsClass.getSimpleName(), simpleName);
+        return Class.forName(name);
+    }
+
     /**
      * Injects {@link InjectedChunkGenerator} into the world, so that we can
      * customize how blocks are generated.
@@ -91,10 +97,15 @@ final class WorldGeneratorImpl implements WorldGenerator {
             Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
             chunkGeneratorField.set(chunkProvider, injected);
 
-            Field chunkTaskSchedulerField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkTaskScheduler.class);
-            ChunkTaskScheduler scheduler = (ChunkTaskScheduler) chunkTaskSchedulerField.get(chunkProvider);
-            chunkGeneratorField = ReflectionUtil.getFieldOfType(scheduler, ChunkGenerator.class);
-            chunkGeneratorField.set(scheduler, injected);
+            try {
+                Field chunkTaskSchedulerField = ReflectionUtil.getFieldOfType(chunkProvider,
+                        nmsClass("ChunkTaskScheduler"));
+                Object scheduler = chunkTaskSchedulerField.get(chunkProvider);
+                chunkGeneratorField = ReflectionUtil.getFieldOfType(scheduler, ChunkGenerator.class);
+                chunkGeneratorField.set(scheduler, injected);
+            } catch (ClassNotFoundException e) {
+                // Ignore, we're not on Paper but on Spigot
+            }
 
             this.injected = injected;
         } catch (ReflectiveOperationException e) {

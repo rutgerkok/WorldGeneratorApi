@@ -3,10 +3,10 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 import java.util.Objects;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
 
-import net.minecraft.server.v1_13_R2.BiomeBase;
-import net.minecraft.server.v1_13_R2.WorldChunkManager;
+import net.minecraft.server.v1_14_R1.BiomeBase;
+import net.minecraft.server.v1_14_R1.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
 public final class BiomeGeneratorImpl implements BiomeGenerator {
@@ -30,7 +30,8 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
 
     @Override
     public Biome[] getZoomedOutBiomes(int minX, int minZ, int xSize, int zSize) {
-        BiomeBase[] biomeArray = internal.getBiomes(minX, minZ, xSize, zSize);
+        // Last parameter doesn't seem to be used anywhere V
+        BiomeBase[] biomeArray = internal.a(minX, minZ, xSize, zSize, false);
 
         Biome[] biomes = new Biome[xSize * zSize];
         for (int i = 0; i < xSize * zSize; i++) {
