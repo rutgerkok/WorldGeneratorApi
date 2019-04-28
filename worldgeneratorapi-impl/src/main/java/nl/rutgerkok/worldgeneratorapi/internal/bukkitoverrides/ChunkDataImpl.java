@@ -6,15 +6,12 @@ import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
 import net.minecraft.server.v1_14_R1.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_14_R1.HeightMap;
 import net.minecraft.server.v1_14_R1.IBlockData;
 import net.minecraft.server.v1_14_R1.IChunkAccess;
 import net.minecraft.server.v1_14_R1.ProtoChunk;
 
 public final class ChunkDataImpl implements ChunkData {
     private final ProtoChunk internal;
-    private final HeightMap heightmap;
-    private final HeightMap heightmap1;
 
     private final int xOffset;
     private final int zOffset;
@@ -22,8 +19,6 @@ public final class ChunkDataImpl implements ChunkData {
 
     ChunkDataImpl(ProtoChunk internal) {
         this.internal = internal;
-        this.heightmap = internal.b(HeightMap.Type.OCEAN_FLOOR_WG);
-        this.heightmap1 = internal.b(HeightMap.Type.WORLD_SURFACE_WG);
 
         this.xOffset = internal.getPos().x * 16;
         this.zOffset = internal.getPos().z * 16;
@@ -67,8 +62,6 @@ public final class ChunkDataImpl implements ChunkData {
     }
 
     private void setBlock(int x, int y, int z, IBlockData blockData) {
-        heightmap.a(x, y, z, blockData);
-        heightmap1.a(x, y, z, blockData);
         reusableBlockPos.c(xOffset + x, y, zOffset + z);
         internal.setType(reusableBlockPos, blockData, false);
     }
