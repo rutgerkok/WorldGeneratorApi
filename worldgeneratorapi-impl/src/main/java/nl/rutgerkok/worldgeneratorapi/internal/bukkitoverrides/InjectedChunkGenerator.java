@@ -30,7 +30,6 @@ import net.minecraft.server.v1_14_R1.SpawnerCreature;
 import net.minecraft.server.v1_14_R1.WorldGenStage;
 import net.minecraft.server.v1_14_R1.WorldGenerator;
 import net.minecraft.server.v1_14_R1.WorldServer;
-
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
@@ -203,11 +202,11 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
     @Override
     public void buildBase(IChunkAccess ichunkaccess) {
-        ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
-        int k = chunkcoordintpair.x;
-        int l = chunkcoordintpair.z;
+        ChunkCoordIntPair chunkcoordintpair1 = ichunkaccess.getPos();
+        int blockX = chunkcoordintpair1.d();
+        int blockZ = chunkcoordintpair1.e();
         SeededRandom seededrandom = new SeededRandom();
-        seededrandom.a(k, l);
+        seededrandom.a(blockX, blockZ);
 
         // Generate early decorations
         GeneratingChunkImpl chunk = new GeneratingChunkImpl((ProtoChunk) ichunkaccess, biomeGenerator);
@@ -218,12 +217,13 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
         // Generate surface
         if (this.worldDecorator.isDefaultEnabled(BaseDecorationType.SURFACE)) {
+
             BiomeBase[] abiomebase = ichunkaccess.getBiomeIndex();
             for (int i1 = 0; i1 < 16; ++i1) {
                 for (int j1 = 0; j1 < 16; ++j1) {
-                    int k1 = k + i1;
-                    int l1 = l + j1;
-                    int i2 = ichunkaccess.a(Type.WORLD_SURFACE_WG, i1, j1) + 25;
+                    int k1 = blockX + i1;
+                    int l1 = blockZ + j1;
+                    int i2 = ichunkaccess.a(Type.WORLD_SURFACE_WG, i1, j1) + 1;
                     double d1 = this.surfaceNoise.a(k1 * 0.0625D, l1 * 0.0625D, 0.0625D, i1 * 0.0625D);
                     abiomebase[j1 * 16 + i1].a(seededrandom, ichunkaccess, k1, l1, i2, d1, this.getSettings().r(),
                             this.getSettings().s(), this.getSeaLevel(), this.a.getSeed());
