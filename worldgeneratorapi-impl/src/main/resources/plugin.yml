@@ -3,4 +3,4 @@ version: "${project.version}"
 main: nl.rutgerkok.worldgeneratorapi.internal.WorldGeneratorApiImpl
 author: Rutger Kok
 load: startup
-api-version: 1.13
+api-version: 1.14
