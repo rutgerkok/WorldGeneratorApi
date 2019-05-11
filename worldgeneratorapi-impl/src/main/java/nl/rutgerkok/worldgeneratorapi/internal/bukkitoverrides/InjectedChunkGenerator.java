@@ -23,7 +23,6 @@ import net.minecraft.server.v1_14_R1.MobSpawnerPatrol;
 import net.minecraft.server.v1_14_R1.MobSpawnerPhantom;
 import net.minecraft.server.v1_14_R1.NoiseGenerator3;
 import net.minecraft.server.v1_14_R1.NoiseGeneratorOctaves;
-import net.minecraft.server.v1_14_R1.ProtoChunk;
 import net.minecraft.server.v1_14_R1.RegionLimitedWorldAccess;
 import net.minecraft.server.v1_14_R1.SeededRandom;
 import net.minecraft.server.v1_14_R1.SpawnerCreature;
@@ -40,15 +39,17 @@ import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
 
 public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault> {
 
-    private static class GeneratingChunkImpl implements GeneratingChunk {
+    public static class GeneratingChunkImpl implements GeneratingChunk {
 
         private final int chunkX;
         private final int chunkZ;
         private final ChunkDataImpl blocks;
         private final BiomeGenerator biomeGenerator;
         private final BiomeGridImpl biomeGrid;
+        public final IChunkAccess internal;
 
-        GeneratingChunkImpl(ProtoChunk internal, BiomeGenerator biomeGenerator) {
+        GeneratingChunkImpl(IChunkAccess internal, BiomeGenerator biomeGenerator) {
+            this.internal = Objects.requireNonNull(internal, "internal");
             this.chunkX = internal.getPos().x;
             this.chunkZ = internal.getPos().z;
             this.blocks = new ChunkDataImpl(internal);
@@ -209,7 +210,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         seededrandom.a(blockX, blockZ);
 
         // Generate early decorations
-        GeneratingChunkImpl chunk = new GeneratingChunkImpl((ProtoChunk) ichunkaccess, biomeGenerator);
+        GeneratingChunkImpl chunk = new GeneratingChunkImpl(ichunkaccess, biomeGenerator);
         this.worldDecorator.spawnCustomBaseDecorations(BaseDecorationType.RAW_GENERATION, chunk);
 
         // Heightmap calculations
@@ -242,7 +243,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     @Override
     public void buildNoise(GeneratorAccess generatoraccess, IChunkAccess ichunkaccess) {
         // Generate blocks
-        GeneratingChunkImpl chunk = new GeneratingChunkImpl((ProtoChunk) ichunkaccess, biomeGenerator);
+        GeneratingChunkImpl chunk = new GeneratingChunkImpl(ichunkaccess, biomeGenerator);
         baseChunkGenerator.setBlocksInChunk(chunk);
     }
 
@@ -268,8 +269,9 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     }
 
     @Override
-    public void doCarving(IChunkAccess world, WorldGenStage.Features stage) {
-        this.worldDecorator.spawnCarvers(world, stage, this.getSeaLevel(), this.seed);
+    public void doCarving(IChunkAccess chunkAccess, WorldGenStage.Features stage) {
+        GeneratingChunkImpl generatingChunk = new GeneratingChunkImpl(chunkAccess, biomeGenerator);
+        this.worldDecorator.spawnCarvers(generatingChunk, stage, this.getSeaLevel(), this.seed);
     }
 
     @Override

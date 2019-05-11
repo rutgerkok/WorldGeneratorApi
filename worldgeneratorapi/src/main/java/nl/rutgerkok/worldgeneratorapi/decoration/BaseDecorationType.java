@@ -16,5 +16,15 @@ public enum BaseDecorationType {
     /**
      * The bedrock layers are generated.
      */
-    BEDROCK
+    BEDROCK,
+
+    /**
+     * Used to generate caves and ravines.
+     */
+    CARVING_AIR,
+
+    /**
+     * Used to generate underwater caves and ravines.
+     */
+    CARVING_LIQUID
 }

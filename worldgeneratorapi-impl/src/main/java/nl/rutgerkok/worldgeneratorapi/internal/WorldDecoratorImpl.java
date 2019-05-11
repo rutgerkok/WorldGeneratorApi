@@ -27,11 +27,12 @@ import nl.rutgerkok.worldgeneratorapi.decoration.Decoration;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationArea;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationType;
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
+import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator.GeneratingChunkImpl;
 
 public final class WorldDecoratorImpl implements WorldDecorator {
 
     private static final Map<WorldGenStage.Decoration, DecorationType> DECORATION_TRANSLATION;
-    private static final Map<WorldGenStage.Features, DecorationType> CARVER_TRANSLATION;
+    private static final Map<WorldGenStage.Features, BaseDecorationType> CARVER_TRANSLATION;
 
     static {
         DECORATION_TRANSLATION = new EnumMap<>(WorldGenStage.Decoration.class);
@@ -41,7 +42,7 @@ public final class WorldDecoratorImpl implements WorldDecorator {
 
         CARVER_TRANSLATION = new EnumMap<>(WorldGenStage.Features.class);
         for (WorldGenStage.Features type : WorldGenStage.Features.values()) {
-            CARVER_TRANSLATION.put(type, DecorationType.valueOf("CARVING_" + type.name()));
+            CARVER_TRANSLATION.put(type, BaseDecorationType.valueOf("CARVING_" + type.name()));
         }
     }
 
@@ -92,10 +93,11 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         }
     }
 
-    public void spawnCarvers(IChunkAccess ichunkaccess, WorldGenStage.Features stage, int seaLevel, long seed) {
+    public void spawnCarvers(GeneratingChunkImpl chunk, WorldGenStage.Features stage, int seaLevel, long seed) {
+        IChunkAccess ichunkaccess = chunk.internal;
         SeededRandom seededrandom = new SeededRandom(seed);
-        DecorationType decorationType = CARVER_TRANSLATION.get(stage);
-        if (!this.disabledDecorations.contains(decorationType)) {
+        BaseDecorationType decorationType = CARVER_TRANSLATION.get(stage);
+        if (!this.disabledBaseDecorations.contains(decorationType)) {
             // Spawn default carvers (code based on ChunkGenerator.doCarving)
             ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
             int i = chunkcoordintpair.x;
@@ -120,7 +122,13 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         }
 
         // Spawn custom carvers
-        // TODO re-enable now that it operates
+        List<BaseChunkGenerator> carvers = this.customBaseDecorations.get(decorationType);
+        if (carvers == null) {
+            return;
+        }
+        for (BaseChunkGenerator carver : carvers) {
+            carver.setBlocksInChunk(chunk);
+        }
     }
 
     public void spawnCustomBaseDecorations(BaseDecorationType type, GeneratingChunk chunk) {

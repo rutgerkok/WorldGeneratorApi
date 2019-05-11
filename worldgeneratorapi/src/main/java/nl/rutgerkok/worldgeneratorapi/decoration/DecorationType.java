@@ -17,12 +17,18 @@ public enum DecorationType {
 
     /**
      * Used to generate caves and ravines.
+     * 
+     * @deprecated Replaced by {@link BaseDecorationType#CARVING_AIR}.
      */
+    @Deprecated
     CARVING_AIR,
 
     /**
      * Used to generate underwater caves and ravines.
+     * 
+     * @deprecated Replaced by {@link BaseDecorationType#CARVING_LIQUID}.
      */
+    @Deprecated
     CARVING_LIQUID,
 
     /**

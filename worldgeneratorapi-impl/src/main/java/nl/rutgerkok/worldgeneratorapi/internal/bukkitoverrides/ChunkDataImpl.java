@@ -8,16 +8,15 @@ import org.bukkit.generator.ChunkGenerator.ChunkData;
 import net.minecraft.server.v1_14_R1.BlockPosition.MutableBlockPosition;
 import net.minecraft.server.v1_14_R1.IBlockData;
 import net.minecraft.server.v1_14_R1.IChunkAccess;
-import net.minecraft.server.v1_14_R1.ProtoChunk;
 
 public final class ChunkDataImpl implements ChunkData {
-    private final ProtoChunk internal;
+    private final IChunkAccess internal;
 
     private final int xOffset;
     private final int zOffset;
     private final MutableBlockPosition reusableBlockPos = new MutableBlockPosition();
 
-    ChunkDataImpl(ProtoChunk internal) {
+    ChunkDataImpl(IChunkAccess internal) {
         this.internal = internal;
 
         this.xOffset = internal.getPos().x * 16;
