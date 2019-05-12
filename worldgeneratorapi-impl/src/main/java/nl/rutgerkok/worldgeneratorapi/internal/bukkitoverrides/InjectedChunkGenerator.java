@@ -141,15 +141,13 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
     @Override
     protected void a(double[] adouble, int i, int j) {
-        // No idea what this is calculating - but it has got something to do with
-        // terrain shape
+        // Main noise calculator
         this.a(adouble, i, j, 684.4119873046875D, 684.4119873046875D, 8.555149841308594D, 4.277574920654297D, 3, -10);
     }
 
     @Override
     protected double[] a(int i, int j) {
-        // No idea what this is calculating - but it has got something to do with
-        // terrain shape
+        // Biome noise calculator
         double[] adouble = new double[2];
         float f = 0.0F;
         float f1 = 0.0F;
