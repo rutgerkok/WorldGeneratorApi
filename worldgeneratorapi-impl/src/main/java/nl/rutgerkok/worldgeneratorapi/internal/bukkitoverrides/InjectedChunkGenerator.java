@@ -29,6 +29,7 @@ import net.minecraft.server.v1_14_R1.SpawnerCreature;
 import net.minecraft.server.v1_14_R1.WorldGenStage;
 import net.minecraft.server.v1_14_R1.WorldGenerator;
 import net.minecraft.server.v1_14_R1.WorldServer;
+
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
@@ -138,7 +139,6 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         return d3;
     }
 
-
     @Override
     protected void a(double[] adouble, int i, int j) {
         // No idea what this is calculating - but it has got something to do with
@@ -209,8 +209,11 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         SeededRandom seededrandom = new SeededRandom();
         seededrandom.a(blockX, blockZ);
 
-        // Generate early decorations
+        // Generate base stone
         GeneratingChunkImpl chunk = new GeneratingChunkImpl(ichunkaccess, biomeGenerator);
+        baseChunkGenerator.setBlocksInChunk(chunk);
+
+        // Generate early decorations
         this.worldDecorator.spawnCustomBaseDecorations(BaseDecorationType.RAW_GENERATION, chunk);
 
         // Heightmap calculations
@@ -242,9 +245,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
     @Override
     public void buildNoise(GeneratorAccess generatoraccess, IChunkAccess ichunkaccess) {
-        // Generate blocks
-        GeneratingChunkImpl chunk = new GeneratingChunkImpl(ichunkaccess, biomeGenerator);
-        baseChunkGenerator.setBlocksInChunk(chunk);
+        // Empty! Generating the base terrain is done in buildBase
     }
 
     private double c(int i, int j) {
