@@ -19,7 +19,18 @@ import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
 public interface WorldGenerator {
 
     /**
-     * Gets the basic chunk generator, which places only stone and water usually.
+     * @return Same object as {@link #getBaseTerrainGenerator()}.
+     * @throws UnsupportedOperationException
+     *             See description of {@link #getBaseTerrainGenerator()}.
+     * @deprecated Replaced by {@link #getBaseTerrainGenerator()}.
+     */
+    @Deprecated
+    BaseChunkGenerator getBaseChunkGenerator() throws UnsupportedOperationException;
+
+    /**
+     * Gets the basic terrain generator, which places only stone and water usually.
+     * It contains a method to query the height at any point in the world, which is
+     * useful for planning structures.
      *
      * @return The basic chunk generator.
      * @throws UnsupportedOperationException
@@ -29,7 +40,7 @@ public interface WorldGenerator {
      *             different stages of world generation. This can also happen if
      *             another plugin is poking around in Minecraft internals.
      */
-    BaseChunkGenerator getBaseChunkGenerator() throws UnsupportedOperationException;
+    BaseTerrainGenerator getBaseTerrainGenerator() throws UnsupportedOperationException;
 
     /**
      * Gets the biome generator currently in use. This method will return a valid
@@ -62,7 +73,7 @@ public interface WorldGenerator {
      *             different stages of world generation. This can also happen if
      *             another plugin is poking around in Minecraft internals.
      */
-    WorldDecorator getWorldDecorator() throws UnsupportedOperationException;;
+    WorldDecorator getWorldDecorator() throws UnsupportedOperationException;
 
     /**
      * Gets a reference to the world this generator is active for.
@@ -72,11 +83,41 @@ public interface WorldGenerator {
     WorldRef getWorldRef();
 
     /**
-     * Sets the basic chunk generator.
+     * Sets the basic chunk generator. Replaced by
+     * {@link #setBaseTerrainGenerator(BaseTerrainGenerator)}.
      *
      * @param base
      *            The base.
+     * @deprecated Use {@link #setBaseTerrainGenerator(BaseTerrainGenerator)}.
      */
+    @Deprecated
     void setBaseChunkGenerator(BaseChunkGenerator base);
+
+    /**
+     * Sets the basic noise generator. If you don't need block-by-block control over
+     * your terrain, use this method. (If you do, use
+     * {@link #setBaseTerrainGenerator(BaseTerrainGenerator)}.) The shape of your
+     * terrain will automatically be modified to accommodate structures like
+     * villages.
+     * 
+     * @param base
+     *            The base noise generator.
+     * @return The noise generator is transformed into a full, block-by-block base
+     *         terrain generator, which is returned here.
+     */
+    BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base);
+
+    /**
+     * Sets the basic terrain generator. This method (unlike
+     * {@link #setBaseNoiseGenerator(BaseNoiseGenerator)}) provides you total
+     * block-by-block control over the shape of your terrain. However, structures
+     * might be placed on unsuitable locations, as unlike
+     * {@link #setBaseNoiseGenerator(BaseNoiseGenerator)} the terrain shape is not
+     * modified to accommodate for structures like villages.
+     * 
+     * @param base
+     *            The base terrain.
+     */
+    void setBaseTerrainGenerator(BaseTerrainGenerator base);
 
 }

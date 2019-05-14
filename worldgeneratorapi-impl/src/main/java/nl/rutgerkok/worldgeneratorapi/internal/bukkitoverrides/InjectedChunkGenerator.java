@@ -29,9 +29,9 @@ import net.minecraft.server.v1_14_R1.SpawnerCreature;
 import net.minecraft.server.v1_14_R1.WorldGenStage;
 import net.minecraft.server.v1_14_R1.WorldGenerator;
 import net.minecraft.server.v1_14_R1.WorldServer;
-
-import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
+import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
+import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator.HeightType;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
@@ -101,17 +101,18 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
      */
     private final MobSpawnerPhantom phantomSpawner = new MobSpawnerPhantom();
     private final MobSpawnerPatrol patrolSpawner = new MobSpawnerPatrol();
-    private final MobSpawnerCat catSpawner = new MobSpawnerCat();
 
+    private final MobSpawnerCat catSpawner = new MobSpawnerCat();
     private final NoiseGenerator3 surfaceNoise;
+
     private final NoiseGeneratorOctaves noiseOctaves16;
 
     public final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
-    private BaseChunkGenerator baseChunkGenerator;
+    private BaseTerrainGenerator baseTerrainGenerator;
 
     private final BiomeGenerator biomeGenerator;
 
-    public InjectedChunkGenerator(WorldServer world, BaseChunkGenerator baseChunkGenerator) {
+    public InjectedChunkGenerator(WorldServer world, BaseTerrainGenerator baseChunkGenerator) {
         super(world, world.getChunkProvider().getChunkGenerator().getWorldChunkManager(),
                 4, 8, 256, world.getChunkProvider().getChunkGenerator().getSettings(), true);
         this.world = world.getWorld();
@@ -142,20 +143,30 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     @Override
     protected void a(double[] adouble, int i, int j) {
         // Main noise calculator
-        this.a(adouble, i, j, 684.4119873046875D, 684.4119873046875D, 8.555149841308594D, 4.277574920654297D, 3, -10);
+        BaseTerrainGenerator terrainGenerator = this.baseTerrainGenerator;
+        if (terrainGenerator instanceof NoiseToTerrainGenerator) {
+            ((NoiseToTerrainGenerator) terrainGenerator).a(adouble, i, j);
+        }
     }
 
     @Override
     protected double[] a(int i, int j) {
         // Biome noise calculator
+        BaseTerrainGenerator terrainGenerator = this.baseTerrainGenerator;
+        if (terrainGenerator instanceof NoiseToTerrainGenerator) {
+            // Found a custom one
+            return ((NoiseToTerrainGenerator) terrainGenerator).a(i, j);
+        }
+
+        // Fall back to copy of vanilla
         double[] adouble = new double[2];
         float f = 0.0F;
         float f1 = 0.0F;
         float f2 = 0.0F;
         float f3 = this.c.b(i, j).g();
 
-        for(int k = -2; k <= 2; ++k) {
-            for(int l = -2; l <= 2; ++l) {
+        for (int k = -2; k <= 2; ++k) {
+            for (int l = -2; l <= 2; ++l) {
                 BiomeBase biomebase = this.c.b(i + k, j + l);
                 float f4 = biomebase.g();
                 float f5 = biomebase.k();
@@ -209,7 +220,13 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
         // Generate base stone
         GeneratingChunkImpl chunk = new GeneratingChunkImpl(ichunkaccess, biomeGenerator);
-        baseChunkGenerator.setBlocksInChunk(chunk);
+
+        BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
+        if (!(baseTerrainGenerator instanceof NoiseToTerrainGenerator)) {
+            // If a noise generator is present, then the base terrain was already generated
+            // in buildNoise
+            baseTerrainGenerator.setBlocksInChunk(chunk);
+        }
 
         // Generate early decorations
         this.worldDecorator.spawnCustomBaseDecorations(BaseDecorationType.RAW_GENERATION, chunk);
@@ -243,7 +260,12 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
     @Override
     public void buildNoise(GeneratorAccess generatoraccess, IChunkAccess ichunkaccess) {
-        // Empty! Generating the base terrain is done in buildBase
+        BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
+        if ((baseTerrainGenerator instanceof NoiseToTerrainGenerator)) {
+            ((NoiseToTerrainGenerator) baseTerrainGenerator).buildNoise(generatoraccess, ichunkaccess);
+        }
+
+        // Do nothing, will be handled in buildBase
     }
 
     private double c(int i, int j) {
@@ -280,8 +302,21 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         this.catSpawner.a(worldserver, flag, flag1);
     }
 
-    public BaseChunkGenerator getBaseChunkGenerator() {
-        return baseChunkGenerator;
+    public BaseTerrainGenerator getBaseTerrainGenerator() {
+        return baseTerrainGenerator;
+    }
+
+    @Override
+    public int getBaseHeight(int i, int j, Type heightType) {
+        // Shortcut
+        BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
+        if (baseTerrainGenerator instanceof NoiseToTerrainGenerator) {
+            ((NoiseToTerrainGenerator) baseTerrainGenerator).getBaseHeight(i, j, heightType);
+        }
+
+        // Ask the base terrain generator
+        String typeName = heightType.name().replace("_WG", "");
+        return this.baseTerrainGenerator.getHeight(i, j, HeightType.valueOf(typeName));
     }
 
     public BiomeGenerator getBiomeGenerator() {
@@ -321,8 +356,8 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         return world.getSeaLevel() + 1;
     }
 
-    public void setBaseChunkGenerator(BaseChunkGenerator baseChunkGenerator) {
-        this.baseChunkGenerator = Objects.requireNonNull(baseChunkGenerator, "baseChunkGenerator");
+    public void setBaseChunkGenerator(BaseTerrainGenerator baseTerrainGenerator) {
+        this.baseTerrainGenerator = Objects.requireNonNull(baseTerrainGenerator, "baseTerrainGenerator");
     }
 
 }

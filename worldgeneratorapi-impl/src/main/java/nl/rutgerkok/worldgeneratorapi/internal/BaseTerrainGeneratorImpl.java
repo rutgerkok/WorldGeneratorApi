@@ -13,13 +13,26 @@ import net.minecraft.server.v1_14_R1.ChunkProviderGenerate;
 import net.minecraft.server.v1_14_R1.ChunkProviderHell;
 import net.minecraft.server.v1_14_R1.ChunkProviderTheEnd;
 import net.minecraft.server.v1_14_R1.GeneratorAccess;
+import net.minecraft.server.v1_14_R1.HeightMap;
 import net.minecraft.server.v1_14_R1.SeededRandom;
 import net.minecraft.server.v1_14_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
+import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.ChunkDataImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator;
 
-final class BaseChunkGeneratorImpl implements BaseChunkGenerator {
+public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
+
+    public static HeightMap.Type fromApi(HeightType heightType) {
+        switch (heightType) {
+            case OCEAN_FLOOR:
+                return HeightMap.Type.OCEAN_FLOOR_WG;
+            case WORLD_SURFACE:
+                return HeightMap.Type.WORLD_SURFACE_WG;
+            default:
+                throw new UnsupportedOperationException("Unknown HeightType: " + heightType);
+        }
+    }
 
     /**
      * Extracts the base chunk generator from a Minecraft world using the currently
@@ -35,14 +48,14 @@ final class BaseChunkGeneratorImpl implements BaseChunkGenerator {
      *             If the world has a world generator not provided by us or
      *             Minecraft (so it's a custom one).
      */
-    static BaseChunkGenerator fromMinecraft(World world) {
+    static BaseTerrainGenerator fromMinecraft(World world) {
         WorldServer worldServer = ((CraftWorld) world).getHandle();
         ChunkGenerator<?> chunkGenerator = worldServer.getChunkProvider().getChunkGenerator();
         if (chunkGenerator instanceof InjectedChunkGenerator) {
-            return ((InjectedChunkGenerator) chunkGenerator).getBaseChunkGenerator();
+            return ((InjectedChunkGenerator) chunkGenerator).getBaseTerrainGenerator();
         }
         if (isSupported(chunkGenerator)) {
-            return new BaseChunkGeneratorImpl(worldServer, chunkGenerator);
+            return new BaseTerrainGeneratorImpl(worldServer, chunkGenerator);
         }
 
         throw new UnsupportedOperationException(
@@ -64,12 +77,17 @@ final class BaseChunkGeneratorImpl implements BaseChunkGenerator {
     private final ChunkGenerator<?> internal;
     private final GeneratorAccess world;
 
-    private BaseChunkGeneratorImpl(GeneratorAccess world, ChunkGenerator<?> chunkGenerator) {
+    private BaseTerrainGeneratorImpl(GeneratorAccess world, ChunkGenerator<?> chunkGenerator) {
         if (chunkGenerator instanceof InjectedChunkGenerator) {
             throw new IllegalArgumentException("Double-wrapping");
         }
         this.world = Objects.requireNonNull(world, "world");
         this.internal = Objects.requireNonNull(chunkGenerator, "internal");
+    }
+
+    @Override
+    public int getHeight(int x, int z, HeightType type) {
+        return internal.getBaseHeight(x, z, fromApi(type));
     }
 
     @Override
