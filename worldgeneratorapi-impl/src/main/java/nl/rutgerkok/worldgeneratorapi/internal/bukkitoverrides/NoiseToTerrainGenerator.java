@@ -2,6 +2,8 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import java.util.Objects;
 
+import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
+
 import net.minecraft.server.v1_14_R1.BiomeBase;
 import net.minecraft.server.v1_14_R1.ChunkGeneratorAbstract;
 import net.minecraft.server.v1_14_R1.GeneratorAccess;
@@ -10,6 +12,7 @@ import net.minecraft.server.v1_14_R1.HeightMap.Type;
 import net.minecraft.server.v1_14_R1.NoiseGeneratorOctaves;
 import net.minecraft.server.v1_14_R1.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
+import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator.TerrainSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.BaseTerrainGeneratorImpl;
@@ -24,7 +27,22 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGene
 public final class NoiseToTerrainGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault>
         implements BaseTerrainGenerator {
 
+    /**
+     * Forwards some settings to Minecraft.
+     */
+    private static class GeneratorSettingsCustom extends GeneratorSettingsDefault {
+        public GeneratorSettingsCustom(TerrainSettings terrainSettings) {
+            if (terrainSettings.stoneBlock != null) {
+                this.r = ((CraftBlockData) terrainSettings.stoneBlock).getState();
+            }
+            if (terrainSettings.waterBlock != null) {
+                this.s = ((CraftBlockData) terrainSettings.waterBlock).getState();
+            }
+        }
+    }
+
     private static final float[] floatArray;
+
     static {
         try {
             floatArray = (float[]) ReflectionUtil.getFieldOfType(ChunkGeneratorAbstract.class, float[].class).get(null);
@@ -32,20 +50,26 @@ public final class NoiseToTerrainGenerator extends ChunkGeneratorAbstract<Genera
             throw new RuntimeException(e);
         }
     }
-
     private int spawnHeight = -1;
     private BaseNoiseGenerator noiseGenerator;
     private final NoiseGeneratorOctaves noiseOctaves16;
+
     private BiomeGenerator biomeGenerator;
+    private final int seaLevel;
 
     public NoiseToTerrainGenerator(GeneratorAccess access, WorldChunkManager worldChunkManager,
             BiomeGenerator biomeGenerator, BaseNoiseGenerator noiseGenerator) {
-        super(access, worldChunkManager, 4, 8, 256, new GeneratorSettingsDefault(), true);
+        super(access, worldChunkManager, 4, 8, 256, new GeneratorSettingsCustom(noiseGenerator.getTerrainSettings()),
+                true);
         this.biomeGenerator = Objects.requireNonNull(biomeGenerator, "biomeGenerator");
         this.noiseGenerator = Objects.requireNonNull(noiseGenerator, "noiseGenerator");
 
         this.e.a(2620);
         this.noiseOctaves16 = new NoiseGeneratorOctaves(this.e, 16);
+
+        // Allow changing sea level
+        int seaLevel = noiseGenerator.getTerrainSettings().seaLevel;
+        this.seaLevel = seaLevel >= 0 ? seaLevel : super.getSeaLevel();
     }
 
     @Override
@@ -128,6 +152,11 @@ public final class NoiseToTerrainGenerator extends ChunkGeneratorAbstract<Genera
     @Override
     public int getHeight(int x, int z, HeightType type) {
         return this.getBaseHeight(x, z, BaseTerrainGeneratorImpl.fromApi(type));
+    }
+
+    @Override
+    public int getSeaLevel() {
+        return seaLevel;
     }
 
     @Override

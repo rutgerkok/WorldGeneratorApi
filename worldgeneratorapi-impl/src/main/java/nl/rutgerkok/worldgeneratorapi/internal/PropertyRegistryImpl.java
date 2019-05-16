@@ -2,7 +2,6 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -12,7 +11,6 @@ import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
 
 import net.minecraft.server.v1_14_R1.BiomeBase;
@@ -60,12 +58,7 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
         addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::g);
         addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::k);
         addMinecraftWorldProperty(WORLD_SEED, world -> (Long) world.getSeed(), -1L);
-        addMinecraftWorldFloatProperty(SEA_LEVEL, world -> (float) world.getSeaLevel(), (world, level) -> {
-            ((CraftWorld) world).getHandle().c(level.intValue());
-            if (world.getSeaLevel() != level.intValue()) {
-                throw new UnsupportedOperationException("Failed to set sea level to " + level.intValue());
-            }
-        });
+        addSeaLevelProperty(SEA_LEVEL, world -> (float) world.getSeaLevel());
     }
 
     private void addMinecraftBiomeFloatProperty(NamespacedKey name, Function<BiomeBase, Float> value) {
@@ -88,8 +81,7 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
         this.properties.put(name, property);
     }
 
-    private void addMinecraftWorldFloatProperty(NamespacedKey name, Function<World, Float> value,
-            BiConsumer<World, Float> setter) {
+    private void addSeaLevelProperty(NamespacedKey name, Function<World, Float> value) {
         FloatProperty property = new FloatProperty(name, 0f) {
 
             @Override
@@ -103,12 +95,8 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
 
             @Override
             public void setWorldDefault(WorldRef worldRef, float value) {
-                World world = Bukkit.getWorld(worldRef.getName());
-                if (world == null) {
-                    throw new UnsupportedOperationException(
-                            "Cannot change sea level yet, world " + worldRef.getName() + " is not loaded");
-                }
-                setter.accept(world, value);
+                throw new UnsupportedOperationException("Setting the sea level is not possible"
+                        + " in Minecraft >= 1.14 - world.getSeaLevel() is hardcoded to return 63.");
             }
 
         };
