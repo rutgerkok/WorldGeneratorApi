@@ -11,6 +11,7 @@ import net.minecraft.server.v1_14_R1.NoiseGeneratorOctaves;
 import net.minecraft.server.v1_14_R1.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
+import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.BaseTerrainGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.ReflectionUtil;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator.GeneratingChunkImpl;
@@ -35,23 +36,33 @@ public final class NoiseToTerrainGenerator extends ChunkGeneratorAbstract<Genera
     private int spawnHeight = -1;
     private BaseNoiseGenerator noiseGenerator;
     private final NoiseGeneratorOctaves noiseOctaves16;
+    private BiomeGenerator biomeGenerator;
 
-    public NoiseToTerrainGenerator(GeneratorAccess access, WorldChunkManager biomeGenerator,
-            BaseNoiseGenerator generator) {
-        super(access, biomeGenerator, 4, 8, 256, new GeneratorSettingsDefault(), true);
-        this.noiseGenerator = Objects.requireNonNull(generator, "generator");
+    public NoiseToTerrainGenerator(GeneratorAccess access, WorldChunkManager worldChunkManager,
+            BiomeGenerator biomeGenerator, BaseNoiseGenerator noiseGenerator) {
+        super(access, worldChunkManager, 4, 8, 256, new GeneratorSettingsDefault(), true);
+        this.biomeGenerator = Objects.requireNonNull(biomeGenerator, "biomeGenerator");
+        this.noiseGenerator = Objects.requireNonNull(noiseGenerator, "noiseGenerator");
 
         this.e.a(2620);
         this.noiseOctaves16 = new NoiseGeneratorOctaves(this.e, 16);
     }
 
     @Override
-    public double a(double arg0, double arg1, int arg2) {
-        throw new UnsupportedOperationException("double a(double, double, double)");
+    protected double a(double d0, double d1, int i) {
+        // No idea what this is calculating - we only know that it has got something to
+        // do with terrain shape
+        double d3 = (i - (8.5D + d0 * 8.5D / 8.0D * 4.0D)) * 12.0D * 128.0D / 256.0D / d1;
+        if (d3 < 0.0D) {
+            d3 *= 4.0D;
+        }
+
+        return d3;
     }
+
     @Override
     public void a(double[] arg0, int arg1, int arg2) {
-        this.noiseGenerator.getNoise(arg0, arg1, arg2);
+        this.noiseGenerator.getNoise(biomeGenerator, arg0, arg1, arg2);
     }
 
     @Override

@@ -146,9 +146,11 @@ final class WorldGeneratorImpl implements WorldGenerator {
 
     @Override
     public BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base) {
-        WorldChunkManager biomeGenerator = getWorldHandle().getChunkProvider().getChunkGenerator()
+        WorldChunkManager worldChunkManager = getWorldHandle().getChunkProvider().getChunkGenerator()
                 .getWorldChunkManager();
-        BaseTerrainGenerator generator = new NoiseToTerrainGenerator(getWorldHandle(), biomeGenerator, base);
+        BiomeGenerator biomeGenerator = this.getBiomeGenerator();
+        BaseTerrainGenerator generator = new NoiseToTerrainGenerator(getWorldHandle(), worldChunkManager,
+                biomeGenerator, base);
         setBaseTerrainGenerator(generator);
         return generator;
     }

@@ -36,6 +36,16 @@ public interface BiomeGenerator {
     }
 
     /**
+     * Gets a single biome.
+     * @param x X position = blockX / 4.
+     * @param z Z position = blockZ / 4.
+     * @return The biome.
+     */
+    default Biome getZoomedOutBiome(int x, int z) {
+        return getZoomedOutBiomes(x, z, 1, 1)[0];
+    }
+
+    /**
      * Gets zoomed-out biomes for the given region.
      *
      * @param minX

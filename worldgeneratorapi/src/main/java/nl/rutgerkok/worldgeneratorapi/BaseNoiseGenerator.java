@@ -8,5 +8,5 @@ public interface BaseNoiseGenerator {
      * @param x
      * @param z
      */
-    void getNoise(double[] buffer, int x, int z);
+    void getNoise(BiomeGenerator biomeGenerator, double[] buffer, int x, int z);
 }
