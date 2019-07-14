@@ -11,9 +11,22 @@ public class YourPlugin extends JavaPlugin {
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
         return WorldGeneratorApi.getInstance(this, 0, 3).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
             // Code modifying the world generator goes here
-            generator.setBaseChunkGenerator(chunk -> {
-                chunk.getBlocksForChunk().setRegion(0, 0, 0, 16, 70, 16, Material.STONE);
-            });
+            generator.setBaseChunkGenerator(new BaseTerrainGenerator() {
+	
+	            @Override
+	            public int getHeight(int x, int z, HeightType type) {
+	            	// Used by for example village generation to probe if the terrain is not too hilly
+	            	// If calculating the terrain height would be too complex, you can also extend a
+	            	// "BaseNoiseGenerator" instead of a "BaseChunkGenerator" - that class automatically
+	            	// calculates the terrain height based on the noise function you give it
+	                return 70;
+	            }
+
+	            @Override
+	            public void setBlocksInChunk(GeneratingChunk chunk) {
+	                chunk.getBlocksForChunk().setRegion(0, 0, 0, 16, 70, 16, Material.STONE);
+	            }
+	        });
         });
     }
 }
@@ -27,7 +40,7 @@ As you can see, only the shape of the terrain is modified, the rest of the world
 * Control the base shape of the terrain.
 * Disable vanilla resources (caves, flowers, villages, etc.)
 * Add custom resources
-* Supports the async chunk generator of Paper
+* Supports the async chunk generator of Spigot and Paper
 
 ## Tutorials/how to use
 Server admins only need to download this plugin (see the [releases tab](https://github.com/rutgerkok/WorldGeneratorApi/releases)) and place it in their plugins folder, alongside with the plugin that asked you to download this API.
