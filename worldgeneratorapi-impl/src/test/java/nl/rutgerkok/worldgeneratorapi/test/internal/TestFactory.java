@@ -8,7 +8,7 @@ import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 import org.mockito.Mockito;
 
-import net.minecraft.server.v1_14_R1.DispenserRegistry;
+import net.minecraft.server.v1_15_R1.DispenserRegistry;
 
 public class TestFactory {
 

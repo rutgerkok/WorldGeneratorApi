@@ -11,10 +11,10 @@ import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_15_R1.block.CraftBlock;
 
-import net.minecraft.server.v1_14_R1.BiomeBase;
-import net.minecraft.server.v1_14_R1.Biomes;
+import net.minecraft.server.v1_15_R1.BiomeBase;
+import net.minecraft.server.v1_15_R1.Biomes;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.property.FloatProperty;
@@ -55,8 +55,8 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
     public PropertyRegistryImpl() {
         addMinecraftBiomeFloatProperty(TEMPERATURE, BiomeBase::getTemperature);
         addMinecraftBiomeFloatProperty(WETNESS, BiomeBase::getHumidity);
-        addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::g);
-        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::k);
+        addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::i);
+        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::m);
         addMinecraftWorldProperty(WORLD_SEED, world -> (Long) world.getSeed(), -1L);
         addSeaLevelProperty(SEA_LEVEL, world -> (float) world.getSeaLevel());
     }

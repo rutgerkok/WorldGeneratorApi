@@ -2,15 +2,15 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import java.util.Objects;
 
-import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_15_R1.block.data.CraftBlockData;
 
-import net.minecraft.server.v1_14_R1.BiomeBase;
-import net.minecraft.server.v1_14_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_14_R1.GeneratorAccess;
-import net.minecraft.server.v1_14_R1.GeneratorSettingsDefault;
-import net.minecraft.server.v1_14_R1.HeightMap.Type;
-import net.minecraft.server.v1_14_R1.NoiseGeneratorOctaves;
-import net.minecraft.server.v1_14_R1.WorldChunkManager;
+import net.minecraft.server.v1_15_R1.BiomeBase;
+import net.minecraft.server.v1_15_R1.ChunkGeneratorAbstract;
+import net.minecraft.server.v1_15_R1.GeneratorAccess;
+import net.minecraft.server.v1_15_R1.GeneratorSettingsDefault;
+import net.minecraft.server.v1_15_R1.HeightMap.Type;
+import net.minecraft.server.v1_15_R1.NoiseGeneratorOctaves;
+import net.minecraft.server.v1_15_R1.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator.TerrainSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -65,7 +65,7 @@ public final class NoiseToTerrainGenerator extends ChunkGeneratorAbstract<Genera
         this.noiseGenerator = Objects.requireNonNull(noiseGenerator, "noiseGenerator");
 
         this.e.a(2620);
-        this.noiseOctaves16 = new NoiseGeneratorOctaves(this.e, 16);
+        this.noiseOctaves16 = new NoiseGeneratorOctaves(this.e, 16, 0);
 
         // Allow changing sea level
         int seaLevel = noiseGenerator.getTerrainSettings().seaLevel;
@@ -96,20 +96,21 @@ public final class NoiseToTerrainGenerator extends ChunkGeneratorAbstract<Genera
         float f = 0.0F;
         float f1 = 0.0F;
         float f2 = 0.0F;
-        float f3 = this.c.b(i, j).g();
+        int k = this.getSeaLevel();
+        float f3 = this.c.getBiome(i, k, j).i();
 
-        for (int k = -2; k <= 2; ++k) {
-            for (int l = -2; l <= 2; ++l) {
-                BiomeBase biomebase = this.c.b(i + k, j + l);
-                float f4 = biomebase.g();
-                float f5 = biomebase.k();
+        for (int l = -2; l <= 2; ++l) {
+            for (int i1 = -2; i1 <= 2; ++i1) {
+                BiomeBase biomebase = this.c.getBiome(i + l, k, j + i1);
+                float f4 = biomebase.i();
+                float f5 = biomebase.m();
 
                 if (f4 < -1.8F) {
                     f4 = -1.8F;
                 }
 
-                float f6 = floatArray[k + 2 + (l + 2) * 5] / (f4 + 2.0F);
-                if (biomebase.g() > f3) {
+                float f6 = floatArray[l + 2 + (i1 + 2) * 5] / (f4 + 2.0F);
+                if (biomebase.i() > f3) {
                     f6 /= 2.0F;
                 }
 
