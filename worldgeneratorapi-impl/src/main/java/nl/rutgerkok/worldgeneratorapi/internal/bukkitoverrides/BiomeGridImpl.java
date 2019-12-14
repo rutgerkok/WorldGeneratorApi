@@ -17,12 +17,12 @@ public final class BiomeGridImpl implements BiomeGrid {
 
     @Override
     public Biome getBiome(final int x, final int z) {
-        return CraftBlock.biomeBaseToBiome(this.biomeStorage.getBiome(x, 0, z));
+        return CraftBlock.biomeBaseToBiome(this.biomeStorage.getBiome(x >> 2, 0, z >> 2));
     }
 
     @Override
     public Biome getBiome(int x, int y, int z) {
-        return CraftBlock.biomeBaseToBiome(this.biomeStorage.getBiome(x, y, z));
+        return CraftBlock.biomeBaseToBiome(this.biomeStorage.getBiome(x >> 2, y >> 2, z >> 2));
     }
 
     /**
@@ -36,11 +36,11 @@ public final class BiomeGridImpl implements BiomeGrid {
 
     @Override
     public void setBiome(int x, int z, Biome biome) {
-        this.biomeStorage.setBiome(x, 0, z, CraftBlock.biomeToBiomeBase(biome));
+        this.biomeStorage.setBiome(x >> 2, 0, z >> 2, CraftBlock.biomeToBiomeBase(biome));
     }
 
     @Override
     public void setBiome(int x, int y, int z, Biome biome) {
-        this.biomeStorage.setBiome(x, y, z, CraftBlock.biomeToBiomeBase(biome));
+        this.biomeStorage.setBiome(x >> 2, y >> 2, z >> 2, CraftBlock.biomeToBiomeBase(biome));
     }
 }
