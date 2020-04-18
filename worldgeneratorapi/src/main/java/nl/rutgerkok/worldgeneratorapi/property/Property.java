@@ -10,7 +10,6 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.block.Biome;
 
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
@@ -50,9 +49,9 @@ public class Property<T> implements Keyed {
     /**
      * Only one thread may modify the class at a time. This is necessary. Imagine
      * that this lock wasn't there, and one method (say
-     * {@link #setBiomeDefault(Biome, float)} needs to replace an array, while
+     * {@link #setBiomeDefault(Biome, Object)} needs to replace an array, while
      * another method changes a value in the old array (say
-     * {@link #setDefault(float)}): then the second method may silently fail.
+     * {@link #setDefault(Object)}): then the second method may silently fail.
      *
      * <p>
      * For reading values no lock is necessary. If a getter runs at the same time as
@@ -112,7 +111,7 @@ public class Property<T> implements Keyed {
     /**
      * Gets the default value explicitly specified for a given biome. May return
      * {@code null}, in which case the call is driven to
-     * {@link #getWorldDefault(World)}.
+     * {@link #getWorldDefault(WorldRef)}.
      *
      * @param biome
      *            The biome.

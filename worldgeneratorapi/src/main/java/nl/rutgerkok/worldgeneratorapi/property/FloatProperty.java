@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.block.Biome;
 
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
@@ -98,7 +97,7 @@ public class FloatProperty implements Keyed {
     /**
      * Gets the default value explicitly specified for a given biome. May return
      * {@link Float#NaN}, in which case the call is driven to
-     * {@link #getWorldDefault(World)}.
+     * {@link #getWorldDefault(WorldRef)}.
      *
      * @param biome
      *            The biome.

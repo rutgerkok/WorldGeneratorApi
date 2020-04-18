@@ -35,7 +35,7 @@ public interface WorldDecorator {
      *            The decoration type to get the decorations for.
      *
      * @return A mutable list.
-     * @see {@link #withCustomDecoration(DecorationType, Decoration)}
+     * @see #withCustomDecoration(DecorationType, Decoration)
      */
     List<Decoration> getCustomDecorations(DecorationType type);
 
