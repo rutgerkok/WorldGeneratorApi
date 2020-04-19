@@ -11,7 +11,7 @@ public class YourPlugin extends JavaPlugin {
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
         return WorldGeneratorApi.getInstance(this, 0, 4).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
             // Code modifying the world generator goes here
-            generator.setBaseChunkGenerator(new BaseTerrainGenerator() {
+            generator.setBaseTerrainGenerator(new BaseTerrainGenerator() {
 	
 	            @Override
 	            public int getHeight(int x, int z, HeightType type) {
