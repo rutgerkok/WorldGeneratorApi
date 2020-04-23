@@ -132,6 +132,12 @@ public interface WorldGenerator {
      * @param biomeGenerator
      *            The biome generator.
      * @since 0.5
+     * @throws UnsupportedOperationException
+     *             If it is not possible to gain fine-grained access to all stages
+     *             of world generation. This happens if chunks are generated using
+     *             Bukkit's {@link ChunkGenerator}, which has merged several
+     *             different stages of world generation. This can also happen if
+     *             another plugin is poking around in Minecraft internals.
      */
     void setBiomeGenerator(BiomeGenerator biomeGenerator);
 
