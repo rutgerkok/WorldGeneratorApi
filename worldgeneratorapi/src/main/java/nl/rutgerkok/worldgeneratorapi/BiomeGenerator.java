@@ -15,6 +15,8 @@ public interface BiomeGenerator {
     /**
      * The biomes where structures can spawn in, for the overworld, in vanilla
      * Minecraft.
+     *
+     * @since 0.5
      */
     Set<Biome> VANILLA_OVERWORLD_STRUCTURE_BIOMES = ImmutableSet.of(Biome.OCEAN, Biome.PLAINS, Biome.DESERT,
             Biome.MOUNTAINS, Biome.FOREST, Biome.TAIGA, Biome.SWAMP, Biome.RIVER, Biome.FROZEN_OCEAN,
@@ -49,6 +51,7 @@ public interface BiomeGenerator {
      *             {@link #getZoomedOutBiome(int, int, int)}.
      * @return The biome array, ordered as
      *         {@code biome(x,z) = array[z * xSize + x)}.
+     * @since 0.3
      */
     @Deprecated
     default Biome[] getBiomes(int minX, int minZ, int xSize, int zSize) {
@@ -75,6 +78,7 @@ public interface BiomeGenerator {
      * biomes at a later time.
      *
      * @return Set of biomes.
+     * @since 0.5
      */
     default ImmutableSet<Biome> getStructureBiomes() {
         return ImmutableSet.of();
@@ -88,6 +92,7 @@ public interface BiomeGenerator {
      * @param z
      *            Scaled Z position. Multiply this value with 4 to get the block z.
      * @return The biome.
+     * @since 0.3
      */
     default Biome getZoomedOutBiome(int x, int z) {
         return getZoomedOutBiome(x, 16, z);
@@ -103,6 +108,7 @@ public interface BiomeGenerator {
      * @param z
      *            Scaled Z position. Multiply this value with 4 to get the block z.
      * @return The bione.
+     * @since 0.5
      */
     Biome getZoomedOutBiome(int x, int y, int z);
 
@@ -122,6 +128,7 @@ public interface BiomeGenerator {
      *             {@link #getZoomedOutBiome(int, int, int)}.
      * @return The biome array, ordered as
      *         {@code biome(x,z) = array[z * xSize + x)}.
+     * @since 0.1
      */
     @Deprecated
     default Biome[] getZoomedOutBiomes(int minX, int minZ, int xSize, int zSize) {

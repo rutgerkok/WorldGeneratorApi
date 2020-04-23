@@ -10,6 +10,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
+/**
+ * Main entry point of the API. See the
+ * {@link #createCustomGenerator(WorldRef, Consumer)} method for how to get
+ * started.
+ *
+ * @since 0.1
+ */
 public interface WorldGeneratorApi {
 
     /**
@@ -25,6 +32,7 @@ public interface WorldGeneratorApi {
      *            the major version is 4.
      *
      * @return The API.
+     * @since 0.1
      */
     static WorldGeneratorApi getInstance(Plugin plugin, int major, int minor) {
         // If someone accidentally includes WorldGeneratorApi in their plugin,
@@ -59,7 +67,7 @@ public interface WorldGeneratorApi {
      *
      * <p>
      * If you don't want to modify the base terrain, then you must not use this
-     * method. You also must not override Bukkit's
+     * method. You must also not override Bukkit's
      * {@link Plugin#getDefaultWorldGenerator(String, String)} method. Instead, you
      * must listen for the {@link WorldGeneratorInitEvent} and modify the world
      * generator inside that event.
@@ -69,6 +77,7 @@ public interface WorldGeneratorApi {
      * @param consumer
      *            The custom world generator.
      * @return The world generator.
+     * @since 0.2
      */
     ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer);
 
@@ -76,6 +85,7 @@ public interface WorldGeneratorApi {
      * Gets the version of the API.
      *
      * @return The version.
+     * @since 0.1
      */
     Version getApiVersion();
 
@@ -85,6 +95,7 @@ public interface WorldGeneratorApi {
      * @param world
      *            The world.
      * @return The world generator.
+     * @since 0.1
      */
     WorldGenerator getForWorld(World world);
 
@@ -92,6 +103,7 @@ public interface WorldGeneratorApi {
      * Gets the property registry.
      *
      * @return The property registry.
+     * @since 0.1
      */
     PropertyRegistry getPropertyRegistry();
 }

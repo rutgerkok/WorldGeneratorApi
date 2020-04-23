@@ -11,13 +11,17 @@ import org.bukkit.World;
  * Holds the UUID and name of a world. Useful if you want to keep a reference to
  * the world, but not prevent it from unloading.
  *
+ * @since 0.1
  */
 public final class WorldRef {
 
     /**
      * Creates a reference to the given world.
-     * @param world The world.
+     *
+     * @param world
+     *            The world.
      * @return The reference.
+     * @since 0.1
      */
     public static WorldRef of(World world) {
         return new WorldRef(world.getName());
@@ -30,6 +34,7 @@ public final class WorldRef {
      * @param name
      *            The name, case insensitive.
      * @return A reference to the world.
+     * @since 0.1
      */
     public static WorldRef ofName(String name) {
         return new WorldRef(name);
@@ -63,6 +68,7 @@ public final class WorldRef {
      * Gets the name of this world.
      *
      * @return The name, always in lowercase.
+     * @since 0.1
      */
     public String getName() {
         return name;
@@ -75,8 +81,11 @@ public final class WorldRef {
 
     /**
      * Checks if the given Minecraft world matches this world reference.
-     * @param world The Minecraft world.
+     * 
+     * @param world
+     *            The Minecraft world.
      * @return True if the world names match, false otherwise.
+     * @since 0.1
      */
     public boolean matches(World world) {
         return world.getName().equalsIgnoreCase(this.name);

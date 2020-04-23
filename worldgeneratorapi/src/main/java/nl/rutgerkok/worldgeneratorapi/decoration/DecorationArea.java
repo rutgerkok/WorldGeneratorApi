@@ -26,6 +26,8 @@ import org.bukkit.block.data.BlockData;
  * |    |    |
  * +----+----+
  * </pre>
+ *
+ * @since 0.2
  */
 public interface DecorationArea {
 
@@ -33,6 +35,8 @@ public interface DecorationArea {
      * The number of blocks from the center of this area where decorations can be
      * started. So for example no tree trunks should be created outside this area,
      * but tree leaves can still extend into the padding.
+     *
+     * @since 0.2
      */
     public static final int DECORATION_RADIUS = 8;
 
@@ -44,6 +48,7 @@ public interface DecorationArea {
      * @param z
      *            Block z in the world.
      * @return The biome.
+     * @since 0.2
      */
     Biome getBiome(int x, int z);
 
@@ -57,6 +62,7 @@ public interface DecorationArea {
      * @param z
      *            Block z in the world.
      * @return The material.
+     * @since 0.2
      */
     Material getBlock(int x, int y, int z);
 
@@ -70,6 +76,7 @@ public interface DecorationArea {
      * @param z
      *            Block z in the world.
      * @return The material.
+     * @since 0.2
      */
     BlockData getBlockData(int x, int y, int z);
 
@@ -100,6 +107,7 @@ public interface DecorationArea {
      * @param z
      *            Block z in the world.
      * @return The block state.
+     * @since 0.3
      */
     BlockState getBlockState(int x, int y, int z);
 
@@ -109,6 +117,7 @@ public interface DecorationArea {
      * coordinates will result in an exception being thrown.
      *
      * @return Center block x.
+     * @since 0.2
      */
     int getCenterX();
 
@@ -118,6 +127,7 @@ public interface DecorationArea {
      * coordinates will result in an exception being thrown.
      *
      * @return Center block z.
+     * @since 0.2
      */
     int getCenterZ();
 
@@ -133,6 +143,7 @@ public interface DecorationArea {
      * @param material
      *            The new material. May not be null, but may be
      *            {@link Material#AIR}.
+     * @since 0.2
      */
     void setBlock(int x, int y, int z, Material material);
 
@@ -148,6 +159,7 @@ public interface DecorationArea {
      * @param blockData
      *            The new material. May not be null, but may be the default block
      *            state of {@link Material#AIR}.
+     * @since 0.2
      */
     void setBlockData(int x, int y, int z, BlockData blockData);
 
@@ -167,6 +179,7 @@ public interface DecorationArea {
      *            Block z in the world.
      * @param blockState
      *            The block state.
+     * @since 0.3
      */
     void setBlockState(int x, int y, int z, BlockState blockState);
 }

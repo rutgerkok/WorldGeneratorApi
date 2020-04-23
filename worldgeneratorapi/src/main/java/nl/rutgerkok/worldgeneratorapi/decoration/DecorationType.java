@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
  * The type of a decoration. The type of the decoration only influences the
  * moment it is spawned.
  *
+ * @since 0.2
  */
 public enum DecorationType {
     /*
@@ -17,62 +18,80 @@ public enum DecorationType {
 
     /**
      * Used to generate caves and ravines.
-     * 
+     *
      * @deprecated Replaced by {@link BaseDecorationType#CARVING_AIR}.
+     * @since 0.3
      */
     @Deprecated
     CARVING_AIR,
 
     /**
      * Used to generate underwater caves and ravines.
-     * 
+     *
      * @deprecated Replaced by {@link BaseDecorationType#CARVING_LIQUID}.
+     * @since 0.3
      */
     @Deprecated
     CARVING_LIQUID,
 
     /**
      * Early stage of decoration, just after the two carving stages. Seems to be
-     * unused by Minecraft.
+     * unused by Minecraft, but you can use it just fine.
+     *
+     * @since 0.2
      */
     RAW_GENERATION,
 
     /**
      * Small modifications to the shape of the terrain. Small water/lava lakes,
      * icebergs, etc.
+     *
+     * @since 0.2
      */
     LOCAL_MODIFICATIONS,
 
     /**
      * Structures that spawn underground. Mineshafts, strongholds, buried treasures,
      * etc.
+     *
+     * @since 0.2
      */
     UNDERGROUND_STRUCTURES,
 
     /**
      * Structures that spawn on the surface. Villages, pyramids, igloos, shipwrecks,
      * ocean monuments, etc.
+     *
+     * @since 0.2
      */
     SURFACE_STRUCTURES,
 
     /**
      * The ores: diamond, redstone, iron, coal, etc.
+     *
+     * @since 0.2
      */
     UNDERGROUND_ORES,
 
     /**
      * Small structures that spawn underground. Fossils.
+     *
+     * @since 0.2
      */
     UNDERGROUND_DECORATION,
 
     /**
      * Small structures that spawn on the surface. Plants, grass, flowers,
      * mushrooms, etc.
+     *
+     * @since 0.2
      */
     VEGETAL_DECORATION,
 
     /**
      * A few final modifications, like the placement of vines.
+     *
+     * @since 0.2
      */
     TOP_LAYER_MODIFICATION;
 

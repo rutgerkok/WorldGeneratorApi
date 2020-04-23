@@ -25,6 +25,7 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * @param <T>
  *            The type to be stored.
  * @see FloatProperty
+ * @since 0.1
  */
 public class Property<T> implements Keyed {
 
@@ -76,6 +77,7 @@ public class Property<T> implements Keyed {
      * @param world
      *            The world.
      * @return The value of the property.
+     * @since 0.1
      */
     public final T get(WorldRef world) {
         T value = getWorldDefault(world);
@@ -93,6 +95,7 @@ public class Property<T> implements Keyed {
      * @param biome
      *            The biome.
      * @return The value of the property.
+     * @since 0.1
      */
     public final T get(WorldRef world, Biome biome) {
         T value = getBiomeInWorldDefault(world, biome);
@@ -148,6 +151,7 @@ public class Property<T> implements Keyed {
      * Gets a default value. May not be null.
      *
      * @return A default value.
+     * @since 0.1
      */
     public T getDefault() {
         List<T> defaultValues = this.defaultValues;
@@ -156,7 +160,9 @@ public class Property<T> implements Keyed {
 
     /**
      * Gets the name of this property.
+     * 
      * @return The name.
+     * @since 0.1
      */
     @Override
     public NamespacedKey getKey() {
@@ -188,8 +194,9 @@ public class Property<T> implements Keyed {
      * @param value
      *            The new value.
      * @throws UnsupportedOperationException
-     *             If the property cannot be changed to the given value for
-     *             whatever reason.
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     @SuppressWarnings("unchecked") // List is guarded
     public void setBiomeDefault(Biome biome, T value) {
@@ -220,8 +227,9 @@ public class Property<T> implements Keyed {
      * @param value
      *            The new value.
      * @throws UnsupportedOperationException
-     *             If the property cannot be changed to the given value for
-     *             whatever reason.
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     @SuppressWarnings("unchecked") // Safe, as list is guarded
     public void setBiomeInWorldDefault(WorldRef world, Biome biome, T value) {
@@ -245,10 +253,15 @@ public class Property<T> implements Keyed {
     }
 
     /**
-     * Sets the property. Biome-specific and world-specific values will override this value.
-     * @param value The value.
-     * @throws UnsupportedOperationException If the property cannot be changed to the given value for
-     *             whatever reason.
+     * Sets the property. Biome-specific and world-specific values will override
+     * this value.
+     * 
+     * @param value
+     *            The value.
+     * @throws UnsupportedOperationException
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     public void setDefault(T value) {
         Objects.requireNonNull(value, "value");
@@ -265,8 +278,9 @@ public class Property<T> implements Keyed {
      * @param value
      *            The value.
      * @throws UnsupportedOperationException
-     *             If the property cannot be changed to the given value for
-     *             whatever reason.
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     public void setWorldDefault(WorldRef world, T value) {
         Objects.requireNonNull(world, "world");

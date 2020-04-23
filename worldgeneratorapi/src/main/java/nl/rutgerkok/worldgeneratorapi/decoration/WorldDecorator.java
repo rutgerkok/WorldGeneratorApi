@@ -9,6 +9,7 @@ import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
  * water. Everything else is a decoration. This class can be used to add or
  * remove decorations from the world.
  *
+ * @since 0.2
  */
 public interface WorldDecorator {
 
@@ -24,6 +25,7 @@ public interface WorldDecorator {
      *            The type of base decoration.
      *
      * @return All custom base decorations of the given type.
+     * @since 0.3
      */
     List<BaseChunkGenerator> getCustomBaseDecorations(BaseDecorationType decorationType);
 
@@ -36,6 +38,7 @@ public interface WorldDecorator {
      *
      * @return A mutable list.
      * @see #withCustomDecoration(DecorationType, Decoration)
+     * @since 0.2
      */
     List<Decoration> getCustomDecorations(DecorationType type);
 
@@ -46,6 +49,7 @@ public interface WorldDecorator {
      *            The type.
      * @param enabled
      *            True if enabled, false otherwise.
+     * @since 0.3
      */
     void setDefaultBaseDecoratorsEnabled(BaseDecorationType type, boolean enabled);
 
@@ -56,6 +60,7 @@ public interface WorldDecorator {
      *            The type.
      * @param enabled
      *            True if enabled, false otherwise.
+     * @since 0.2
      */
     void setDefaultDecoratorsEnabled(DecorationType type, boolean enabled);
 
@@ -71,6 +76,7 @@ public interface WorldDecorator {
      * @param decorator
      *            The decorator.
      * @return This, for chaining.
+     * @since 0.3
      */
     default WorldDecorator withCustomBaseDecoration(BaseDecorationType type, BaseChunkGenerator decorator) {
         getCustomBaseDecorations(type).add(decorator);
@@ -85,6 +91,7 @@ public interface WorldDecorator {
      * @param decorator
      *            The decorator.
      * @return This, for chaining.
+     * @since 0.2
      */
     default WorldDecorator withCustomDecoration(DecorationType type, Decoration decorator) {
         this.getCustomDecorations(type).add(decorator);
@@ -97,6 +104,7 @@ public interface WorldDecorator {
      * any custom decorations.
      *
      * @return This, for chaining.
+     * @since 0.3
      */
     default WorldDecorator withoutAllDefaultDecorations() {
         for (DecorationType type : DecorationType.values()) {
@@ -109,13 +117,15 @@ public interface WorldDecorator {
     }
 
     /**
-     * Disables all default Minecraft base decorations of the given type. Equivalent to
-     * calling {@link #setDefaultBaseDecoratorsEnabled(BaseDecorationType, boolean)} with
+     * Disables all default Minecraft base decorations of the given type. Equivalent
+     * to calling
+     * {@link #setDefaultBaseDecoratorsEnabled(BaseDecorationType, boolean)} with
      * {@code enabled} set to {@code false}.
      *
      * @param type
      *            The type of decoration.
      * @return This, for chaining.
+     * @since 0.3
      */
     default WorldDecorator withoutDefaultBaseDecorations(BaseDecorationType type) {
         setDefaultBaseDecoratorsEnabled(type, false);
@@ -130,6 +140,7 @@ public interface WorldDecorator {
      * @param type
      *            The type of decoration.
      * @return This, for chaining.
+     * @since 0.2
      */
     default WorldDecorator withoutDefaultDecorations(DecorationType type) {
         setDefaultDecoratorsEnabled(type, false);

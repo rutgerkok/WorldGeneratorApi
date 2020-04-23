@@ -17,9 +17,10 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * <p>
  * However, an alternative is to use
  * {@link WorldGeneratorApi#createCustomGenerator(WorldRef, Consumer)}. This is
- * useful if you want your plugin to be activated using the bukkit.yml file/any
- * multiworld plugin (like Multiverse). To use this event, you'll need to
+ * useful if you want your plugin to be activated using the bukkit.yml file or
+ * any multiworld plugin (like Multiverse).
  *
+ * @since 0.2
  */
 public class WorldGeneratorInitEvent extends WorldEvent {
 
@@ -31,6 +32,13 @@ public class WorldGeneratorInitEvent extends WorldEvent {
 
     private final WorldGenerator worldGenerator;
 
+    /**
+     * Constructs the event. This is normally done by WorldGeneratorApi.
+     *
+     * @param worldGenerator
+     *            The world generator that will be modified.
+     * @since 0.2
+     */
     public WorldGeneratorInitEvent(WorldGenerator worldGenerator) {
         super(worldGenerator.getWorld());
         this.worldGenerator = worldGenerator;
@@ -41,6 +49,12 @@ public class WorldGeneratorInitEvent extends WorldEvent {
         return handlers;
     }
 
+    /**
+     * Gets the world generator, ready for you to modify.
+     *
+     * @return The world generator.
+     * @seince 0.2
+     */
     public WorldGenerator getWorldGenerator() {
         return worldGenerator;
     }

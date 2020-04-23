@@ -6,7 +6,9 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 /**
  * Represents a decoration of a world. Plugins are allowed to implement this
- * class.
+ * class. These decorations are allowed to cross chunk boundaries.
+ *
+ * @since 0.2
  */
 public interface Decoration {
 
@@ -27,6 +29,7 @@ public interface Decoration {
      *            The decoration area.
      * @param random
      *            Random number generator.
+     * @since 0.2
      */
     void decorate(DecorationArea area, Random random);
 }

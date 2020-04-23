@@ -19,6 +19,8 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * This class is thread-safe. However, most getters in this class can produce
  * slightly outdated values if another thread is currently modifying those
  * values.
+ * 
+ * @since 0.1
  */
 public class FloatProperty implements Keyed {
 
@@ -62,6 +64,7 @@ public class FloatProperty implements Keyed {
      * @param world
      *            The world.
      * @return The value of the property.
+     * @since 0.1
      */
     public final float get(WorldRef world) {
         float value = getWorldDefault(world);
@@ -142,7 +145,9 @@ public class FloatProperty implements Keyed {
 
     /**
      * Gets the name of this property.
+     * 
      * @return The name.
+     * @since 0.1
      */
     @Override
     public NamespacedKey getKey() {
@@ -174,8 +179,9 @@ public class FloatProperty implements Keyed {
      * @param value
      *            The new value.
      * @throws UnsupportedOperationException
-     *             If the property cannot be changed to the given value for
-     *             whatever reason.
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     public void setBiomeDefault(Biome biome, float value) {
         Objects.requireNonNull(biome, "biome");
@@ -206,8 +212,9 @@ public class FloatProperty implements Keyed {
      * @param value
      *            The new value.
      * @throws UnsupportedOperationException
-     *             If the property cannot be changed to the given value for
-     *             whatever reason.
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     public void setBiomeInWorldDefault(WorldRef world, Biome biome, float value) {
         Objects.requireNonNull(world, "world");
@@ -232,10 +239,15 @@ public class FloatProperty implements Keyed {
     }
 
     /**
-     * Sets the property. Biome-specific and world-specific values will override this value.
-     * @param value The value.
-     * @throws UnsupportedOperationException If the property cannot be changed to the given value for
-     *             whatever reason.
+     * Sets the property. Biome-specific and world-specific values will override
+     * this value.
+     * 
+     * @param value
+     *            The value.
+     * @throws UnsupportedOperationException
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     public void setDefault(float value) {
         checkForNaN(value);
@@ -252,8 +264,9 @@ public class FloatProperty implements Keyed {
      * @param value
      *            The value.
      * @throws UnsupportedOperationException
-     *             If the property cannot be changed to the given value for
-     *             whatever reason.
+     *             If the property cannot be changed to the given value for whatever
+     *             reason.
+     * @since 0.1
      */
     public void setWorldDefault(WorldRef world, float value) {
         Objects.requireNonNull(world, "world");

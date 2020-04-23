@@ -39,6 +39,7 @@ public interface WorldGenerator {
      *             Bukkit's {@link ChunkGenerator}, which has merged several
      *             different stages of world generation. This can also happen if
      *             another plugin is poking around in Minecraft internals.
+     * @since 0.3
      */
     BaseTerrainGenerator getBaseTerrainGenerator() throws UnsupportedOperationException;
 
@@ -49,6 +50,7 @@ public interface WorldGenerator {
      * {@link BiomeGrid}) will not show up in this biome generator.
      *
      * @return The biome generator.
+     * @since 0.1
      */
     BiomeGenerator getBiomeGenerator();
 
@@ -89,6 +91,7 @@ public interface WorldGenerator {
      * @param base
      *            The base.
      * @deprecated Use {@link #setBaseTerrainGenerator(BaseTerrainGenerator)}.
+     * @since 0.1
      */
     @Deprecated
     void setBaseChunkGenerator(BaseChunkGenerator base);
@@ -104,6 +107,7 @@ public interface WorldGenerator {
      *            The base noise generator.
      * @return The noise generator is transformed into a full, block-by-block base
      *         terrain generator, which is returned here.
+     * @since 0.3
      */
     BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base);
 
@@ -117,15 +121,17 @@ public interface WorldGenerator {
      *
      * @param base
      *            The base terrain.
+     * @since 0.3
      */
     void setBaseTerrainGenerator(BaseTerrainGenerator base);
 
     /**
      * Sets the biome generator of the world. The biome generator decides where each
      * biome is located.
-     * 
+     *
      * @param biomeGenerator
      *            The biome generator.
+     * @since 0.5
      */
     void setBiomeGenerator(BiomeGenerator biomeGenerator);
 

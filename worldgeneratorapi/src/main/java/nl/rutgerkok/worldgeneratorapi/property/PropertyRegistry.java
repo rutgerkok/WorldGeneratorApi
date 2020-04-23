@@ -10,36 +10,55 @@ import org.bukkit.NamespacedKey;
  * of Minecraft are also stored here, and can often even be modified. All method
  * in this class can be called from any thread.
  *
+ * @since 0.1
  */
 public interface PropertyRegistry {
 
     /**
      * The temperature of a biome (float), from 0 (frozen) to 2 (desert).
+     *
+     * @see #getFloat(NamespacedKey, float)
+     * @since 0.1
      */
     NamespacedKey TEMPERATURE = NamespacedKey.minecraft("temperature");
 
     /**
      * The wetness of a biome (float), from 0 (dry) to 1 (wet).
+     *
+     * @see #getFloat(NamespacedKey, float)
+     * @since 0.1
      */
     NamespacedKey WETNESS = NamespacedKey.minecraft("wetness");
 
     /**
      * Variable used in height generation (float).
+     *
+     * @see #getFloat(NamespacedKey, float)
+     * @since 0.1
      */
     NamespacedKey BASE_HEIGHT = NamespacedKey.minecraft("base_height");
 
     /**
      * Variable used in height generation (float).
+     *
+     * @see #getFloat(NamespacedKey, float)
+     * @since 0.1
      */
     NamespacedKey HEIGHT_VARIATION = NamespacedKey.minecraft("height_variation");
 
     /**
-     * The world seed (long).
+     * The world seed (Long).
+     *
+     * @see #getProperty(NamespacedKey, Object)
+     * @since 0.1
      */
     NamespacedKey WORLD_SEED = NamespacedKey.minecraft("world_seed");
 
     /**
      * The sea level (float).
+     *
+     * @see #getFloat(NamespacedKey, float)
+     * @since 0.1
      */
     NamespacedKey SEA_LEVEL = NamespacedKey.minecraft("sea_level");
 
@@ -56,6 +75,7 @@ public interface PropertyRegistry {
      * @throws ClassCastException
      *             If a property of another type with the same name is already
      *             stored.
+     * @since 0.1
      */
     FloatProperty getFloat(NamespacedKey name, float defaultValue);
 
@@ -73,6 +93,7 @@ public interface PropertyRegistry {
      * @throws ClassCastException
      *             If a property of another type with the same name is already
      *             stored.
+     * @since 0.1
      */
     <T> Property<T> getProperty(NamespacedKey name, T defaultValue);
 

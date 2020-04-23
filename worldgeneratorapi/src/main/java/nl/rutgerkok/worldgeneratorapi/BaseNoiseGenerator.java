@@ -6,23 +6,41 @@ import org.bukkit.block.data.BlockData;
 
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 
+/**
+ * Supplies noise values - values lower than 0 results in air or water, values
+ * higher than 0 in stone.
+ *
+ * @since 0.3
+ */
 public interface BaseNoiseGenerator {
 
+    /**
+     * Terrain settings for the noise generator.
+     *
+     * @since 0.3
+     *
+     */
     public static final class TerrainSettings {
         /**
          * The block used as stone. Set to null to use the server default.
+         *
+         * @since 0.3
          */
         @Nullable
         public BlockData stoneBlock = null;
 
         /**
          * The block used as water. Set to null to use the server default.
+         *
+         * @since 0.3
          */
         @Nullable
         public BlockData waterBlock = null;
 
         /**
          * The water level. Set to a negative value to use the server default.
+         *
+         * @since 0.3
          */
         public int seaLevel = -1;
 
@@ -31,7 +49,7 @@ public interface BaseNoiseGenerator {
 
     /**
      * Calculates the noise for a column of 4x4 blocks wide.
-     * 
+     *
      * @param biomeGenerator
      *            The biome generator, in case you want to have biome-specific
      *            noise. Note that you can directly pass the x and z received in
@@ -45,6 +63,7 @@ public interface BaseNoiseGenerator {
      *            Column x = blockX / 4
      * @param z
      *            Column z = blockZ / 4
+     * @since 0.3
      */
     void getNoise(BiomeGenerator biomeGenerator, double[] buffer, int x, int z);
 
@@ -54,6 +73,7 @@ public interface BaseNoiseGenerator {
      * chunks to have different settings, use {@link WorldDecorator}.)
      *
      * @return The terrain settings.
+     * @since 0.3
      */
     default TerrainSettings getTerrainSettings() {
         return new TerrainSettings();
