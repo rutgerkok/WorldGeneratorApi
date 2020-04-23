@@ -9,6 +9,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_15_R1.block.CraftBanner;
 import org.bukkit.craftbukkit.v1_15_R1.block.CraftBarrel;
 import org.bukkit.craftbukkit.v1_15_R1.block.CraftBeacon;
+import org.bukkit.craftbukkit.v1_15_R1.block.CraftBeehive;
 import org.bukkit.craftbukkit.v1_15_R1.block.CraftBell;
 import org.bukkit.craftbukkit.v1_15_R1.block.CraftBlastFurnace;
 import org.bukkit.craftbukkit.v1_15_R1.block.CraftBlock;
@@ -48,6 +49,7 @@ import net.minecraft.server.v1_15_R1.TileEntity;
 import net.minecraft.server.v1_15_R1.TileEntityBanner;
 import net.minecraft.server.v1_15_R1.TileEntityBarrel;
 import net.minecraft.server.v1_15_R1.TileEntityBeacon;
+import net.minecraft.server.v1_15_R1.TileEntityBeehive;
 import net.minecraft.server.v1_15_R1.TileEntityBell;
 import net.minecraft.server.v1_15_R1.TileEntityBlastFurnace;
 import net.minecraft.server.v1_15_R1.TileEntityBrewingStand;
@@ -241,7 +243,9 @@ class DecorationAreaImpl implements DecorationArea {
                 return new CraftLectern(material, (TileEntityLectern) tileEntity);
             case SMOKER:
                 return new CraftSmoker(material, (TileEntitySmoker) tileEntity);
-
+            case BEE_NEST:
+            case BEEHIVE:
+                return new CraftBeehive(material, (TileEntityBeehive) tileEntity);
             default:
                 return new CraftBlockState(material);
         }
