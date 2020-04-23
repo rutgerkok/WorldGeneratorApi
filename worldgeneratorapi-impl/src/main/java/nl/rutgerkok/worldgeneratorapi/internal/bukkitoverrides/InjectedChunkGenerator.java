@@ -29,6 +29,7 @@ import net.minecraft.server.v1_15_R1.NoiseGeneratorOctaves;
 import net.minecraft.server.v1_15_R1.RegionLimitedWorldAccess;
 import net.minecraft.server.v1_15_R1.SeededRandom;
 import net.minecraft.server.v1_15_R1.SpawnerCreature;
+import net.minecraft.server.v1_15_R1.WorldChunkManager;
 import net.minecraft.server.v1_15_R1.WorldGenStage;
 import net.minecraft.server.v1_15_R1.WorldGenerator;
 import net.minecraft.server.v1_15_R1.WorldServer;
@@ -38,6 +39,7 @@ import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator.HeightType;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
+import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.ReflectionUtil;
 import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
 
@@ -117,8 +119,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
     public final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
     private BaseTerrainGenerator baseTerrainGenerator;
-
-    private final BiomeGenerator biomeGenerator;
+    private BiomeGenerator biomeGenerator;
 
     public InjectedChunkGenerator(WorldServer world, BaseTerrainGenerator baseChunkGenerator) {
         super(world, world.getChunkProvider().getChunkGenerator().getWorldChunkManager(),
@@ -368,6 +369,21 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
     public void setBaseChunkGenerator(BaseTerrainGenerator baseTerrainGenerator) {
         this.baseTerrainGenerator = Objects.requireNonNull(baseTerrainGenerator, "baseTerrainGenerator");
+    }
+
+    public void setBiomeGenerator(BiomeGenerator biomeGenerator) {
+        this.biomeGenerator = Objects.requireNonNull(biomeGenerator, "biomeGenerator");
+
+        // Update Minecraft's field too
+        WorldChunkManager worldChunkManager = InjectedBiomeGenerator.wrapOrUnwrap(biomeGenerator);
+        try {
+            ReflectionUtil.getFieldOfType(getClass(), WorldChunkManager.class).set(this, worldChunkManager);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to update the biome generator field", e);
+        }
+        if (this.c != worldChunkManager) {
+            throw new RuntimeException("Failed to update the biome generator field - old value is still present");
+        }
     }
 
 }

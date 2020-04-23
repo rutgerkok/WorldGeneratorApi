@@ -166,4 +166,14 @@ final class WorldGeneratorImpl implements WorldGenerator {
         }
     }
 
+    @Override
+    public void setBiomeGenerator(BiomeGenerator biomeGenerator) {
+        Objects.requireNonNull(biomeGenerator, "biomeGenerator");
+        InjectedChunkGenerator injected = this.injected;
+        if (injected == null) {
+            replaceChunkGenerator(BaseTerrainGeneratorImpl.fromMinecraft(world));
+        }
+        injected.setBiomeGenerator(biomeGenerator);
+    }
+
 }

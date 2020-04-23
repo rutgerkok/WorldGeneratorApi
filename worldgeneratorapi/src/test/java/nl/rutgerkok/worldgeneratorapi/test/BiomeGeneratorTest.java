@@ -1,10 +1,6 @@
 package nl.rutgerkok.worldgeneratorapi.test;
 
-import static org.bukkit.block.Biome.DESERT;
-import static org.bukkit.block.Biome.FOREST;
-import static org.bukkit.block.Biome.JUNGLE;
-import static org.bukkit.block.Biome.PLAINS;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.bukkit.block.Biome;
 import org.junit.jupiter.api.Test;
@@ -14,29 +10,18 @@ import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 public class BiomeGeneratorTest {
 
     @Test
-    public void scaling() {
+    public void defaultMethod() {
         BiomeGenerator biomeGenerator = new BiomeGenerator() {
 
             @Override
-            public Biome[] getZoomedOutBiomes(int minX, int minZ, int xSize, int zSize) {
-                if (xSize != 2 || zSize != 2) {
-                    throw new UnsupportedOperationException();
+            public Biome getZoomedOutBiome(int x, int y, int z) {
+                if (y < 20) {
+                    return Biome.PLAINS;
                 }
-                return new Biome[] {
-                        PLAINS, DESERT,
-                        FOREST, JUNGLE };
+                return Biome.SNOWY_TUNDRA;
             }
         };
 
-        assertArrayEquals(new Biome[] {
-                PLAINS, PLAINS, PLAINS, PLAINS, DESERT, DESERT, DESERT, DESERT,
-                PLAINS, PLAINS, PLAINS, PLAINS, DESERT, DESERT, DESERT, DESERT,
-                PLAINS, PLAINS, PLAINS, PLAINS, DESERT, DESERT, DESERT, DESERT,
-                PLAINS, PLAINS, PLAINS, PLAINS, DESERT, DESERT, DESERT, DESERT,
-                FOREST, FOREST, FOREST, FOREST, JUNGLE, JUNGLE, JUNGLE, JUNGLE,
-                FOREST, FOREST, FOREST, FOREST, JUNGLE, JUNGLE, JUNGLE, JUNGLE,
-                FOREST, FOREST, FOREST, FOREST, JUNGLE, JUNGLE, JUNGLE, JUNGLE,
-                FOREST, FOREST, FOREST, FOREST, JUNGLE, JUNGLE, JUNGLE, JUNGLE },
-                biomeGenerator.getBiomes(0, 0, 8, 8));
+        assertEquals(Biome.PLAINS, biomeGenerator.getZoomedOutBiome(0, 0));
     }
 }

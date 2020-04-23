@@ -99,7 +99,7 @@ public interface WorldGenerator {
      * {@link #setBaseTerrainGenerator(BaseTerrainGenerator)}.) The shape of your
      * terrain will automatically be modified to accommodate structures like
      * villages.
-     * 
+     *
      * @param base
      *            The base noise generator.
      * @return The noise generator is transformed into a full, block-by-block base
@@ -114,10 +114,19 @@ public interface WorldGenerator {
      * might be placed on unsuitable locations, as unlike
      * {@link #setBaseNoiseGenerator(BaseNoiseGenerator)} the terrain shape is not
      * modified to accommodate for structures like villages.
-     * 
+     *
      * @param base
      *            The base terrain.
      */
     void setBaseTerrainGenerator(BaseTerrainGenerator base);
+
+    /**
+     * Sets the biome generator of the world. The biome generator decides where each
+     * biome is located.
+     * 
+     * @param biomeGenerator
+     *            The biome generator.
+     */
+    void setBiomeGenerator(BiomeGenerator biomeGenerator);
 
 }
