@@ -7,17 +7,18 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 /**
  * Generates the basic blocks (just air, stone and water usually) of a chunk.
- * 
+ *
  * @since 0.1
  */
 public interface BaseChunkGenerator {
 
     /**
      * Contains all information of a generating chunk.
-     * 
+     *
      * @since 0.1
      */
     interface GeneratingChunk {
+
         /**
          * A biome generator, used for querying biomes outside the chunk.
          *
@@ -61,6 +62,14 @@ public interface BaseChunkGenerator {
          */
         int getChunkZ();
     }
+
+    /**
+     * Size of the chunk along on the x-axis and the z-axis.
+     *
+     * @see ChunkData#getMaxHeight() Y-size
+     * @since 0.5
+     */
+    int CHUNK_SIZE = 16;
 
     /**
      * Sets the basic blocks (air, stone and water usually) in the chunk. No
