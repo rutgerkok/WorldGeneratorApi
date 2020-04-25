@@ -1,5 +1,8 @@
 package nl.rutgerkok.worldgeneratorapi.property;
 
+import java.util.Collection;
+import java.util.Optional;
+
 import javax.annotation.Nullable;
 
 import org.bukkit.NamespacedKey;
@@ -63,6 +66,13 @@ public interface PropertyRegistry {
     NamespacedKey SEA_LEVEL = NamespacedKey.minecraft("sea_level");
 
     /**
+     * Gets all registered properties. The resulting object cannot be modified.
+     *
+     * @return All registered properties.
+     */
+    Collection<? extends AbstractProperty> getAllProperties();
+
+    /**
      * Gets the property with the given name. If no such property exists, it is
      * created.
      *
@@ -81,7 +91,7 @@ public interface PropertyRegistry {
 
     /**
      * Gets the property with the given name. Its type is not checked. If no
-     * property with the name exists, it is created.
+     * property with the name exists, it is created and registered.
      *
      * @param name
      *            Name of the property.
@@ -96,5 +106,14 @@ public interface PropertyRegistry {
      * @since 0.1
      */
     <T> Property<T> getProperty(NamespacedKey name, T defaultValue);
+
+    /**
+     * Gets an already-registered property.
+     *
+     * @param key
+     *            The key.
+     * @return The property, if was already registered.
+     */
+    Optional<AbstractProperty> getRegisteredProperty(NamespacedKey key);
 
 }

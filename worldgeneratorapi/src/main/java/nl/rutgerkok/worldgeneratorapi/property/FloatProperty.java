@@ -3,9 +3,9 @@ package nl.rutgerkok.worldgeneratorapi.property;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Biome;
 
@@ -19,14 +19,13 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * This class is thread-safe. However, most getters in this class can produce
  * slightly outdated values if another thread is currently modifying those
  * values.
- * 
+ *
  * @since 0.1
  */
-public class FloatProperty implements Keyed {
+public class FloatProperty extends AbstractProperty {
 
     private final Map<WorldRef, float[]> allWorldValues = new ConcurrentHashMap<>(1);
     private volatile float[] defaultValues = { 0 };
-    protected final NamespacedKey name;
 
     /**
      * Only one thread may modify the class at a time. This is necessary. Imagine
@@ -47,7 +46,7 @@ public class FloatProperty implements Keyed {
     private final Object mutationLock = new Object();
 
     public FloatProperty(NamespacedKey name, float defaultValue) {
-        this.name = Objects.requireNonNull(name);
+        super(name);
         setDefault(defaultValue);
     }
 
@@ -143,15 +142,21 @@ public class FloatProperty implements Keyed {
         return defaultValues[defaultValues.length - 1];
     }
 
-    /**
-     * Gets the name of this property.
-     * 
-     * @return The name.
-     * @since 0.1
-     */
     @Override
-    public NamespacedKey getKey() {
-        return this.name;
+    public String getStringValue(Optional<WorldRef> world, Optional<Biome> biome) {
+        if (world.isPresent()) {
+            if (biome.isPresent()) {
+                return String.valueOf(this.get(world.get(), biome.get()));
+            }
+            return String.valueOf(this.get(world.get()));
+        }
+        if (biome.isPresent()) {
+            float biomeDefault = this.getBiomeDefault(biome.get());
+            if (!Float.isNaN(biomeDefault)) {
+                return String.valueOf(biomeDefault);
+            }
+        }
+        return String.valueOf(this.getDefault());
     }
 
     /**
@@ -241,7 +246,7 @@ public class FloatProperty implements Keyed {
     /**
      * Sets the property. Biome-specific and world-specific values will override
      * this value.
-     * 
+     *
      * @param value
      *            The value.
      * @throws UnsupportedOperationException
@@ -253,6 +258,29 @@ public class FloatProperty implements Keyed {
         checkForNaN(value);
         synchronized (mutationLock) {
             defaultValues[defaultValues.length - 1] = value;
+        }
+    }
+
+    @Override
+    public void setStringValue(Optional<WorldRef> worldRef, Optional<Biome> biome, String string)
+            throws IllegalArgumentException, UnsupportedOperationException {
+        float value;
+        try {
+            value = Float.parseFloat(string);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid number: " + string);
+        }
+
+        if (worldRef.isPresent()) {
+            if (biome.isPresent()) {
+                this.setBiomeInWorldDefault(worldRef.get(), biome.get(), value);
+            } else {
+                this.setWorldDefault(worldRef.get(), value);
+            }
+        } else if (biome.isPresent()) {
+            this.setBiomeDefault(biome.get(), value);
+        } else {
+            this.setDefault(value);
         }
     }
 

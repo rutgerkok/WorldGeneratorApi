@@ -6,6 +6,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.bukkit.World;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldInitEvent;
@@ -76,6 +78,8 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+
+        redirectCommand(getCommand("worldgeneratorapi"), new PropertyChangeCommand(propertyRegistry));
     }
 
     @EventHandler
@@ -86,6 +90,11 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
         this.worldGenerators.remove(event.getWorld().getUID());
+    }
+
+    private void redirectCommand(PluginCommand command, TabExecutor executor) {
+        command.setExecutor(executor);
+        command.setTabCompleter(executor);
     }
 
 }

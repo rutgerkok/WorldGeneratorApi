@@ -4,3 +4,12 @@ main: nl.rutgerkok.worldgeneratorapi.internal.WorldGeneratorApiImpl
 author: Rutger Kok
 load: startup
 api-version: 1.15
+commands:
+  worldgeneratorapi:
+    description: "Inspect and change the world generator"
+    permission: worldgeneratorapi.properties
+    usage: "/<command> <get/set> [world] [biome] <property> [value]"
+permissions:
+  worldgeneratorapi.properties:
+    description: "Inspect and change thw world generator properties"
+    default: op

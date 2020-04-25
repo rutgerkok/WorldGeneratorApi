@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nullable;
 
-import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Biome;
 
@@ -27,7 +27,7 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * @see FloatProperty
  * @since 0.1
  */
-public class Property<T> implements Keyed {
+public class Property<T> extends AbstractProperty {
 
     /**
      * A list that cannot be grown, has a size of 1, but can be modified.
@@ -45,7 +45,6 @@ public class Property<T> implements Keyed {
 
     private final Map<WorldRef, List<T>> allWorldValues = new ConcurrentHashMap<>();
     private List<T> defaultValues = singletonArrayList(null);
-    protected final NamespacedKey name;
 
     /**
      * Only one thread may modify the class at a time. This is necessary. Imagine
@@ -67,7 +66,7 @@ public class Property<T> implements Keyed {
     private final Object mutationLock = new Object();
 
     public Property(NamespacedKey name, T defaultValue) {
-        this.name = Objects.requireNonNull(name);
+        super(name);
         setDefault(defaultValue);
     }
 
@@ -158,15 +157,21 @@ public class Property<T> implements Keyed {
         return defaultValues.get(defaultValues.size() - 1);
     }
 
-    /**
-     * Gets the name of this property.
-     * 
-     * @return The name.
-     * @since 0.1
-     */
     @Override
-    public NamespacedKey getKey() {
-        return this.name;
+    public String getStringValue(Optional<WorldRef> world, Optional<Biome> biome) {
+        if (world.isPresent()) {
+            if (biome.isPresent()) {
+                return String.valueOf(this.get(world.get(), biome.get()));
+            }
+            return String.valueOf(this.get(world.get()));
+        }
+        if (biome.isPresent()) {
+            T biomeDefault = this.getBiomeDefault(biome.get());
+            if (biomeDefault != null) {
+                return String.valueOf(biomeDefault);
+            }
+        }
+        return String.valueOf(this.getDefault());
     }
 
     /**
@@ -255,7 +260,7 @@ public class Property<T> implements Keyed {
     /**
      * Sets the property. Biome-specific and world-specific values will override
      * this value.
-     * 
+     *
      * @param value
      *            The value.
      * @throws UnsupportedOperationException
@@ -267,6 +272,25 @@ public class Property<T> implements Keyed {
         Objects.requireNonNull(value, "value");
         synchronized (mutationLock) {
             defaultValues.set(defaultValues.size() - 1, value);
+        }
+    }
+
+    @Override
+    public void setStringValue(Optional<WorldRef> worldRef, Optional<Biome> biome, String string)
+            throws IllegalArgumentException, UnsupportedOperationException {
+        @SuppressWarnings("unchecked") // Safe, default value of of type T
+        Class<? extends T> requiredClass = (Class<? extends T>) this.getDefault().getClass();
+        T value = StringParser.parse(string, requiredClass);
+        if (worldRef.isPresent()) {
+            if (biome.isPresent()) {
+                this.setBiomeInWorldDefault(worldRef.get(), biome.get(), value);
+            } else {
+                this.setWorldDefault(worldRef.get(), value);
+            }
+        } else if (biome.isPresent()) {
+            this.setBiomeDefault(biome.get(), value);
+        } else {
+            this.setDefault(value);
         }
     }
 
