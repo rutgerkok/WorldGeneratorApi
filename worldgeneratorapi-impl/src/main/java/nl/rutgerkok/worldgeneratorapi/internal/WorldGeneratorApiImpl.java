@@ -21,6 +21,7 @@ import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.DummyBukkitChunkGenerator;
+import nl.rutgerkok.worldgeneratorapi.internal.command.CommandHandler;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorApi, Listener {
@@ -33,6 +34,13 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     public ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer) {
         this.worldGeneratorModifiers.putIfAbsent(world, consumer);
         return new DummyBukkitChunkGenerator(this);
+    }
+
+    private void disableWorldGenerators() {
+        for (WorldGeneratorImpl worldGenerator : this.worldGenerators.values()) {
+            worldGenerator.reset();
+        }
+        this.worldGenerators.clear();
     }
 
     @Override
@@ -59,7 +67,8 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
                                     + " chunk generator. If the custom world generator"
                                     + " does not intend to replace the base terrain, it"
                                     + " should modify the world using the"
-                                    + " WorldGeneratorInitEvent instead of using ");
+                                    + " WorldGeneratorInitEvent instead of using"
+                                    + " JavaPlugin.getDefaultWorldGenerator");
                 }
             }
 
@@ -76,10 +85,15 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     }
 
     @Override
+    public void onDisable() {
+        disableWorldGenerators();
+    }
+
+    @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
 
-        redirectCommand(getCommand("worldgeneratorapi"), new PropertyChangeCommand(propertyRegistry));
+        redirectCommand(getCommand("worldgeneratorapi"), new CommandHandler(this::reloadWorldGenerators, propertyRegistry));
     }
 
     @EventHandler
@@ -95,6 +109,17 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     private void redirectCommand(PluginCommand command, TabExecutor executor) {
         command.setExecutor(executor);
         command.setTabCompleter(executor);
+    }
+
+    /**
+     * Reloads all world generators: resets them, re-applies the modifiers and calls
+     * the init event again.
+     */
+    private void reloadWorldGenerators() {
+        disableWorldGenerators();
+        for (World world : this.getServer().getWorlds()) {
+            getForWorld(world);
+        }
     }
 
 }

@@ -7,9 +7,9 @@ api-version: 1.15
 commands:
   worldgeneratorapi:
     description: "Inspect and change the world generator"
-    permission: worldgeneratorapi.properties
-    usage: "/<command> <get/set> [world] [biome] <property> [value]"
+    permission: worldgeneratorapi.command
+    usage: "/<command> <get/set/reload> [params]"
 permissions:
-  worldgeneratorapi.properties:
-    description: "Inspect and change thw world generator properties"
+  worldgeneratorapi.command:
+    description: "Use the /worldgeneratorapi command to inspect, test or reload the world generator"
     default: op

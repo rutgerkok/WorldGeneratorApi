@@ -122,6 +122,8 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     private BiomeGenerator biomeGenerator;
 
     public InjectedChunkGenerator(WorldServer world, BaseTerrainGenerator baseChunkGenerator) {
+        // Note that this takes the biome generator and settings of the previous
+        // ChunkGenerator
         super(world, world.getChunkProvider().getChunkGenerator().getWorldChunkManager(),
                 4, 8, 256, world.getChunkProvider().getChunkGenerator().getSettings(), true);
         this.world = world.getWorld();
@@ -367,6 +369,18 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         return world.getSeaLevel() + 1;
     }
 
+    private void injectWorldChunkManager(WorldChunkManager worldChunkManager) {
+        try {
+            ReflectionUtil.getFieldOfType(getClass().getSuperclass(), WorldChunkManager.class).set(this,
+                    worldChunkManager);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to update the biome generator field", e);
+        }
+        if (this.c != worldChunkManager) {
+            throw new RuntimeException("Failed to update the biome generator field - old value is still present");
+        }
+    }
+
     public void setBaseChunkGenerator(BaseTerrainGenerator baseTerrainGenerator) {
         this.baseTerrainGenerator = Objects.requireNonNull(baseTerrainGenerator, "baseTerrainGenerator");
     }
@@ -376,14 +390,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
         // Update Minecraft's field too
         WorldChunkManager worldChunkManager = InjectedBiomeGenerator.wrapOrUnwrap(biomeGenerator);
-        try {
-            ReflectionUtil.getFieldOfType(getClass(), WorldChunkManager.class).set(this, worldChunkManager);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to update the biome generator field", e);
-        }
-        if (this.c != worldChunkManager) {
-            throw new RuntimeException("Failed to update the biome generator field - old value is still present");
-        }
+        this.injectWorldChunkManager(worldChunkManager);
     }
 
 }

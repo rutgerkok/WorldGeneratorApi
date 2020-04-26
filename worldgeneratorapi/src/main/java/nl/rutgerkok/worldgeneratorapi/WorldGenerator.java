@@ -81,6 +81,7 @@ public interface WorldGenerator {
      * Gets a reference to the world this generator is active for.
      *
      * @return The world reference.
+     * @since 0.1
      */
     WorldRef getWorldRef();
 

@@ -1,6 +1,7 @@
-package nl.rutgerkok.worldgeneratorapi.internal;
+package nl.rutgerkok.worldgeneratorapi.internal.command;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -12,9 +13,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.bukkit.util.StringUtil;
 
 import com.google.common.collect.ImmutableList;
@@ -33,7 +32,7 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
  * /&lt;command&gt; get [world] [biome] &lt;property&gt
  * </pre>
  */
-final class PropertyChangeCommand implements TabExecutor {
+final class PropertyChangeCommand extends WorldGeneratorApiCommand {
 
     private static class Parameters {
         @Nullable
@@ -55,37 +54,21 @@ final class PropertyChangeCommand implements TabExecutor {
         }
     }
 
-    /**
-     * Chops off the first element of the given array, if any.
-     *
-     * @param args
-     *            The array.
-     * @return A new array.
-     */
-    private static String[] removeFirst(String[] args) {
-        if (args.length == 0) {
-            return args;
-        }
-        String[] result = new String[args.length - 1];
-        System.arraycopy(args, 1, result, 0, result.length);
-        return result;
-    }
+
 
     /**
-     * Chops off the first and last element of the given array. Returns an empty
-     * array for arrays with a length of 2 and smaller.
+     * Chops off the last element of the given array. Returns an empty array for
+     * arrays with a length of 1 and smaller.
      *
      * @param args
      *            The array.
      * @return A new array.
      */
-    private static String[] removeFirstAndLast(String[] args) {
-        if (args.length < 2) {
+    private static String[] removeLast(String[] args) {
+        if (args.length < 1) {
             return new String[0];
         }
-        String[] result = new String[args.length - 2];
-        System.arraycopy(args, 1, result, 0, result.length);
-        return result;
+        return Arrays.copyOf(args, args.length - 1);
     }
 
     private final PropertyRegistry propertyRegistry;
@@ -142,23 +125,32 @@ final class PropertyChangeCommand implements TabExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args[0].equals("get") && args.length >= 2) {
-            Parameters parameters = this.parseParameters(sender.getServer(), removeFirst(args));
+    String getSyntax(String label) {
+        if (label.equals("get")) {
+            return "[world] [biome] <property>";
+        } else {
+            return "[world] [biome] <property> <value>";
+        }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, String label, String[] args) {
+        if (label.equals("get") && args.length >= 1) {
+            Parameters parameters = this.parseParameters(sender.getServer(), args);
             if (parameters.property == null) {
                 return false;
             }
             String value = parameters.property.getStringValue(parameters.worldRef(), parameters.biome());
-            sender.sendMessage(ChatColor.GREEN + "For biome " + ChatColor.DARK_GREEN
+            sender.sendMessage(BASE_COLOR + "For biome " + ChatColor.DARK_GREEN
                     + parameters.biome().map(b -> b.getKey().getKey()).orElse("(unspecified)") + ChatColor.GREEN
                     + " and world " + ChatColor.DARK_GREEN
                     + parameters.worldRef().map(w -> w.getName()).orElse("(unspecified)") + ChatColor.GREEN
-                    + " the value of " + ChatColor.DARK_GREEN + parameters.property.getKey() + ChatColor.GREEN + " is "
-                    + ChatColor.DARK_GREEN + value + ChatColor.GREEN + ".");
+                    + " the value of " + VALUE_COLOR + parameters.property.getKey() + BASE_COLOR + " is " + VALUE_COLOR
+                    + value + BASE_COLOR + ".");
             return true;
         }
-        if (args[0].equals("set") && args.length >= 3) {
-            Parameters parameters = this.parseParameters(sender.getServer(), removeFirstAndLast(args));
+        if (label.equals("set") && args.length >= 2) {
+            Parameters parameters = this.parseParameters(sender.getServer(), removeLast(args));
             if (parameters.property == null) {
                 return false;
             }
@@ -171,17 +163,17 @@ final class PropertyChangeCommand implements TabExecutor {
                 } else if (parameters.world == null) {
                     warning = "Also note that world-specific settings might override this value.";
                 }
-                sender.sendMessage(ChatColor.GREEN + "For biome " + ChatColor.DARK_GREEN
+                sender.sendMessage(BASE_COLOR + "For biome " + ChatColor.DARK_GREEN
                         + parameters.biome().map(b -> b.getKey().getKey()).orElse("(unspecified)") + ChatColor.GREEN
                         + " and world " + ChatColor.DARK_GREEN
                         + parameters.worldRef().map(w -> w.getName()).orElse("(unspecified)") + ChatColor.GREEN
                         + " the value of " + ChatColor.DARK_GREEN
-                        + parameters.property.getKey() + ChatColor.GREEN + " is now " + ChatColor.DARK_GREEN + newValue
-                        + ChatColor.GREEN + ". Note that upon server restart the value will be reset. " + warning);
+                        + parameters.property.getKey() + BASE_COLOR + " is now " + VALUE_COLOR + newValue + BASE_COLOR
+                        + ". Note that upon server restart the value will be reset. " + warning);
             } catch (IllegalArgumentException e) {
-                sender.sendMessage(ChatColor.DARK_RED + "Could not parse value: " + e.getMessage() + ".");
+                sender.sendMessage(ERROR_COLOR + "Could not parse value: " + e.getMessage() + ".");
             } catch (UnsupportedOperationException e) {
-                sender.sendMessage(ChatColor.DARK_RED + "This value cannot be changed: " + e.getMessage() + ".");
+                sender.sendMessage(ERROR_COLOR + "This value cannot be changed: " + e.getMessage() + ".");
             }
 
             return true;
@@ -190,40 +182,29 @@ final class PropertyChangeCommand implements TabExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0) {
-            return ImmutableList.of("get", "set");
-        }
+    public List<String> onTabComplete(CommandSender sender, String label, String[] args) {
         if (args.length == 1) {
-            return StringUtil.copyPartialMatches(args[0], ImmutableList.of("get", "set"), new ArrayList<>());
-        }
-        if (!args[0].equals("get") && !args[0].equals("set")) {
-            // If we have more than 1 argument, require a correct syntax for the first
-            // argument
-            return ImmutableList.of();
+            List<String> suggestions = new ArrayList<>();
+            StringUtil.copyPartialMatches(args[0], worldNames(sender), suggestions);
+            StringUtil.copyPartialMatches(args[0], biomeNames(sender), suggestions);
+            StringUtil.copyPartialMatches(args[0], propertyNames(sender), suggestions);
+            return suggestions;
         }
         if (args.length == 2) {
+            Parameters parsed = this.parseParameters(sender.getServer(), args);
             List<String> suggestions = new ArrayList<>();
-            StringUtil.copyPartialMatches(args[1], worldNames(sender), suggestions);
-            StringUtil.copyPartialMatches(args[1], biomeNames(sender), suggestions);
-            StringUtil.copyPartialMatches(args[1], propertyNames(sender), suggestions);
+            if (parsed.world != null) {
+                StringUtil.copyPartialMatches(args[1], biomeNames(sender), suggestions);
+            }
+            if ((parsed.world != null || parsed.biome != null) && parsed.property == null) {
+                StringUtil.copyPartialMatches(args[1], propertyNames(sender), suggestions);
+            }
             return suggestions;
         }
         if (args.length == 3) {
-            Parameters parsed = this.parseParameters(sender.getServer(), removeFirst(args));
-            List<String> suggestions = new ArrayList<>();
-            if (parsed.world != null) {
-                StringUtil.copyPartialMatches(args[2], biomeNames(sender), suggestions);
-            }
-            if ((parsed.world != null || parsed.biome != null) && parsed.property == null) {
-                StringUtil.copyPartialMatches(args[2], propertyNames(sender), suggestions);
-            }
-            return suggestions;
-        }
-        if (args.length == 4) {
-            Parameters parsed = this.parseParameters(sender.getServer(), removeFirst(args));
+            Parameters parsed = this.parseParameters(sender.getServer(), args);
             if (parsed.world != null && parsed.biome != null) {
-                return StringUtil.copyPartialMatches(args[3], propertyNames(sender), new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[2], propertyNames(sender), new ArrayList<>());
             } else {
                 return ImmutableList.of();
             }

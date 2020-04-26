@@ -28,9 +28,16 @@ final class WorldGeneratorImpl implements WorldGenerator {
     private final World world;
     private final WorldRef worldRef;
 
+    /**
+     * The original world generator before any changes were made. Will be restored
+     * when {@link #reset()} is called.
+     */
+    private final ChunkGenerator<?> oldChunkGenerator;
+
     WorldGeneratorImpl(World world) {
         this.world = Objects.requireNonNull(world, "world");
         this.worldRef = WorldRef.of(world);
+        this.oldChunkGenerator = this.getWorldHandle().getChunkProvider().getChunkGenerator();
     }
 
     @Override
@@ -82,25 +89,13 @@ final class WorldGeneratorImpl implements WorldGenerator {
         return worldRef;
     }
 
-    private Class<?> nmsClass(String simpleName) throws ClassNotFoundException {
-        // Returns a class in the net.mineraft.server package
-        Class<?> exampleNmsClass = ChunkGenerator.class;
-        String name = exampleNmsClass.getName().replace(exampleNmsClass.getSimpleName(), simpleName);
-        return Class.forName(name);
-    }
-
     /**
-     * Injects {@link InjectedChunkGenerator} into the world, so that we can
-     * customize how blocks are generated.
+     * Injects a nms.ChunkGenerator.
      *
-     * @param base
-     *            Base chunk generator.
+     * @param injected
+     *            The new ChunkGenerator.
      */
-    private void replaceChunkGenerator(BaseTerrainGenerator base) {
-        InjectedChunkGenerator injected;
-        // Need to inject ourselves into the world
-        injected = new InjectedChunkGenerator(getWorldHandle(), base);
-
+    private void injectInternalChunkGenerator(ChunkGenerator<?> injected) {
         ChunkProviderServer chunkProvider = getWorldHandle().getChunkProvider();
         try {
             Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
@@ -121,11 +116,42 @@ final class WorldGeneratorImpl implements WorldGenerator {
                 // Ignore, we're not on Paper but on Spigot
             }
 
-            this.injected = injected;
             getWorldHandle().generator = null; // Clear out the custom generator
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to inject world generator", e);
         }
+    }
+
+    private Class<?> nmsClass(String simpleName) throws ClassNotFoundException {
+        // Returns a class in the net.mineraft.server package
+        Class<?> exampleNmsClass = ChunkGenerator.class;
+        String name = exampleNmsClass.getName().replace(exampleNmsClass.getSimpleName(), simpleName);
+        return Class.forName(name);
+    }
+
+    /**
+     * Injects an {@link InjectedChunkGenerator} into the world, so that we can
+     * customize how blocks are generated.
+     *
+     * @param base
+     *            Base chunk generator.
+     */
+    private void replaceChunkGenerator(BaseTerrainGenerator base) {
+        InjectedChunkGenerator injected = new InjectedChunkGenerator(getWorldHandle(), base);
+
+        injectInternalChunkGenerator(injected);
+        this.injected = injected;
+    }
+
+    /**
+     * Resets all modifications done to the world generator, by any plugin.
+     */
+    public void reset() {
+        if (this.injected == null) {
+            return; // Nothing to reset
+        }
+        this.injectInternalChunkGenerator(this.oldChunkGenerator);
+        this.injected = null;
     }
 
     @Override
