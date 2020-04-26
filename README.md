@@ -2,14 +2,14 @@
 
 [![Build Status](https://travis-ci.com/rutgerkok/WorldGeneratorApi.svg?branch=master)](https://travis-ci.com/rutgerkok/WorldGeneratorApi)
 
-Designing your own world generator for Bukkit is hard. Bukkit doesn't let you hook into the Minecraft terrain generator, so if you just want to change the shape of the terrain, you would need to rewrite the entirety of the Minecraft terrain generator. Alternatively, you can hook into Minecraft internals, but this is tricky and tends to break on every Minecraft update.
+Designing your own world generator for Bukkit is hard. Bukkit doesn't let you hook into the Minecraft terrain generator, so if you just want to change the shape of the terrain, you would need to rewrite almost the entirety of the Minecraft terrain generator. Alternatively, you can hook into Minecraft internals, but this is tricky and tends to break on every Minecraft update.
 
-WorldGeneratorApi provides a clean API to design your own world generator, while still using components of Minecraft if you want. In just nine lines of code, we can create a complete plugin that generates flat worlds:
+WorldGeneratorApi provides a clean API to design your own world generator, while still using components of Minecraft if you want. In just a few lines of code, we can create a complete plugin that generates flat worlds:
 
 ```java
 public class YourPlugin extends JavaPlugin {
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        return WorldGeneratorApi.getInstance(this, 0, 4).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
+        return WorldGeneratorApi.getInstance(this, 0, 5).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
             // Code modifying the world generator goes here
             generator.setBaseTerrainGenerator(new BaseTerrainGenerator() {
 	
@@ -38,6 +38,7 @@ As you can see, only the shape of the terrain is modified, the rest of the world
 
 ## Features
 * Control the base shape of the terrain.
+* Control the layout of biomes.
 * Disable vanilla resources (caves, flowers, villages, etc.)
 * Add custom resources
 * Supports the async chunk generator of Spigot and Paper
@@ -45,11 +46,9 @@ As you can see, only the shape of the terrain is modified, the rest of the world
 ## Tutorials/how to use
 Server admins only need to download this plugin (see the [releases tab](https://github.com/rutgerkok/WorldGeneratorApi/releases)) and place it in their plugins folder, alongside with the plugin that asked you to download this API.
 
-Are you a plugin developer? We have [a wiki](https://github.com/rutgerkok/WorldGeneratorApi/wiki) with serveral tutorials to get you started. The source code also contains lots of JavaDoc.
+Are you a plugin developer? We have [a wiki](https://github.com/rutgerkok/WorldGeneratorApi/wiki) with serveral tutorials to get you started. The source code also contains lots of JavaDocs.
 
 ## Limitations
-* There is no proper way to plug in your own biome generator.
-* You always need to provide your own custom base chunk generator, it is not yet possible to use the vanilla ones.
 * There is no way to add custom biomes yet.
 * There is no way to spawn entities yet.
 
