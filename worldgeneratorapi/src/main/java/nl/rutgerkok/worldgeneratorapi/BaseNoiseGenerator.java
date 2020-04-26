@@ -56,13 +56,16 @@ public interface BaseNoiseGenerator {
      *            this method to {@link BiomeGenerator#getZoomedOutBiome(int, int)}
      *            to get the biome.
      * @param buffer
-     *            Every entry represents 4x4x4 blocks. Entry zero is at bedrock
-     *            level and from there it goes upwards. The array has a length of
-     *            33.
+     *            Every entry represents (x y z) 4x8x4 blocks. Entry zero is at
+     *            bedrock level and from there it goes upwards. Values lower than 0
+     *            result in air or water, values above 0 in stone. The array has a
+     *            length of 33.
      * @param x
      *            Column x = blockX / 4
      * @param z
      *            Column z = blockZ / 4
+     * @see #getTerrainSettings() Changing the stone block, the water block and the
+     *      water height.
      * @since 0.3
      */
     void getNoise(BiomeGenerator biomeGenerator, double[] buffer, int x, int z);
