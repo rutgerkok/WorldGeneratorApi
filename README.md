@@ -1,6 +1,9 @@
 # WorldGeneratorApi
 
 [![Build Status](https://travis-ci.com/rutgerkok/WorldGeneratorApi.svg?branch=master)](https://travis-ci.com/rutgerkok/WorldGeneratorApi)
+[![Download at SpigotMC.org](https://img.shields.io/badge/download-SpigotMC.org-orange.svg)](https://www.spigotmc.org/resources/worldgeneratorapi.77976/)
+[![Latest release](https://img.shields.io/github/release/rutgerkok/WorldGeneratorApi.svg)](https://github.com/rutgerkok/WorldGeneratorApi/releases)
+[![Commits since latest release](https://img.shields.io/github/commits-since/rutgerkok/WorldGeneratorApi/latest.svg)](https://github.com/rutgerkok/WorldGeneratorApi/releases)
 
 Designing your own world generator for Bukkit is hard. Bukkit doesn't let you hook into the Minecraft terrain generator, so if you just want to change the shape of the terrain, you would need to rewrite almost the entirety of the Minecraft terrain generator. Alternatively, you can hook into Minecraft internals, but this is tricky and tends to break on every Minecraft update.
 
