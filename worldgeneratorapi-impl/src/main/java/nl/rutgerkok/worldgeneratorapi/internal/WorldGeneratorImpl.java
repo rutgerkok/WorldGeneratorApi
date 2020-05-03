@@ -199,7 +199,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
         if (injected == null) {
             replaceChunkGenerator(BaseTerrainGeneratorImpl.fromMinecraft(world));
         }
-        injected.setBiomeGenerator(biomeGenerator);
+        this.injected.setBiomeGenerator(biomeGenerator);
     }
 
 }
