@@ -38,6 +38,7 @@ import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator.HeightType;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
+import nl.rutgerkok.worldgeneratorapi.internal.BaseTerrainGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.ReflectionUtil;
@@ -121,6 +122,11 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     private BaseTerrainGenerator baseTerrainGenerator;
     private BiomeGenerator biomeGenerator;
 
+    /**
+     * Original biome generator, ready to be restored when the plugin unloads.
+     */
+    private final BiomeGeneratorImpl originalBiomeGenerator;
+
     public InjectedChunkGenerator(WorldServer world, BaseTerrainGenerator baseChunkGenerator) {
         // Note that this takes the biome generator and settings of the previous
         // ChunkGenerator
@@ -134,7 +140,9 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         this.e.a(2620);
         this.noiseOctaves16 = new NoiseGeneratorOctaves(this.e, 16, 0);
 
-        this.biomeGenerator = new BiomeGeneratorImpl(this.c);
+        this.originalBiomeGenerator = new BiomeGeneratorImpl(this.c);
+        this.biomeGenerator = this.originalBiomeGenerator;
+
         setBaseChunkGenerator(baseChunkGenerator);
     }
 
@@ -381,6 +389,15 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         }
     }
 
+    /**
+     * When {@link #setBiomeGenerator(BiomeGenerator)}, the biome generator will get
+     * injected into the vanilla terrain generator, if it was active. This method is
+     * necessary to reset that.
+     */
+    public void resetBiomeGenerator() {
+        setBiomeGenerator(this.originalBiomeGenerator);
+    }
+
     public void setBaseChunkGenerator(BaseTerrainGenerator baseTerrainGenerator) {
         this.baseTerrainGenerator = Objects.requireNonNull(baseTerrainGenerator, "baseTerrainGenerator");
     }
@@ -391,6 +408,11 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
         // Update Minecraft's field too
         WorldChunkManager worldChunkManager = InjectedBiomeGenerator.wrapOrUnwrap(biomeGenerator);
         this.injectWorldChunkManager(worldChunkManager);
+
+        // Inject in base terrain generator too
+        if (this.baseTerrainGenerator instanceof BaseTerrainGeneratorImpl) {
+            ((BaseTerrainGeneratorImpl) this.baseTerrainGenerator).replaceWorldChunkManager(worldChunkManager);
+        }
     }
 
 }

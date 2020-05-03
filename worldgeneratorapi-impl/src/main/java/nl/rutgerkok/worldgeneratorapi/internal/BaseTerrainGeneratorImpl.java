@@ -1,5 +1,6 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
+import java.lang.reflect.Field;
 import java.util.Objects;
 
 import org.bukkit.World;
@@ -15,12 +16,18 @@ import net.minecraft.server.v1_15_R1.ChunkProviderTheEnd;
 import net.minecraft.server.v1_15_R1.GeneratorAccess;
 import net.minecraft.server.v1_15_R1.HeightMap;
 import net.minecraft.server.v1_15_R1.SeededRandom;
+import net.minecraft.server.v1_15_R1.WorldChunkManager;
 import net.minecraft.server.v1_15_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.ChunkDataImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator;
 
+/**
+ * Wraps a Minecraft base terrain generator into something that
+ * WorldGeneratorApi understands.
+ *
+ */
 public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
 
     public static HeightMap.Type fromApi(HeightType heightType) {
@@ -88,6 +95,22 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
     @Override
     public int getHeight(int x, int z, HeightType type) {
         return internal.getBaseHeight(x, z, fromApi(type));
+    }
+
+    /**
+     * Replaces the "world chunk manager" (== biome generator) that's used in the
+     * class.
+     * 
+     * @param biomeGenerator
+     *            The new biome generator.
+     */
+    public void replaceWorldChunkManager(WorldChunkManager biomeGenerator) {
+        Field field = ReflectionUtil.getFieldOfType(internal, WorldChunkManager.class);
+        try {
+            field.set(internal, biomeGenerator);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to replace biome generator in Minecraft", e);
+        }
     }
 
     @Override

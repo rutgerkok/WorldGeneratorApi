@@ -150,6 +150,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
         if (this.injected == null) {
             return; // Nothing to reset
         }
+        this.injected.resetBiomeGenerator();
         this.injectInternalChunkGenerator(this.oldChunkGenerator);
         this.injected = null;
     }
