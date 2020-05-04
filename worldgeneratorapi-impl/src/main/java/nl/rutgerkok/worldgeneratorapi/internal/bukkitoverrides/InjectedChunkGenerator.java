@@ -333,7 +333,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
 
         // Ask the base terrain generator
         String typeName = heightType.name().replace("_WG", "");
-        return this.baseTerrainGenerator.getHeight(i, j, HeightType.valueOf(typeName));
+        return this.baseTerrainGenerator.getHeight(biomeGenerator, i, j, HeightType.valueOf(typeName));
     }
 
     public BaseTerrainGenerator getBaseTerrainGenerator() {
