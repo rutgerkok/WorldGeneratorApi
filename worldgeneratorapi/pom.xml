@@ -18,10 +18,6 @@
 			<id>spigot-repo</id>
 			<url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
 		</repository>
-		<repository>
-			<id>rutger-repo</id>
-			<url>http://www.rutgerkok.nl/repo</url>
-		</repository>
 	</repositories>
 
 	<build>

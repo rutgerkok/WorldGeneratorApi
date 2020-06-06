@@ -15,8 +15,8 @@
 	</properties>
 	<repositories>
 		<repository>
-			<id>rutger-repo</id>
-			<url>http://www.rutgerkok.nl/repo</url>
+			<id>nms-repo</id>
+			<url>https://repo.codemc.io/repository/nms/</url>
 		</repository>
 	</repositories>
 
