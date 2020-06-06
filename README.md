@@ -54,6 +54,7 @@ Are you a plugin developer? We have [a wiki](https://github.com/rutgerkok/WorldG
 ## Limitations
 * There is no way to add custom biomes yet.
 * There is no way to spawn entities yet.
+* Adding large custom structures (like villages) is cumbersome, as you need to write the code yourself to divide your structures into chunk-sized parts.
 
 ## Plugins using WorldGeneratorApi
 * [DoughWorldGenerator](https://github.com/rutgerkok/Dough/) - a plugin that lets you modify the shape of your terrain. It supports all variables from the old Customized world type, plus some variables from the (now defunct) plugin TerrainControl.
