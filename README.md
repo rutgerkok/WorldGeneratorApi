@@ -12,12 +12,12 @@ WorldGeneratorApi provides a clean API to design your own world generator, while
 ```java
 public class YourPlugin extends JavaPlugin {
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        return WorldGeneratorApi.getInstance(this, 0, 5).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
+        return WorldGeneratorApi.getInstance(this, 0, 6).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
             // Code modifying the world generator goes here
             generator.setBaseTerrainGenerator(new BaseTerrainGenerator() {
 	
 	            @Override
-	            public int getHeight(int x, int z, HeightType type) {
+	            public int getHeight(BiomeGenerator biomeGenerator, int x, int z, HeightType type) {
 	            	// Used by for example village generation to probe if the terrain is not too hilly
 	            	// If calculating the terrain height would be too complex, you can also extend a
 	            	// "BaseNoiseGenerator" instead of a "BaseChunkGenerator" - that class automatically
@@ -27,7 +27,7 @@ public class YourPlugin extends JavaPlugin {
 
 	            @Override
 	            public void setBlocksInChunk(GeneratingChunk chunk) {
-	                chunk.getBlocksForChunk().setRegion(0, 0, 0, 16, 70, 16, Material.STONE);
+	                chunk.getBlocksForChunk().setRegion(0, 0, 0, CHUNK_SIZE, 70, CHUNK_SIZE, Material.STONE);
 	            }
 	        });
         });
