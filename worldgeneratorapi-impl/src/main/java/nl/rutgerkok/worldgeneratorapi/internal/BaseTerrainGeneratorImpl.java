@@ -4,20 +4,18 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R1.CraftWorld;
 
-import net.minecraft.server.v1_15_R1.ChunkGenerator;
-import net.minecraft.server.v1_15_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_15_R1.ChunkProviderDebug;
-import net.minecraft.server.v1_15_R1.ChunkProviderFlat;
-import net.minecraft.server.v1_15_R1.ChunkProviderGenerate;
-import net.minecraft.server.v1_15_R1.ChunkProviderHell;
-import net.minecraft.server.v1_15_R1.ChunkProviderTheEnd;
-import net.minecraft.server.v1_15_R1.GeneratorAccess;
-import net.minecraft.server.v1_15_R1.HeightMap;
-import net.minecraft.server.v1_15_R1.SeededRandom;
-import net.minecraft.server.v1_15_R1.WorldChunkManager;
-import net.minecraft.server.v1_15_R1.WorldServer;
+import net.minecraft.server.v1_16_R1.ChunkGenerator;
+import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
+import net.minecraft.server.v1_16_R1.ChunkProviderDebug;
+import net.minecraft.server.v1_16_R1.ChunkProviderFlat;
+import net.minecraft.server.v1_16_R1.GeneratorAccess;
+import net.minecraft.server.v1_16_R1.HeightMap;
+import net.minecraft.server.v1_16_R1.SeededRandom;
+import net.minecraft.server.v1_16_R1.StructureManager;
+import net.minecraft.server.v1_16_R1.WorldChunkManager;
+import net.minecraft.server.v1_16_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.ChunkDataImpl;
@@ -57,12 +55,13 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
      */
     static BaseTerrainGenerator fromMinecraft(World world) {
         WorldServer worldServer = ((CraftWorld) world).getHandle();
-        ChunkGenerator<?> chunkGenerator = worldServer.getChunkProvider().getChunkGenerator();
+        ChunkGenerator chunkGenerator = worldServer.getChunkProvider().getChunkGenerator();
+        StructureManager structureManager = worldServer.getStructureManager();
         if (chunkGenerator instanceof InjectedChunkGenerator) {
             return ((InjectedChunkGenerator) chunkGenerator).getBaseTerrainGenerator();
         }
         if (isSupported(chunkGenerator)) {
-            return new BaseTerrainGeneratorImpl(worldServer, chunkGenerator);
+            return new BaseTerrainGeneratorImpl(worldServer, chunkGenerator, structureManager);
         }
 
         throw new UnsupportedOperationException(
@@ -74,22 +73,24 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
                 + " generation were modified.");
     }
 
-    private static boolean isSupported(ChunkGenerator<?> chunkGenerator) {
+    private static boolean isSupported(ChunkGenerator chunkGenerator) {
         // Make sure this matches setBlocksInChunk below
         return chunkGenerator instanceof ChunkProviderDebug || chunkGenerator instanceof ChunkProviderFlat
-                || chunkGenerator instanceof ChunkProviderGenerate || chunkGenerator instanceof ChunkProviderHell
-                || chunkGenerator instanceof ChunkProviderTheEnd;
+                || chunkGenerator instanceof ChunkGeneratorAbstract;
     }
 
-    private final ChunkGenerator<?> internal;
+    private final ChunkGenerator internal;
     private final GeneratorAccess world;
+    private final StructureManager structureManager;
 
-    private BaseTerrainGeneratorImpl(GeneratorAccess world, ChunkGenerator<?> chunkGenerator) {
+    private BaseTerrainGeneratorImpl(GeneratorAccess world, ChunkGenerator chunkGenerator,
+            StructureManager structureManager) {
         if (chunkGenerator instanceof InjectedChunkGenerator) {
             throw new IllegalArgumentException("Double-wrapping");
         }
         this.world = Objects.requireNonNull(world, "world");
         this.internal = Objects.requireNonNull(chunkGenerator, "internal");
+        this.structureManager = Objects.requireNonNull(structureManager, "structureManager");
     }
 
     @Override
@@ -100,7 +101,7 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
     /**
      * Replaces the "world chunk manager" (== biome generator) that's used in the
      * class.
-     * 
+     *
      * @param biomeGenerator
      *            The new biome generator.
      */
@@ -120,14 +121,10 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
         random.a(chunk.getChunkX(), chunk.getChunkZ());
 
         // Make sure this matches isSupported above
-        if (internal instanceof ChunkProviderGenerate) {
-            ((ChunkProviderGenerate) internal).buildNoise(world, blocks.getHandle());
+        if (internal instanceof ChunkGeneratorAbstract) {
+            ((ChunkGeneratorAbstract) internal).buildNoise(world, structureManager, blocks.getHandle());
         } else if (internal instanceof ChunkProviderFlat) {
-            ((ChunkProviderFlat) internal).buildNoise(world, blocks.getHandle());
-        } else if (internal instanceof ChunkProviderHell) {
-            ((ChunkProviderHell) internal).buildNoise(world, blocks.getHandle());
-        } else if (internal instanceof ChunkProviderTheEnd) {
-            ((ChunkProviderTheEnd) internal).buildNoise(world, blocks.getHandle());
+            ((ChunkProviderFlat) internal).buildNoise(world, structureManager, blocks.getHandle());
         } else if (internal instanceof ChunkProviderDebug) {
             // Generate nothing - there is no base terrain
         } else {

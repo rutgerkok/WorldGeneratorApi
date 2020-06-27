@@ -6,12 +6,12 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R1.CraftWorld;
 
-import net.minecraft.server.v1_15_R1.ChunkGenerator;
-import net.minecraft.server.v1_15_R1.ChunkProviderServer;
-import net.minecraft.server.v1_15_R1.WorldChunkManager;
-import net.minecraft.server.v1_15_R1.WorldServer;
+import net.minecraft.server.v1_16_R1.ChunkGenerator;
+import net.minecraft.server.v1_16_R1.ChunkProviderServer;
+import net.minecraft.server.v1_16_R1.WorldChunkManager;
+import net.minecraft.server.v1_16_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -32,7 +32,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
      * The original world generator before any changes were made. Will be restored
      * when {@link #reset()} is called.
      */
-    private final ChunkGenerator<?> oldChunkGenerator;
+    private final ChunkGenerator oldChunkGenerator;
 
     WorldGeneratorImpl(World world) {
         this.world = Objects.requireNonNull(world, "world");
@@ -95,7 +95,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
      * @param injected
      *            The new ChunkGenerator.
      */
-    private void injectInternalChunkGenerator(ChunkGenerator<?> injected) {
+    private void injectInternalChunkGenerator(ChunkGenerator injected) {
         ChunkProviderServer chunkProvider = getWorldHandle().getChunkProvider();
         try {
             Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);

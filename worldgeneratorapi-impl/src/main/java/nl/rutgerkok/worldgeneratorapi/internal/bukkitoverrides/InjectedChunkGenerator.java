@@ -7,32 +7,33 @@ import java.util.Objects;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
-import net.minecraft.server.v1_15_R1.BiomeBase;
-import net.minecraft.server.v1_15_R1.BiomeBase.BiomeMeta;
-import net.minecraft.server.v1_15_R1.BiomeManager;
-import net.minecraft.server.v1_15_R1.BlockPosition;
-import net.minecraft.server.v1_15_R1.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_15_R1.ChunkCoordIntPair;
-import net.minecraft.server.v1_15_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_15_R1.ChunkProviderGenerate;
-import net.minecraft.server.v1_15_R1.EnumCreatureType;
-import net.minecraft.server.v1_15_R1.GeneratorAccess;
-import net.minecraft.server.v1_15_R1.GeneratorSettingsDefault;
-import net.minecraft.server.v1_15_R1.HeightMap;
-import net.minecraft.server.v1_15_R1.HeightMap.Type;
-import net.minecraft.server.v1_15_R1.IChunkAccess;
-import net.minecraft.server.v1_15_R1.MobSpawnerCat;
-import net.minecraft.server.v1_15_R1.MobSpawnerPatrol;
-import net.minecraft.server.v1_15_R1.MobSpawnerPhantom;
-import net.minecraft.server.v1_15_R1.NoiseGenerator3;
-import net.minecraft.server.v1_15_R1.NoiseGeneratorOctaves;
-import net.minecraft.server.v1_15_R1.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_15_R1.SeededRandom;
-import net.minecraft.server.v1_15_R1.SpawnerCreature;
-import net.minecraft.server.v1_15_R1.WorldChunkManager;
-import net.minecraft.server.v1_15_R1.WorldGenStage;
-import net.minecraft.server.v1_15_R1.WorldGenerator;
-import net.minecraft.server.v1_15_R1.WorldServer;
+import net.minecraft.server.v1_16_R1.BiomeBase;
+import net.minecraft.server.v1_16_R1.BiomeBase.BiomeMeta;
+import net.minecraft.server.v1_16_R1.BiomeManager;
+import net.minecraft.server.v1_16_R1.BlockPosition;
+import net.minecraft.server.v1_16_R1.BlockPosition.MutableBlockPosition;
+import net.minecraft.server.v1_16_R1.ChunkCoordIntPair;
+import net.minecraft.server.v1_16_R1.ChunkGenerator;
+import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
+import net.minecraft.server.v1_16_R1.ChunkProviderGenerate;
+import net.minecraft.server.v1_16_R1.EnumCreatureType;
+import net.minecraft.server.v1_16_R1.GeneratorAccess;
+import net.minecraft.server.v1_16_R1.HeightMap;
+import net.minecraft.server.v1_16_R1.HeightMap.Type;
+import net.minecraft.server.v1_16_R1.IChunkAccess;
+import net.minecraft.server.v1_16_R1.MobSpawnerCat;
+import net.minecraft.server.v1_16_R1.MobSpawnerPatrol;
+import net.minecraft.server.v1_16_R1.MobSpawnerPhantom;
+import net.minecraft.server.v1_16_R1.NoiseGenerator3;
+import net.minecraft.server.v1_16_R1.NoiseGeneratorOctaves;
+import net.minecraft.server.v1_16_R1.RegionLimitedWorldAccess;
+import net.minecraft.server.v1_16_R1.SeededRandom;
+import net.minecraft.server.v1_16_R1.SpawnerCreature;
+import net.minecraft.server.v1_16_R1.StructureManager;
+import net.minecraft.server.v1_16_R1.WorldChunkManager;
+import net.minecraft.server.v1_16_R1.WorldGenStage;
+import net.minecraft.server.v1_16_R1.WorldGenerator;
+import net.minecraft.server.v1_16_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator.HeightType;
@@ -49,7 +50,7 @@ import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
  * with support to change some settings.
  *
  */
-public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault> {
+public final class InjectedChunkGenerator extends ChunkGenerator {
 
     public static class GeneratingChunkImpl implements GeneratingChunk {
 
@@ -130,8 +131,8 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     public InjectedChunkGenerator(WorldServer world, BaseTerrainGenerator baseChunkGenerator) {
         // Note that this takes the biome generator and settings of the previous
         // ChunkGenerator
-        super(world, world.getChunkProvider().getChunkGenerator().getWorldChunkManager(),
-                4, 8, 256, world.getChunkProvider().getChunkGenerator().getSettings(), true);
+        super(world.getChunkProvider().getChunkGenerator(), world.getChunkProvider().getChunkGenerator(),
+                world.getChunkProvider().getChunkGenerator().getSettings(), world.getSeed());
         this.world = world.getWorld();
 
         SeededRandom seededrandom = new SeededRandom(this.seed);
@@ -217,7 +218,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     }
 
     @Override
-    public void addDecorations(RegionLimitedWorldAccess populationArea) {
+    public void addDecorations(RegionLimitedWorldAccess populationArea, StructureManager structureManager) {
         this.worldDecorator.spawnDecorations(this, populationArea);
     }
 
@@ -262,7 +263,7 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
                 for (int j1 = 0; j1 < 16; ++j1) {
                     int k1 = blockX + i1;
                     int l1 = blockZ + j1;
-                    int i2 = ichunkaccess.a(Type.WORLD_SURFACE_WG, i1, j1) + 1;
+                    int i2 = ichunkaccess.getHighestBlock(Type.WORLD_SURFACE_WG, i1, j1) + 1;
                     double d1 = this.surfaceNoise.a(k1 * 0.0625D, l1 * 0.0625D, 0.0625D, i1 * 0.0625D);
                     world.getBiome(blockposition_mutableblockposition.d(blockX + i1, i2, blockZ + j1))
                             .a(seededrandom, ichunkaccess, k1, l1, i2, d1, this.getSettings().r(),
@@ -280,7 +281,8 @@ public final class InjectedChunkGenerator extends ChunkGeneratorAbstract<Generat
     }
 
     @Override
-    public void buildNoise(GeneratorAccess generatoraccess, IChunkAccess ichunkaccess) {
+    public void buildNoise(GeneratorAccess generatoraccess, StructureManager structureManager,
+            IChunkAccess ichunkaccess) {
         BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
         if ((baseTerrainGenerator instanceof NoiseToTerrainGenerator)) {
             ((NoiseToTerrainGenerator) baseTerrainGenerator).buildNoise(generatoraccess, ichunkaccess);

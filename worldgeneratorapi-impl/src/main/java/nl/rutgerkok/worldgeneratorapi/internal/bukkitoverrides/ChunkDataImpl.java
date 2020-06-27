@@ -2,12 +2,12 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_15_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_16_R1.block.data.CraftBlockData;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
-import net.minecraft.server.v1_15_R1.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_15_R1.IBlockData;
-import net.minecraft.server.v1_15_R1.IChunkAccess;
+import net.minecraft.server.v1_16_R1.BlockPosition.MutableBlockPosition;
+import net.minecraft.server.v1_16_R1.IBlockData;
+import net.minecraft.server.v1_16_R1.IChunkAccess;
 
 public final class ChunkDataImpl implements ChunkData {
     private final IChunkAccess internal;

@@ -11,16 +11,21 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.minecraft.server.v1_15_R1.BiomeBase;
-import net.minecraft.server.v1_15_R1.BiomeManager;
-import net.minecraft.server.v1_15_R1.BlockPosition;
-import net.minecraft.server.v1_15_R1.ChunkCoordIntPair;
-import net.minecraft.server.v1_15_R1.ChunkGenerator;
-import net.minecraft.server.v1_15_R1.IChunkAccess;
-import net.minecraft.server.v1_15_R1.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_15_R1.SeededRandom;
-import net.minecraft.server.v1_15_R1.WorldGenCarverWrapper;
-import net.minecraft.server.v1_15_R1.WorldGenStage;
+import net.minecraft.server.v1_16_R1.BiomeBase;
+import net.minecraft.server.v1_16_R1.BiomeManager;
+import net.minecraft.server.v1_16_R1.BlockPosition;
+import net.minecraft.server.v1_16_R1.ChunkCoordIntPair;
+import net.minecraft.server.v1_16_R1.ChunkGenerator;
+import net.minecraft.server.v1_16_R1.CrashReport;
+import net.minecraft.server.v1_16_R1.IChunkAccess;
+import net.minecraft.server.v1_16_R1.IRegistry;
+import net.minecraft.server.v1_16_R1.ProtoChunk;
+import net.minecraft.server.v1_16_R1.RegionLimitedWorldAccess;
+import net.minecraft.server.v1_16_R1.ReportedException;
+import net.minecraft.server.v1_16_R1.SeededRandom;
+import net.minecraft.server.v1_16_R1.StructureManager;
+import net.minecraft.server.v1_16_R1.WorldGenCarverWrapper;
+import net.minecraft.server.v1_16_R1.WorldGenStage;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
@@ -105,17 +110,17 @@ public final class WorldDecoratorImpl implements WorldDecorator {
             int i = chunkcoordintpair.x;
             int j = chunkcoordintpair.z;
             BiomeBase biomeBase = this.getBiome(biomeManager, chunkcoordintpair.l());
-            BitSet bitset = ichunkaccess.a(stage);
+            BitSet bitset = ((ProtoChunk) ichunkaccess).b(stage);
 
             for(int k = i - 8; k <= i + 8; ++k) {
                 for(int l = j - 8; l <= j + 8; ++l) {
                     List<WorldGenCarverWrapper<?>> list = biomeBase.a(stage);
                     ListIterator<WorldGenCarverWrapper<?>> listiterator = list.listIterator();
-       
+
                    while(listiterator.hasNext()) {
                       int i1 = listiterator.nextIndex();
                       WorldGenCarverWrapper<?> worldgencarverwrapper = listiterator.next();
-       
+
                         seededrandom.c(seed + i1, k, l);
                       if (worldgencarverwrapper.a(seededrandom, k, l)) {
                          worldgencarverwrapper.a(ichunkaccess, (blockposition) -> {
@@ -149,7 +154,8 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         }
     }
 
-    public void spawnDecorations(ChunkGenerator<?> chunkGenerator, RegionLimitedWorldAccess populationArea) {
+    public void spawnDecorations(ChunkGenerator chunkGenerator, StructureManager structureManager,
+            RegionLimitedWorldAccess populationArea) {
         int i = populationArea.a();
         int j = populationArea.b();
         int k = i * 16;
@@ -164,7 +170,15 @@ public final class WorldDecoratorImpl implements WorldDecorator {
 
             // Spawn default decorations
             if (!this.disabledDecorations.contains(type)) {
-                biomebase.a(decorationStage, chunkGenerator, populationArea, chunkSeed, seededrandom, blockposition);
+                try {
+                    biomebase.a(decorationStage, structureManager, chunkGenerator, populationArea, chunkSeed,
+                            seededrandom, blockposition);
+                } catch (Exception var18) {
+                    CrashReport crashreport = CrashReport.a(var18, "Biome decoration");
+                    crashreport.a("Generation").a("CenterX", i).a("CenterZ", j).a("Step", decorationStage)
+                            .a("Seed", chunkSeed).a("Biome", IRegistry.BIOME.getKey(biomebase));
+                    throw new ReportedException(crashreport);
+                }
             }
 
             // Spawn custom decorations

@@ -2,15 +2,16 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import java.util.Objects;
 
-import org.bukkit.craftbukkit.v1_15_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_16_R1.block.data.CraftBlockData;
 
-import net.minecraft.server.v1_15_R1.BiomeBase;
-import net.minecraft.server.v1_15_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_15_R1.GeneratorAccess;
-import net.minecraft.server.v1_15_R1.GeneratorSettingsDefault;
-import net.minecraft.server.v1_15_R1.HeightMap.Type;
-import net.minecraft.server.v1_15_R1.NoiseGeneratorOctaves;
-import net.minecraft.server.v1_15_R1.WorldChunkManager;
+import net.minecraft.server.v1_16_R1.BiomeBase;
+import net.minecraft.server.v1_16_R1.ChunkGenerator;
+import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
+import net.minecraft.server.v1_16_R1.GeneratorAccess;
+import net.minecraft.server.v1_16_R1.GeneratorSettingsDefault;
+import net.minecraft.server.v1_16_R1.HeightMap.Type;
+import net.minecraft.server.v1_16_R1.NoiseGeneratorOctaves;
+import net.minecraft.server.v1_16_R1.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator.TerrainSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -24,8 +25,7 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGene
  * ChunkGeneratorAbstract so that it can use the correct noise calculations.
  *
  */
-public final class NoiseToTerrainGenerator extends ChunkGeneratorAbstract<GeneratorSettingsDefault>
-        implements BaseTerrainGenerator {
+public final class NoiseToTerrainGenerator extends ChunkGenerator implements BaseTerrainGenerator {
 
     /**
      * Forwards some settings to Minecraft.
