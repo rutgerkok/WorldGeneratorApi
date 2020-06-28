@@ -1,39 +1,48 @@
 package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
+import java.util.stream.IntStream;
+
+import javax.annotation.Nullable;
 
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
+import com.mojang.serialization.Codec;
+
 import net.minecraft.server.v1_16_R1.BiomeBase;
 import net.minecraft.server.v1_16_R1.BiomeBase.BiomeMeta;
 import net.minecraft.server.v1_16_R1.BiomeManager;
+import net.minecraft.server.v1_16_R1.BlockColumn;
 import net.minecraft.server.v1_16_R1.BlockPosition;
 import net.minecraft.server.v1_16_R1.BlockPosition.MutableBlockPosition;
+import net.minecraft.server.v1_16_R1.Blocks;
 import net.minecraft.server.v1_16_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_16_R1.ChunkGenerator;
-import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_16_R1.ChunkProviderGenerate;
 import net.minecraft.server.v1_16_R1.EnumCreatureType;
 import net.minecraft.server.v1_16_R1.GeneratorAccess;
+import net.minecraft.server.v1_16_R1.GeneratorSettingBase;
 import net.minecraft.server.v1_16_R1.HeightMap;
 import net.minecraft.server.v1_16_R1.HeightMap.Type;
+import net.minecraft.server.v1_16_R1.IBlockAccess;
+import net.minecraft.server.v1_16_R1.IBlockData;
 import net.minecraft.server.v1_16_R1.IChunkAccess;
-import net.minecraft.server.v1_16_R1.MobSpawnerCat;
-import net.minecraft.server.v1_16_R1.MobSpawnerPatrol;
-import net.minecraft.server.v1_16_R1.MobSpawnerPhantom;
+import net.minecraft.server.v1_16_R1.NoiseGenerator;
 import net.minecraft.server.v1_16_R1.NoiseGenerator3;
+import net.minecraft.server.v1_16_R1.NoiseGenerator3Handler;
 import net.minecraft.server.v1_16_R1.NoiseGeneratorOctaves;
+import net.minecraft.server.v1_16_R1.NoiseSettings;
 import net.minecraft.server.v1_16_R1.RegionLimitedWorldAccess;
 import net.minecraft.server.v1_16_R1.SeededRandom;
 import net.minecraft.server.v1_16_R1.SpawnerCreature;
+import net.minecraft.server.v1_16_R1.StructureGenerator;
 import net.minecraft.server.v1_16_R1.StructureManager;
 import net.minecraft.server.v1_16_R1.WorldChunkManager;
-import net.minecraft.server.v1_16_R1.WorldGenStage;
-import net.minecraft.server.v1_16_R1.WorldGenerator;
-import net.minecraft.server.v1_16_R1.WorldServer;
+import net.minecraft.server.v1_16_R1.WorldGenStage.Features;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator.HeightType;
@@ -51,7 +60,6 @@ import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
  *
  */
 public final class InjectedChunkGenerator extends ChunkGenerator {
-
     public static class GeneratingChunkImpl implements GeneratingChunk {
 
         private final int chunkX;
@@ -98,27 +106,19 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
 
     }
 
-    private static final float[] floatArray;
+    private static final IBlockData k;
     static {
-        try {
-            floatArray = (float[]) ReflectionUtil.getFieldOfType(ChunkGeneratorAbstract.class, float[].class).get(null);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        k = Blocks.AIR.getBlockData();
     }
 
-    private final org.bukkit.World world;
-    /**
-     * Could someone ask Mojang why world generation controls these mobs?
-     */
-    private final MobSpawnerPhantom phantomSpawner = new MobSpawnerPhantom();
-    private final MobSpawnerPatrol patrolSpawner = new MobSpawnerPatrol();
-
-    private final MobSpawnerCat catSpawner = new MobSpawnerCat();
-    private final NoiseGenerator3 surfaceNoise;
-
-    private final NoiseGeneratorOctaves noiseOctaves16;
-
+    protected final SeededRandom e;
+    private final NoiseGenerator surfaceNoise;
+    @Nullable
+    private final NoiseGenerator3Handler v;
+    protected final IBlockData f;
+    protected final IBlockData g;
+    protected final GeneratorSettingBase h;
+    private final int x;
     public final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
     private BaseTerrainGenerator baseTerrainGenerator;
     private BiomeGenerator biomeGenerator;
@@ -128,18 +128,31 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
      */
     private final BiomeGeneratorImpl originalBiomeGenerator;
 
-    public InjectedChunkGenerator(WorldServer world, BaseTerrainGenerator baseChunkGenerator) {
-        // Note that this takes the biome generator and settings of the previous
-        // ChunkGenerator
-        super(world.getChunkProvider().getChunkGenerator(), world.getChunkProvider().getChunkGenerator(),
-                world.getChunkProvider().getChunkGenerator().getSettings(), world.getSeed());
-        this.world = world.getWorld();
+    public InjectedChunkGenerator(WorldChunkManager worldchunkmanager, BaseTerrainGenerator baseChunkGenerator, long seed,
+            GeneratorSettingBase settings) {
+        super(worldchunkmanager, worldchunkmanager, settings.a(), seed);
 
-        SeededRandom seededrandom = new SeededRandom(this.seed);
-        surfaceNoise = new NoiseGenerator3(seededrandom, 4, 0);
-
+        this.h = settings;
+        NoiseSettings noisesettings = settings.b();
+        this.x = noisesettings.a();
+        this.f = settings.c();
+        this.g = settings.d();
+        this.e = new SeededRandom(seed);
+        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-15, 0));
+        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-15, 0));
+        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-7, 0));
+        this.surfaceNoise = noisesettings.i()
+                ? new NoiseGenerator3(this.e, IntStream.rangeClosed(-3, 0))
+                : new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-3, 0));
         this.e.a(2620);
-        this.noiseOctaves16 = new NoiseGeneratorOctaves(this.e, 16, 0);
+        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-15, 0));
+        if (noisesettings.k()) {
+            SeededRandom seededrandom = new SeededRandom(seed);
+            seededrandom.a(17292);
+            this.v = new NoiseGenerator3Handler(seededrandom);
+        } else {
+            this.v = null;
+        }
 
         this.originalBiomeGenerator = new BiomeGeneratorImpl(this.c);
         this.biomeGenerator = this.originalBiomeGenerator;
@@ -148,92 +161,107 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    protected double a(double d0, double d1, int i) {
-        // No idea what this is calculating - we only know that it has got something to
-        // do with terrain shape
-        double d3 = (i - (8.5D + d0 * 8.5D / 8.0D * 4.0D)) * 12.0D * 128.0D / 256.0D / d1;
-        if (d3 < 0.0D) {
-            d3 *= 4.0D;
-        }
-
-        return d3;
+    protected Codec<? extends ChunkGenerator> a() {
+        throw new UnsupportedOperationException("Cannot serialize a custom chunk generator");
     }
 
-    @Override
-    protected void a(double[] adouble, int i, int j) {
-        // Main noise calculator
-        BaseTerrainGenerator terrainGenerator = this.baseTerrainGenerator;
-        if (terrainGenerator instanceof NoiseToTerrainGenerator) {
-            ((NoiseToTerrainGenerator) terrainGenerator).a(adouble, i, j);
+    protected IBlockData a(double d0, int i) {
+        IBlockData iblockdata;
+        if (d0 > 0.0D) {
+            iblockdata = this.f;
+        } else if (i < this.getSeaLevel()) {
+            iblockdata = this.g;
+        } else {
+            iblockdata = k;
         }
+
+        return iblockdata;
     }
 
-    @Override
-    protected double[] a(int i, int j) {
-        // Biome noise calculator
-        BaseTerrainGenerator terrainGenerator = this.baseTerrainGenerator;
-        if (terrainGenerator instanceof NoiseToTerrainGenerator) {
-            // Found a custom one
-            return ((NoiseToTerrainGenerator) terrainGenerator).a(i, j);
-        }
+    private void a(IChunkAccess ichunkaccess, Random random) {
+        // Bedrock
 
-        // Fall back to copy of vanilla
-        double[] adouble = new double[2];
-        float f = 0.0F;
-        float f1 = 0.0F;
-        float f2 = 0.0F;
-        int k = this.getSeaLevel();
-        float f3 = this.c.getBiome(i, k, j).i();
+        MutableBlockPosition blockposition_mutableblockposition = new MutableBlockPosition();
+        int i = ichunkaccess.getPos().d();
+        int j = ichunkaccess.getPos().e();
+        int k = this.h.f();
+        int l = this.x - 1 - this.h.e();
+        boolean flag1 = l + 4 >= 0 && l < this.x;
+        boolean flag2 = k + 4 >= 0 && k < this.x;
+        if (flag1 || flag2) {
+            Iterator<BlockPosition> iterator = BlockPosition.b(i, 0, j, i + 15, 0, j + 15).iterator();
 
-        for (int l = -2; l <= 2; ++l) {
-            for (int i1 = -2; i1 <= 2; ++i1) {
-                BiomeBase biomebase = this.c.getBiome(i + l, k, j + i1);
-                float f4 = biomebase.i();
-                float f5 = biomebase.m();
+            while (true) {
+                BlockPosition blockposition;
+                int i1;
+                do {
+                    if (!iterator.hasNext()) {
+                        return;
+                    }
 
-                if (f4 < -1.8F) {
-                    f4 = -1.8F;
+                    blockposition = iterator.next();
+                    if (flag1) {
+                        for (i1 = 0; i1 < 5; ++i1) {
+                            if (i1 <= random.nextInt(5)) {
+                                ichunkaccess.setType(blockposition_mutableblockposition.d(blockposition.getX(), l - i1,
+                                        blockposition.getZ()), Blocks.BEDROCK.getBlockData(), false);
+                            }
+                        }
+                    }
+                } while (!flag2);
 
+                for (i1 = 4; i1 >= 0; --i1) {
+                    if (i1 <= random.nextInt(5)) {
+                        ichunkaccess.setType(blockposition_mutableblockposition.d(blockposition.getX(), k + i1,
+                                blockposition.getZ()), Blocks.BEDROCK.getBlockData(), false);
+                    }
                 }
-
-                float f6 = floatArray[l + 2 + (i1 + 2) * 5] / (f4 + 2.0F);
-
-                if (biomebase.i() > f3) {
-                    f6 /= 2.0F;
-                }
-
-                f += f5 * f6;
-                f1 += f4 * f6;
-                f2 += f6;
             }
         }
+    }
 
-        f /= f2;
-        f1 /= f2;
-        f = f * 0.9F + 0.1F;
-        f1 = (f1 * 4.0F - 1.0F) / 8.0F;
-        adouble[0] = f1 + this.c(i, j);
-        adouble[1] = f;
-        return adouble;
+    @Override
+    public IBlockAccess a(int blockX, int blockZ) {
+        // Generates a single column.
+
+        if ((baseTerrainGenerator instanceof NoiseToTerrainGenerator)) {
+            // Ask the noise generator
+            return ((NoiseToTerrainGenerator) baseTerrainGenerator).a(blockX, blockZ);
+        }
+
+        // Generate an estimate of the column based on the max height
+        int maxY = this.baseTerrainGenerator.getHeight(biomeGenerator, blockX, blockZ, HeightType.OCEAN_FLOOR);
+        int seaLevel = this.getSeaLevel();
+        IBlockData[] blockData = new IBlockData[Math.max(maxY, seaLevel)];
+        for (int i = 0; i < blockData.length; i++) {
+            if (i >= maxY) {
+                // Water
+                blockData[i] = this.g;
+            } else {
+                // Stone
+                blockData[i] = this.f;
+            }
+        }
+        return new BlockColumn(blockData);
     }
 
     @Override
     public void addDecorations(RegionLimitedWorldAccess populationArea, StructureManager structureManager) {
-        this.worldDecorator.spawnDecorations(this, populationArea);
+        this.worldDecorator.spawnDecorations(this, structureManager, populationArea);
     }
 
     @Override
     public void addMobs(RegionLimitedWorldAccess regionlimitedworldaccess) {
-        final int i = regionlimitedworldaccess.a();
-        final int j = regionlimitedworldaccess.b();
-        final BiomeBase biomebase = regionlimitedworldaccess.getBiome((new ChunkCoordIntPair(i, j)).l());
-        final SeededRandom seededrandom = new SeededRandom();
+        int i = regionlimitedworldaccess.a();
+        int j = regionlimitedworldaccess.b();
+        BiomeBase biomebase = regionlimitedworldaccess.getBiome((new ChunkCoordIntPair(i, j)).l());
+        SeededRandom seededrandom = new SeededRandom();
         seededrandom.a(regionlimitedworldaccess.getSeed(), i << 4, j << 4);
         SpawnerCreature.a(regionlimitedworldaccess, biomebase, i, j, seededrandom);
     }
 
     @Override
-    public void buildBase(RegionLimitedWorldAccess world, IChunkAccess ichunkaccess) {
+    public void buildBase(RegionLimitedWorldAccess regionlimitedworldaccess, IChunkAccess ichunkaccess) {
         ChunkCoordIntPair chunkcoordintpair1 = ichunkaccess.getPos();
         int blockX = chunkcoordintpair1.d();
         int blockZ = chunkcoordintpair1.e();
@@ -257,19 +285,21 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         HeightMap.a(ichunkaccess, EnumSet.of(HeightMap.Type.WORLD_SURFACE_WG, HeightMap.Type.OCEAN_FLOOR_WG));
 
         // Generate surface
+        MutableBlockPosition blockposition_mutableblockposition = new MutableBlockPosition();
         if (this.worldDecorator.isDefaultEnabled(BaseDecorationType.SURFACE)) {
-            MutableBlockPosition blockposition_mutableblockposition = new MutableBlockPosition();
             for (int i1 = 0; i1 < 16; ++i1) {
                 for (int j1 = 0; j1 < 16; ++j1) {
                     int k1 = blockX + i1;
                     int l1 = blockZ + j1;
                     int i2 = ichunkaccess.getHighestBlock(Type.WORLD_SURFACE_WG, i1, j1) + 1;
-                    double d1 = this.surfaceNoise.a(k1 * 0.0625D, l1 * 0.0625D, 0.0625D, i1 * 0.0625D);
-                    world.getBiome(blockposition_mutableblockposition.d(blockX + i1, i2, blockZ + j1))
-                            .a(seededrandom, ichunkaccess, k1, l1, i2, d1, this.getSettings().r(),
-                                    this.getSettings().s(), this.getSeaLevel(), this.a.getSeed());
+                    double d1 = this.surfaceNoise.a(k1 * 0.0625D, l1 * 0.0625D, 0.0625D, i1 * 0.0625D) * 15.0D;
+                    regionlimitedworldaccess
+                            .getBiome(blockposition_mutableblockposition.d(blockX + i1, i2, blockZ + j1)).a(
+                            seededrandom, ichunkaccess, k1, l1, i2, d1, this.f, this.g, this.getSeaLevel(),
+                            regionlimitedworldaccess.getSeed());
                 }
             }
+
         }
         this.worldDecorator.spawnCustomBaseDecorations(BaseDecorationType.SURFACE, chunk);
 
@@ -285,44 +315,19 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
             IChunkAccess ichunkaccess) {
         BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
         if ((baseTerrainGenerator instanceof NoiseToTerrainGenerator)) {
-            ((NoiseToTerrainGenerator) baseTerrainGenerator).buildNoise(generatoraccess, ichunkaccess);
+            ((NoiseToTerrainGenerator) baseTerrainGenerator).buildNoise(generatoraccess, structureManager,
+                    ichunkaccess);
         }
 
         // Do nothing, will be handled in buildBase
-    }
 
-    private double c(int i, int j) {
-        // No idea what this is calculating
-        double d0 = this.noiseOctaves16.a(i * 200, 10.0D, j * 200, 1.0D, 0.0D, true) / 8000.0D;
-        if (d0 < 0.0D) {
-            d0 = -d0 * 0.3D;
-        }
-
-        d0 = d0 * 3.0D - 2.0D;
-        if (d0 < 0.0D) {
-            d0 /= 28.0D;
-        } else {
-            if (d0 > 1.0D) {
-                d0 = 1.0D;
-            }
-
-            d0 /= 40.0D;
-        }
-
-        return d0;
     }
 
     @Override
-    public void doCarving(BiomeManager biomeManager, IChunkAccess chunkAccess, WorldGenStage.Features stage) {
+    public void doCarving(long seed, BiomeManager biomeManager, IChunkAccess chunkAccess,
+            Features stage) {
         GeneratingChunkImpl generatingChunk = new GeneratingChunkImpl(chunkAccess, biomeGenerator);
-        this.worldDecorator.spawnCarvers(biomeManager, generatingChunk, stage, this.getSeaLevel(), this.seed);
-    }
-
-    @Override
-    public void doMobSpawning(WorldServer worldserver, boolean flag, boolean flag1) {
-        this.phantomSpawner.a(worldserver, flag, flag1);
-        this.patrolSpawner.a(worldserver, flag, flag1);
-        this.catSpawner.a(worldserver, flag, flag1);
+        this.worldDecorator.spawnCarvers(biomeManager, generatingChunk, stage, this.getSeaLevel(), seed);
     }
 
     @Override
@@ -330,13 +335,14 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         // Shortcut
         BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
         if (baseTerrainGenerator instanceof NoiseToTerrainGenerator) {
-            ((NoiseToTerrainGenerator) baseTerrainGenerator).getBaseHeight(i, j, heightType);
+            return ((NoiseToTerrainGenerator) baseTerrainGenerator).getBaseHeight(i, j, heightType);
         }
 
         // Ask the base terrain generator
-        String typeName = heightType.name().replace("_WG", "");
-        return this.baseTerrainGenerator.getHeight(biomeGenerator, i, j, HeightType.valueOf(typeName));
+        HeightType wHeightType = heightType == Type.OCEAN_FLOOR_WG ? HeightType.OCEAN_FLOOR : HeightType.WORLD_SURFACE;
+        return this.baseTerrainGenerator.getHeight(biomeGenerator, i, j, wHeightType);
     }
+
 
     public BaseTerrainGenerator getBaseTerrainGenerator() {
         return baseTerrainGenerator;
@@ -347,36 +353,48 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public List<BiomeMeta> getMobsFor(EnumCreatureType enumcreaturetype, BlockPosition blockposition) {
-        if (WorldGenerator.SWAMP_HUT.c(this.a, blockposition)) {
+    public int getGenerationDepth() {
+        return this.x;
+    }
+
+    @Override
+    public List<BiomeMeta> getMobsFor(BiomeBase biomebase, StructureManager structuremanager,
+            EnumCreatureType enumcreaturetype, BlockPosition blockposition) {
+        if (structuremanager.a(blockposition, true, StructureGenerator.SWAMP_HUT).e()) {
             if (enumcreaturetype == EnumCreatureType.MONSTER) {
-                return WorldGenerator.SWAMP_HUT.e();
+                return StructureGenerator.SWAMP_HUT.c();
             }
 
             if (enumcreaturetype == EnumCreatureType.CREATURE) {
-                return WorldGenerator.SWAMP_HUT.f();
-            }
-        } else if (enumcreaturetype == EnumCreatureType.MONSTER) {
-            if (WorldGenerator.PILLAGER_OUTPOST.a(this.a, blockposition)) {
-                return WorldGenerator.PILLAGER_OUTPOST.e();
-            }
-
-            if (WorldGenerator.OCEAN_MONUMENT.a(this.a, blockposition)) {
-                return WorldGenerator.OCEAN_MONUMENT.e();
+                return StructureGenerator.SWAMP_HUT.j();
             }
         }
 
-        return super.getMobsFor(enumcreaturetype, blockposition);
+        if (enumcreaturetype == EnumCreatureType.MONSTER) {
+            if (structuremanager.a(blockposition, false, StructureGenerator.PILLAGER_OUTPOST).e()) {
+                return StructureGenerator.PILLAGER_OUTPOST.c();
+            }
+
+            if (structuremanager.a(blockposition, false, StructureGenerator.MONUMENT).e()) {
+                return StructureGenerator.MONUMENT.c();
+            }
+
+            if (structuremanager.a(blockposition, true, StructureGenerator.FORTRESS).e()) {
+                return StructureGenerator.FORTRESS.c();
+            }
+        }
+
+        return super.getMobsFor(biomebase, structuremanager, enumcreaturetype, blockposition);
     }
 
     @Override
     public int getSeaLevel() {
-        return world.getSeaLevel();
+        return this.h.g();
     }
 
     @Override
     public int getSpawnHeight() {
-        return world.getSeaLevel() + 1;
+        return getSeaLevel() + 1;
     }
 
     private void injectWorldChunkManager(WorldChunkManager worldChunkManager) {

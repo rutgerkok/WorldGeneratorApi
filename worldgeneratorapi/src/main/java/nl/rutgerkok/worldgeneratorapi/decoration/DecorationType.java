@@ -43,16 +43,23 @@ public enum DecorationType {
     RAW_GENERATION,
 
     /**
-     * Small modifications to the shape of the terrain. Small water/lava lakes,
-     * icebergs, etc.
+     * Small water/lava lakes.
+     *
+     * @since 1.0
+     */
+    LAKES,
+
+    /**
+     * Small modifications to the shape of the terrain, like icebergs. Since
+     * Minecraft 1.16, {@link #LAKES} have their own type.
      *
      * @since 0.2
      */
     LOCAL_MODIFICATIONS,
 
     /**
-     * Structures that spawn underground. Mineshafts, strongholds, buried treasures,
-     * etc.
+     * Structures that spawn underground. Mineshafts, buried treasures, etc. Since
+     * Minecraft 1.16, {@link #STRONGHOLDS} have their own type.
      *
      * @since 0.2
      */
@@ -65,6 +72,13 @@ public enum DecorationType {
      * @since 0.2
      */
     SURFACE_STRUCTURES,
+
+    /**
+     * Strongholds.
+     *
+     * @since 1.0
+     */
+    STRONGHOLDS,
 
     /**
      * The ores: diamond, redstone, iron, coal, etc.

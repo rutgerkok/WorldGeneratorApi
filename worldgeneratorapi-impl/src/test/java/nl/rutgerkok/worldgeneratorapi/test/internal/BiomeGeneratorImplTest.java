@@ -26,7 +26,7 @@ public class BiomeGeneratorImplTest {
         WorldChunkManager worldChunkManager = new WorldChunkManagerOverworld(10, false, false);
 
         // Check the structures
-        BiomeGenerator biomeGenerator = new BiomeGeneratorImpl(worldChunkManager);
+        BiomeGeneratorImpl biomeGenerator = new BiomeGeneratorImpl(worldChunkManager);
         assertEquals(BiomeGenerator.VANILLA_OVERWORLD_STRUCTURE_BIOMES, biomeGenerator.getStructureBiomes());
     }
 

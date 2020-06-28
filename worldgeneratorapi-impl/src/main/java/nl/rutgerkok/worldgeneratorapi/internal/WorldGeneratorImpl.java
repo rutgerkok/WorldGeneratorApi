@@ -1,15 +1,20 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.lang.reflect.Field;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
 
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_16_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R1.generator.CustomChunkGenerator;
 
 import net.minecraft.server.v1_16_R1.ChunkGenerator;
+import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
 import net.minecraft.server.v1_16_R1.ChunkProviderServer;
+import net.minecraft.server.v1_16_R1.GeneratorSettingBase;
+import net.minecraft.server.v1_16_R1.GeneratorSettings;
 import net.minecraft.server.v1_16_R1.WorldChunkManager;
 import net.minecraft.server.v1_16_R1.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
@@ -24,8 +29,31 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.NoiseToTerrainGen
 
 final class WorldGeneratorImpl implements WorldGenerator {
 
+    private static GeneratorSettingBase extractSettings(ChunkGenerator chunkGenerator, long seed) {
+        try {
+            // First, unwrap Bukkit generator if necessary
+            if (chunkGenerator instanceof CustomChunkGenerator) {
+                chunkGenerator = (ChunkGenerator) ReflectionUtil.getFieldOfType(chunkGenerator, ChunkGenerator.class)
+                        .get(chunkGenerator);
+            }
+
+            // Then, extract the settings
+            return (GeneratorSettingBase) ReflectionUtil.getFieldOfType(chunkGenerator, GeneratorSettingBase.class).get(chunkGenerator);
+        } catch (IllegalAccessException | IllegalArgumentException | NoSuchElementException e) {
+            // Get default settings
+            ChunkGeneratorAbstract standardGenerator = GeneratorSettings.a(seed);
+            try {
+                return (GeneratorSettingBase) ReflectionUtil
+                        .getFieldOfType(standardGenerator, GeneratorSettingBase.class).get(chunkGenerator);
+            } catch (IllegalAccessException e1) {
+                throw new RuntimeException("Failed to extract settings", e1);
+            }
+        }
+    }
+
     private @Nullable InjectedChunkGenerator injected;
     private final World world;
+
     private final WorldRef worldRef;
 
     /**
@@ -137,7 +165,12 @@ final class WorldGeneratorImpl implements WorldGenerator {
      *            Base chunk generator.
      */
     private void replaceChunkGenerator(BaseTerrainGenerator base) {
-        InjectedChunkGenerator injected = new InjectedChunkGenerator(getWorldHandle(), base);
+        WorldServer world = this.getWorldHandle();
+        ChunkGenerator chunkGenerator = world.getChunkProvider().getChunkGenerator();
+        WorldChunkManager worldChunkManager = chunkGenerator.getWorldChunkManager();
+        long seed = world.getSeed();
+        GeneratorSettingBase settings = extractSettings(chunkGenerator, seed);
+        InjectedChunkGenerator injected = new InjectedChunkGenerator(worldChunkManager, base, seed, settings);
 
         injectInternalChunkGenerator(injected);
         this.injected = injected;
@@ -173,11 +206,10 @@ final class WorldGeneratorImpl implements WorldGenerator {
 
     @Override
     public BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base) {
-        WorldChunkManager worldChunkManager = getWorldHandle().getChunkProvider().getChunkGenerator()
-                .getWorldChunkManager();
         BiomeGenerator biomeGenerator = this.getBiomeGenerator();
-        BaseTerrainGenerator generator = new NoiseToTerrainGenerator(getWorldHandle(), worldChunkManager,
-                biomeGenerator, base);
+        WorldServer world = getWorldHandle();
+        BaseTerrainGenerator generator = new NoiseToTerrainGenerator(world, world.getStructureManager(), biomeGenerator,
+                base, world.getSeed());
         setBaseTerrainGenerator(generator);
         return generator;
     }

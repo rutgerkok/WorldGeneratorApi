@@ -1,8 +1,8 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_16_R1.block.CraftBlock;
@@ -44,7 +44,7 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
 
         try {
             @SuppressWarnings("unchecked")
-            Set<BiomeBase> biomeBases = (Set<BiomeBase>) ReflectionUtil.getFieldByName(this.internal, "c")
+            List<BiomeBase> biomeBases = (List<BiomeBase>) ReflectionUtil.getFieldByName(this.internal, "d")
                     .get(this.internal);
 
             for (BiomeBase biome : biomeBases) {
