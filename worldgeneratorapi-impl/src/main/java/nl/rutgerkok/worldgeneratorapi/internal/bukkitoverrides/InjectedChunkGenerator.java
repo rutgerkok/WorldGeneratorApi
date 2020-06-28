@@ -326,8 +326,9 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     @Override
     public void doCarving(long seed, BiomeManager biomeManager, IChunkAccess chunkAccess,
             Features stage) {
+        BiomeManager soupedUpBiomeManager = biomeManager.a(this.b); // No idea why this is necessary
         GeneratingChunkImpl generatingChunk = new GeneratingChunkImpl(chunkAccess, biomeGenerator);
-        this.worldDecorator.spawnCarvers(biomeManager, generatingChunk, stage, this.getSeaLevel(), seed);
+        this.worldDecorator.spawnCarvers(soupedUpBiomeManager, generatingChunk, stage, this.getSeaLevel(), seed);
     }
 
     @Override
