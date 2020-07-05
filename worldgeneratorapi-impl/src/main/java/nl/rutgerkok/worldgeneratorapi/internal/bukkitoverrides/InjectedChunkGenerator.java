@@ -7,8 +7,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-import javax.annotation.Nullable;
-
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
@@ -33,7 +31,6 @@ import net.minecraft.server.v1_16_R1.IBlockData;
 import net.minecraft.server.v1_16_R1.IChunkAccess;
 import net.minecraft.server.v1_16_R1.NoiseGenerator;
 import net.minecraft.server.v1_16_R1.NoiseGenerator3;
-import net.minecraft.server.v1_16_R1.NoiseGenerator3Handler;
 import net.minecraft.server.v1_16_R1.NoiseGeneratorOctaves;
 import net.minecraft.server.v1_16_R1.NoiseSettings;
 import net.minecraft.server.v1_16_R1.RegionLimitedWorldAccess;
@@ -111,10 +108,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         k = Blocks.AIR.getBlockData();
     }
 
-    protected final SeededRandom e;
     private final NoiseGenerator surfaceNoise;
-    @Nullable
-    private final NoiseGenerator3Handler v;
     protected final IBlockData f;
     protected final IBlockData g;
     protected final GeneratorSettingBase h;
@@ -137,22 +131,13 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         this.x = noisesettings.a();
         this.f = settings.c();
         this.g = settings.d();
-        this.e = new SeededRandom(seed);
-        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-15, 0));
-        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-15, 0));
-        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-7, 0));
+        SeededRandom e = new SeededRandom(seed);
+        new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-15, 0));
+        new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-15, 0));
+        new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-7, 0));
         this.surfaceNoise = noisesettings.i()
-                ? new NoiseGenerator3(this.e, IntStream.rangeClosed(-3, 0))
-                : new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-3, 0));
-        this.e.a(2620);
-        new NoiseGeneratorOctaves(this.e, IntStream.rangeClosed(-15, 0));
-        if (noisesettings.k()) {
-            SeededRandom seededrandom = new SeededRandom(seed);
-            seededrandom.a(17292);
-            this.v = new NoiseGenerator3Handler(seededrandom);
-        } else {
-            this.v = null;
-        }
+                ? new NoiseGenerator3(e, IntStream.rangeClosed(-3, 0))
+                : new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-3, 0));
 
         this.originalBiomeGenerator = new BiomeGeneratorImpl(this.c);
         this.biomeGenerator = this.originalBiomeGenerator;
