@@ -13,7 +13,7 @@ WorldGeneratorApi provides a clean API to design your own world generator, while
 ```java
 public class YourPlugin extends JavaPlugin {
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        return WorldGeneratorApi.getInstance(this, 0, 6).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
+        return WorldGeneratorApi.getInstance(this, 1, 0).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
             // Code modifying the world generator goes here
             generator.setBaseTerrainGenerator(new BaseTerrainGenerator() {
 	
@@ -69,7 +69,7 @@ We use Maven. Maven can be a bit tricky to install (you need to modify the envir
 
     mvn install
 
-You'll end up with a file `./WorldGeneratorApi-1.0.jar` (version number will be different of course), which is a ready-to-use plugin. There's also the file `./worldgeneratorapi/target/worldgeneratorapi-1.0.jar`, which is just the API. This file can be used by plugin developers to code against: it will not run on the server, as it is missing the implementation.
+You'll end up with a file `./target/WorldGeneratorApi-1.0.jar` (version number will be different of course), which is a ready-to-use plugin. There's also the file `./worldgeneratorapi/target/worldgeneratorapi-1.0.jar`, which is just the API. This file can be used by plugin developers to code against: it will not run on the server, as it is missing the implementation.
 
 ## Bug reports, feature requests and pull requests
 Contributions are always welcome! Just open an issue or pull request. 
