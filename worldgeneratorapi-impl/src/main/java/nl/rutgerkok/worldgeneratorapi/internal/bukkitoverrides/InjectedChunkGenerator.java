@@ -1,5 +1,6 @@
 package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
+import java.lang.reflect.Field;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -21,6 +22,7 @@ import net.minecraft.server.v1_16_R1.BlockPosition.MutableBlockPosition;
 import net.minecraft.server.v1_16_R1.Blocks;
 import net.minecraft.server.v1_16_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_16_R1.ChunkGenerator;
+import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
 import net.minecraft.server.v1_16_R1.EnumCreatureType;
 import net.minecraft.server.v1_16_R1.GeneratorAccess;
 import net.minecraft.server.v1_16_R1.GeneratorSettingBase;
@@ -52,7 +54,7 @@ import nl.rutgerkok.worldgeneratorapi.internal.ReflectionUtil;
 import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
 
 /**
- * Standard Minecraft chunk generator (see {@link ChunkProviderGenerate}) - but
+ * Standard Minecraft chunk generator (see {@link ChunkGeneratorAbstract}) - but
  * with support to change some settings.
  *
  */
@@ -385,12 +387,13 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
 
     private void injectWorldChunkManager(WorldChunkManager worldChunkManager) {
         try {
-            ReflectionUtil.getFieldOfType(getClass().getSuperclass(), WorldChunkManager.class).set(this,
-                    worldChunkManager);
+            for (Field field : ReflectionUtil.getAllFieldsOfType(getClass().getSuperclass(), WorldChunkManager.class)) {
+                field.set(this, worldChunkManager);
+            }
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Failed to update the biome generator field", e);
         }
-        if (this.c != worldChunkManager) {
+        if (this.c != worldChunkManager || this.b != worldChunkManager) {
             throw new RuntimeException("Failed to update the biome generator field - old value is still present");
         }
     }
