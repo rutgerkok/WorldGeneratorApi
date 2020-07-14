@@ -11,10 +11,25 @@ import org.bukkit.craftbukkit.v1_16_R1.block.CraftBlock;
 import com.mojang.serialization.Codec;
 
 import net.minecraft.server.v1_16_R1.BiomeBase;
+import net.minecraft.server.v1_16_R1.Biomes;
+import net.minecraft.server.v1_16_R1.IRegistry;
 import net.minecraft.server.v1_16_R1.WorldChunkManager;
+import net.minecraft.server.v1_16_R1.WorldChunkManagerHell;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
 public class InjectedBiomeGenerator extends WorldChunkManager {
+
+    /**
+     * Apparently, sometimes we need to serialize the biome generator. We cannot do
+     * this, as this is not how our API is designed. (We don't register our biome
+     * generators.) Instead, we serialize as if we are a biome generator that
+     * generates only oceans.
+     */
+    private static final Codec<WorldChunkManagerHell> DUMMY_CODEC = IRegistry.BIOME.fieldOf("biome")
+            .xmap(biome -> new WorldChunkManagerHell(biome), biomeGenToSerialize -> {
+                return Biomes.OCEAN;
+                    })
+            .stable().codec();
 
     private static List<BiomeBase> toBiomeBase(Set<Biome> biomes) {
         return biomes.stream().map(CraftBlock::biomeToBiomeBase).collect(toList());
@@ -50,7 +65,7 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
 
     @Override
     protected Codec<? extends WorldChunkManager> a() {
-        throw new UnsupportedOperationException("Custom biome generators be stored in a config file");
+        return DUMMY_CODEC;
     }
 
     @Override
