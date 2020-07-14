@@ -27,7 +27,7 @@ import org.bukkit.craftbukkit.v1_16_R1.block.CraftDropper;
 import org.bukkit.craftbukkit.v1_16_R1.block.CraftEnchantingTable;
 import org.bukkit.craftbukkit.v1_16_R1.block.CraftEndGateway;
 import org.bukkit.craftbukkit.v1_16_R1.block.CraftEnderChest;
-import org.bukkit.craftbukkit.v1_16_R1.block.CraftFurnace;
+import org.bukkit.craftbukkit.v1_16_R1.block.CraftFurnaceFurnace;
 import org.bukkit.craftbukkit.v1_16_R1.block.CraftHopper;
 import org.bukkit.craftbukkit.v1_16_R1.block.CraftJigsaw;
 import org.bukkit.craftbukkit.v1_16_R1.block.CraftJukebox;
@@ -62,7 +62,7 @@ import net.minecraft.server.v1_16_R1.TileEntityDropper;
 import net.minecraft.server.v1_16_R1.TileEntityEnchantTable;
 import net.minecraft.server.v1_16_R1.TileEntityEndGateway;
 import net.minecraft.server.v1_16_R1.TileEntityEnderChest;
-import net.minecraft.server.v1_16_R1.TileEntityFurnace;
+import net.minecraft.server.v1_16_R1.TileEntityFurnaceFurnace;
 import net.minecraft.server.v1_16_R1.TileEntityHopper;
 import net.minecraft.server.v1_16_R1.TileEntityJigsaw;
 import net.minecraft.server.v1_16_R1.TileEntityJukeBox;
@@ -138,7 +138,7 @@ class DecorationAreaImpl implements DecorationArea {
             case TRAPPED_CHEST:
                 return new CraftChest(material, (TileEntityChest) tileEntity);
             case FURNACE:
-                return new CraftFurnace<>(material, (TileEntityFurnace) tileEntity);
+                return new CraftFurnaceFurnace(material, (TileEntityFurnaceFurnace) tileEntity);
             case DISPENSER:
                 return new CraftDispenser(material, (TileEntityDispenser) tileEntity);
             case DROPPER:
