@@ -1,16 +1,18 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.craftbukkit.v1_16_R1.CraftServer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,9 +28,20 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorApi, Listener {
 
+    private static final Field SERVER_WORLDS_FIELD;
+    static {
+        try {
+            SERVER_WORLDS_FIELD = CraftServer.class.getDeclaredField("worlds");
+            SERVER_WORLDS_FIELD.setAccessible(true);
+        } catch (NoSuchFieldException | SecurityException e) {
+            throw new RuntimeException("Failed to access CraftServer.worlds. Incompatible server?", e);
+        }
+    }
+
     private final Map<UUID, WorldGeneratorImpl> worldGenerators = new HashMap<>();
     private final PropertyRegistry propertyRegistry = new PropertyRegistryImpl();
     private final Map<WorldRef, Consumer<WorldGenerator>> worldGeneratorModifiers = new HashMap<>();
+    private Map<String, World> oldWorldsMap;
 
     @Override
     public ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer) {
@@ -84,21 +97,40 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
         return propertyRegistry;
     }
 
+    private void injectWorldAddListener() {
+        // Listening to the WorldInitEvent would be easier, but unfortunately that event
+        // fires after the first chunks have been generated.
+        // See https://github.com/rutgerkok/WorldGeneratorApi/issues/13
+        Server server = this.getServer();
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, World> oldMap = (Map<String, World>) SERVER_WORLDS_FIELD.get(server);
+            this.oldWorldsMap = oldMap;
+            PutListeningMap<String, World> wrapper = new PutListeningMap<>(oldMap);
+            wrapper.addListener((name, world) -> onWorldAdd(world));
+            SERVER_WORLDS_FIELD.set(server, wrapper);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to change CraftServer.world", e);
+        }
+    }
+
     @Override
     public void onDisable() {
         disableWorldGenerators();
+        restoreOriginalWorldsMap();
     }
 
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+        injectWorldAddListener();
 
-        redirectCommand(getCommand("worldgeneratorapi"), new CommandHandler(this::reloadWorldGenerators, propertyRegistry));
+        redirectCommand(getCommand("worldgeneratorapi"),
+                new CommandHandler(this::reloadWorldGenerators, propertyRegistry));
     }
 
-    @EventHandler
-    public void onWorldInit(WorldInitEvent event) {
-        getForWorld(event.getWorld()); // Force initialization
+    public void onWorldAdd(World world) {
+        getForWorld(world); // Force initialization
     }
 
     @EventHandler
@@ -119,6 +151,16 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
         disableWorldGenerators();
         for (World world : this.getServer().getWorlds()) {
             getForWorld(world);
+        }
+    }
+
+    private void restoreOriginalWorldsMap() {
+        if (this.oldWorldsMap != null) {
+            try {
+                SERVER_WORLDS_FIELD.set(getServer(), this.oldWorldsMap);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Failed to restore CraftServer.world", e);
+            }
         }
     }
 
