@@ -38,6 +38,7 @@ public class BiomeGeneratorImplTest {
         BiomeGenerator ours = (x, y, z) -> Biome.PLAINS;
 
         assertThrows(IllegalArgumentException.class,
-                () -> new BiomeGeneratorImpl(RegistryGeneration.WORLDGEN_BIOME, new InjectedBiomeGenerator(ours)));
+                () -> new BiomeGeneratorImpl(RegistryGeneration.WORLDGEN_BIOME,
+                        new InjectedBiomeGenerator(RegistryGeneration.WORLDGEN_BIOME, ours)));
     }
 }

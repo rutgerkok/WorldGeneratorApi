@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.bukkit.block.Biome;
@@ -13,6 +14,7 @@ import com.mojang.serialization.Codec;
 
 import net.minecraft.server.v1_16_R2.BiomeBase;
 import net.minecraft.server.v1_16_R2.Biomes;
+import net.minecraft.server.v1_16_R2.IRegistry;
 import net.minecraft.server.v1_16_R2.RegistryGeneration;
 import net.minecraft.server.v1_16_R2.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
@@ -35,9 +37,9 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
             })
             .stable().codec();
 
-    private static List<BiomeBase> toBiomeBase(Set<Biome> biomes) {
+    private static List<BiomeBase> toBiomeBase(IRegistry<BiomeBase> biomeRegistry, Set<Biome> biomes) {
         return biomes.stream()
-                .map(biome -> CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome))
+                .map(biome -> CraftBlock.biomeToBiomeBase(biomeRegistry, biome))
                 .collect(toList());
     }
 
@@ -50,14 +52,20 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
      *            The biome generator.
      * @return A Minecraft-compatible biome generator.
      */
-    public static WorldChunkManager wrapOrUnwrap(BiomeGenerator biomeGenerator) {
+    public static WorldChunkManager wrapOrUnwrap(IRegistry<BiomeBase> registry, BiomeGenerator biomeGenerator) {
         if (biomeGenerator instanceof BiomeGeneratorImpl) {
-            return ((BiomeGeneratorImpl) biomeGenerator).internal;
+            // Already wrapping a WorldChunkManager
+            BiomeGeneratorImpl biomeGeneratorImpl = (BiomeGeneratorImpl) biomeGenerator;
+            if (biomeGeneratorImpl.biomeRegistry == registry) {
+                // Uses the same biome registry - safe to use that instance directly
+                return biomeGeneratorImpl.internal;
+            }
         }
-        return new InjectedBiomeGenerator(biomeGenerator);
+        return new InjectedBiomeGenerator(registry, biomeGenerator);
     }
 
     private final BiomeGenerator biomeGenerator;
+    private final IRegistry<BiomeBase> biomeRegistry;
 
     /**
      * Constructor only used for deserialization. Just provides a dummy biome
@@ -65,17 +73,21 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
      * generator.
      */
     private InjectedBiomeGenerator() {
+        // Dummy constructor
         super(Arrays.asList(RegistryGeneration.WORLDGEN_BIOME.a(Biomes.OCEAN)));
+        this.biomeRegistry = RegistryGeneration.WORLDGEN_BIOME;
         this.biomeGenerator = (x, y, z) -> Biome.OCEAN;
     }
 
-    public InjectedBiomeGenerator(BiomeGenerator biomeGenerator) {
-        super(toBiomeBase(biomeGenerator.getStructureBiomes()));
+    public InjectedBiomeGenerator(IRegistry<BiomeBase> biomeRegistry, BiomeGenerator biomeGenerator) {
+        super(toBiomeBase(biomeRegistry, biomeGenerator.getStructureBiomes()));
 
-        if (biomeGenerator instanceof BiomeGeneratorImpl) {
-            throw new IllegalArgumentException("Double wrapping of biome generator");
+        if (biomeGenerator instanceof BiomeGeneratorImpl
+                && ((BiomeGeneratorImpl) biomeGenerator).biomeRegistry == biomeRegistry) {
+            throw new IllegalArgumentException("Double wrapping of biome generator (that uses the same biomeRegistry)");
         }
 
+        this.biomeRegistry = Objects.requireNonNull(biomeRegistry, "biomeRegistry");
         this.biomeGenerator = biomeGenerator; // Null check not necessary - was done in first line
     }
 
@@ -86,7 +98,7 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
 
     @Override
     public BiomeBase getBiome(int x, int y, int z) {
-        return CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME,
+        return CraftBlock.biomeToBiomeBase(biomeRegistry,
                 biomeGenerator.getZoomedOutBiome(x, y, z));
     }
 }

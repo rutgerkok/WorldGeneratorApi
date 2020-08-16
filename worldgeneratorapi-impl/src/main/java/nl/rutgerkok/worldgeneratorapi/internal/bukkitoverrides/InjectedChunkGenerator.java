@@ -124,6 +124,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
      * Original biome generator, ready to be restored when the plugin unloads.
      */
     private final BiomeGeneratorImpl originalBiomeGenerator;
+    private final IRegistry<BiomeBase> biomeRegistry;
 
     public InjectedChunkGenerator(WorldChunkManager worldchunkmanager, IRegistry<BiomeBase> biomeRegistry,
             BaseTerrainGenerator baseChunkGenerator, long seed, GeneratorSettingBase settings) {
@@ -142,6 +143,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
                 ? new NoiseGenerator3(e, IntStream.rangeClosed(-3, 0))
                 : new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-3, 0));
 
+        this.biomeRegistry = Objects.requireNonNull(biomeRegistry, "biomeRegistry");
         this.originalBiomeGenerator = new BiomeGeneratorImpl(biomeRegistry, this.c);
         this.biomeGenerator = this.originalBiomeGenerator;
 
@@ -416,7 +418,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         this.biomeGenerator = Objects.requireNonNull(biomeGenerator, "biomeGenerator");
 
         // Update Minecraft's field too
-        WorldChunkManager worldChunkManager = InjectedBiomeGenerator.wrapOrUnwrap(biomeGenerator);
+        WorldChunkManager worldChunkManager = InjectedBiomeGenerator.wrapOrUnwrap(this.biomeRegistry, biomeGenerator);
         this.injectWorldChunkManager(worldChunkManager);
 
         // Inject in base terrain generator too

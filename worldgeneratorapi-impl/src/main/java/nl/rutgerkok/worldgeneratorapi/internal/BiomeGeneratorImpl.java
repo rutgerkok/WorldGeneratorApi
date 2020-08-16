@@ -30,7 +30,7 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
         }
     }
 
-    private final IRegistry<BiomeBase> biomeRegistry;
+    final IRegistry<BiomeBase> biomeRegistry;
     final WorldChunkManager internal;
 
     public BiomeGeneratorImpl(IRegistry<BiomeBase> biomeRegistry, WorldChunkManager worldChunkManager) {
