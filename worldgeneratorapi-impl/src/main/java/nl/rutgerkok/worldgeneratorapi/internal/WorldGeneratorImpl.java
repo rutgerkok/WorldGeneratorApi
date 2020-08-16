@@ -10,9 +10,11 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_16_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R2.generator.CustomChunkGenerator;
 
+import net.minecraft.server.v1_16_R2.BiomeBase;
 import net.minecraft.server.v1_16_R2.ChunkGenerator;
 import net.minecraft.server.v1_16_R2.ChunkProviderServer;
 import net.minecraft.server.v1_16_R2.GeneratorSettingBase;
+import net.minecraft.server.v1_16_R2.IRegistry;
 import net.minecraft.server.v1_16_R2.WorldChunkManager;
 import net.minecraft.server.v1_16_R2.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
@@ -48,7 +50,11 @@ final class WorldGeneratorImpl implements WorldGenerator {
         }
     }
 
+    private static IRegistry<BiomeBase> getBiomeRegistry(WorldServer world) {
+        return world.r().b(IRegistry.ay); // Copied from CraftWorld.getBiome
+    }
     private @Nullable InjectedChunkGenerator injected;
+
     private final World world;
 
     private final WorldRef worldRef;
@@ -83,11 +89,12 @@ final class WorldGeneratorImpl implements WorldGenerator {
         }
 
         // Create a new one, based on the currently used biome generator
-        WorldChunkManager worldChunkManager = getWorldHandle()
+        WorldServer world = getWorldHandle();
+        WorldChunkManager worldChunkManager = world
                 .getChunkProvider()
                 .getChunkGenerator()
                 .getWorldChunkManager();
-        return new BiomeGeneratorImpl(worldChunkManager);
+        return new BiomeGeneratorImpl(getBiomeRegistry(world), worldChunkManager);
     }
 
     @Override
@@ -167,7 +174,8 @@ final class WorldGeneratorImpl implements WorldGenerator {
         WorldChunkManager worldChunkManager = chunkGenerator.getWorldChunkManager();
         long seed = world.getSeed();
         GeneratorSettingBase settings = extractSettings(chunkGenerator, seed);
-        InjectedChunkGenerator injected = new InjectedChunkGenerator(worldChunkManager, base, seed, settings);
+        InjectedChunkGenerator injected = new InjectedChunkGenerator(worldChunkManager, getBiomeRegistry(world), base,
+                seed, settings);
 
         injectInternalChunkGenerator(injected);
         this.injected = injected;

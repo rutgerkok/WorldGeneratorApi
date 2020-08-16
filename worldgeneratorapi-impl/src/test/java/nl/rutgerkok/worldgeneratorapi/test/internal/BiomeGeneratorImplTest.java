@@ -28,7 +28,8 @@ public class BiomeGeneratorImplTest {
                 RegistryGeneration.WORLDGEN_BIOME);
 
         // Check the structures
-        BiomeGeneratorImpl biomeGenerator = new BiomeGeneratorImpl(worldChunkManager);
+        BiomeGeneratorImpl biomeGenerator = new BiomeGeneratorImpl(RegistryGeneration.WORLDGEN_BIOME,
+                worldChunkManager);
         assertEquals(BiomeGenerator.VANILLA_OVERWORLD_STRUCTURE_BIOMES, biomeGenerator.getStructureBiomes());
     }
 
@@ -36,6 +37,7 @@ public class BiomeGeneratorImplTest {
     public void noDoubleWrapping() {
         BiomeGenerator ours = (x, y, z) -> Biome.PLAINS;
 
-        assertThrows(IllegalArgumentException.class, () -> new BiomeGeneratorImpl(new InjectedBiomeGenerator(ours)));
+        assertThrows(IllegalArgumentException.class,
+                () -> new BiomeGeneratorImpl(RegistryGeneration.WORLDGEN_BIOME, new InjectedBiomeGenerator(ours)));
     }
 }

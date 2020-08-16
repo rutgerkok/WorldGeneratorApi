@@ -10,7 +10,7 @@ import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
 import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.server.v1_16_R2.BiomeBase;
-import net.minecraft.server.v1_16_R2.RegistryGeneration;
+import net.minecraft.server.v1_16_R2.IRegistry;
 import net.minecraft.server.v1_16_R2.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
@@ -29,14 +29,17 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
             throw new RuntimeException("Failed to get structure field", e);
         }
     }
+
+    private final IRegistry<BiomeBase> biomeRegistry;
     final WorldChunkManager internal;
 
-    public BiomeGeneratorImpl(WorldChunkManager worldChunkManager) {
+    public BiomeGeneratorImpl(IRegistry<BiomeBase> biomeRegistry, WorldChunkManager worldChunkManager) {
         if (worldChunkManager instanceof InjectedBiomeGenerator) {
             // Not allowed - the injected biome generator itself wraps a BiomeGenerator
             throw new IllegalArgumentException("double wrapping of biome generator");
         }
-        internal = Objects.requireNonNull(worldChunkManager, "worldChunkManager");
+        this.biomeRegistry = Objects.requireNonNull(biomeRegistry, "biomeRegistry");
+        this.internal = Objects.requireNonNull(worldChunkManager, "worldChunkManager");
     }
 
     @Override
@@ -49,7 +52,7 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
                     .get(this.internal);
 
             for (BiomeBase biome : biomeBases) {
-                biomes.add(CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME, biome));
+                biomes.add(CraftBlock.biomeBaseToBiome(this.biomeRegistry, biome));
             }
             return biomes.build();
         } catch (IllegalAccessException e) {
@@ -61,7 +64,7 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
 
     @Override
     public Biome getZoomedOutBiome(int x, int y, int z) {
-        return CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME, internal.getBiome(x, y, z));
+        return CraftBlock.biomeBaseToBiome(this.biomeRegistry, internal.getBiome(x, y, z));
     }
 
 }

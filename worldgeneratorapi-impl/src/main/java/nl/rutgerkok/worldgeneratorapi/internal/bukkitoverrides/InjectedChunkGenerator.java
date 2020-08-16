@@ -31,6 +31,7 @@ import net.minecraft.server.v1_16_R2.HeightMap.Type;
 import net.minecraft.server.v1_16_R2.IBlockAccess;
 import net.minecraft.server.v1_16_R2.IBlockData;
 import net.minecraft.server.v1_16_R2.IChunkAccess;
+import net.minecraft.server.v1_16_R2.IRegistry;
 import net.minecraft.server.v1_16_R2.NoiseGenerator;
 import net.minecraft.server.v1_16_R2.NoiseGenerator3;
 import net.minecraft.server.v1_16_R2.NoiseGeneratorOctaves;
@@ -124,8 +125,8 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
      */
     private final BiomeGeneratorImpl originalBiomeGenerator;
 
-    public InjectedChunkGenerator(WorldChunkManager worldchunkmanager, BaseTerrainGenerator baseChunkGenerator, long seed,
-            GeneratorSettingBase settings) {
+    public InjectedChunkGenerator(WorldChunkManager worldchunkmanager, IRegistry<BiomeBase> biomeRegistry,
+            BaseTerrainGenerator baseChunkGenerator, long seed, GeneratorSettingBase settings) {
         super(worldchunkmanager, worldchunkmanager, settings.a(), seed);
 
         this.h = settings;
@@ -141,7 +142,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
                 ? new NoiseGenerator3(e, IntStream.rangeClosed(-3, 0))
                 : new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-3, 0));
 
-        this.originalBiomeGenerator = new BiomeGeneratorImpl(this.c);
+        this.originalBiomeGenerator = new BiomeGeneratorImpl(biomeRegistry, this.c);
         this.biomeGenerator = this.originalBiomeGenerator;
 
         setBaseChunkGenerator(baseChunkGenerator);

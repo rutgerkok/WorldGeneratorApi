@@ -6,7 +6,9 @@ import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 
+import net.minecraft.server.v1_16_R2.BiomeBase;
 import net.minecraft.server.v1_16_R2.BiomeStorage;
+import net.minecraft.server.v1_16_R2.IRegistry;
 import net.minecraft.server.v1_16_R2.RegistryGeneration;
 
 public final class BiomeGridImpl implements BiomeGrid {
@@ -18,13 +20,13 @@ public final class BiomeGridImpl implements BiomeGrid {
 
     @Override
     public Biome getBiome(final int x, final int z) {
-        return CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME,
+        return CraftBlock.biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.g,
                 this.biomeStorage.getBiome(x >> 2, 0, z >> 2));
     }
 
     @Override
     public Biome getBiome(int x, int y, int z) {
-        return CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME,
+        return CraftBlock.biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.g,
                 this.biomeStorage.getBiome(x >> 2, y >> 2, z >> 2));
     }
 
