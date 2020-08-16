@@ -13,35 +13,35 @@ import org.bukkit.generator.ChunkGenerator.ChunkData;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.server.v1_16_R1.BiomeBase;
-import net.minecraft.server.v1_16_R1.BiomeBase.BiomeMeta;
-import net.minecraft.server.v1_16_R1.BiomeManager;
-import net.minecraft.server.v1_16_R1.BlockColumn;
-import net.minecraft.server.v1_16_R1.BlockPosition;
-import net.minecraft.server.v1_16_R1.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_16_R1.Blocks;
-import net.minecraft.server.v1_16_R1.ChunkCoordIntPair;
-import net.minecraft.server.v1_16_R1.ChunkGenerator;
-import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_16_R1.EnumCreatureType;
-import net.minecraft.server.v1_16_R1.GeneratorAccess;
-import net.minecraft.server.v1_16_R1.GeneratorSettingBase;
-import net.minecraft.server.v1_16_R1.HeightMap;
-import net.minecraft.server.v1_16_R1.HeightMap.Type;
-import net.minecraft.server.v1_16_R1.IBlockAccess;
-import net.minecraft.server.v1_16_R1.IBlockData;
-import net.minecraft.server.v1_16_R1.IChunkAccess;
-import net.minecraft.server.v1_16_R1.NoiseGenerator;
-import net.minecraft.server.v1_16_R1.NoiseGenerator3;
-import net.minecraft.server.v1_16_R1.NoiseGeneratorOctaves;
-import net.minecraft.server.v1_16_R1.NoiseSettings;
-import net.minecraft.server.v1_16_R1.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_16_R1.SeededRandom;
-import net.minecraft.server.v1_16_R1.SpawnerCreature;
-import net.minecraft.server.v1_16_R1.StructureGenerator;
-import net.minecraft.server.v1_16_R1.StructureManager;
-import net.minecraft.server.v1_16_R1.WorldChunkManager;
-import net.minecraft.server.v1_16_R1.WorldGenStage.Features;
+import net.minecraft.server.v1_16_R2.BiomeBase;
+import net.minecraft.server.v1_16_R2.BiomeManager;
+import net.minecraft.server.v1_16_R2.BiomeSettingsMobs;
+import net.minecraft.server.v1_16_R2.BlockColumn;
+import net.minecraft.server.v1_16_R2.BlockPosition;
+import net.minecraft.server.v1_16_R2.BlockPosition.MutableBlockPosition;
+import net.minecraft.server.v1_16_R2.Blocks;
+import net.minecraft.server.v1_16_R2.ChunkCoordIntPair;
+import net.minecraft.server.v1_16_R2.ChunkGenerator;
+import net.minecraft.server.v1_16_R2.ChunkGeneratorAbstract;
+import net.minecraft.server.v1_16_R2.EnumCreatureType;
+import net.minecraft.server.v1_16_R2.GeneratorAccess;
+import net.minecraft.server.v1_16_R2.GeneratorSettingBase;
+import net.minecraft.server.v1_16_R2.HeightMap;
+import net.minecraft.server.v1_16_R2.HeightMap.Type;
+import net.minecraft.server.v1_16_R2.IBlockAccess;
+import net.minecraft.server.v1_16_R2.IBlockData;
+import net.minecraft.server.v1_16_R2.IChunkAccess;
+import net.minecraft.server.v1_16_R2.NoiseGenerator;
+import net.minecraft.server.v1_16_R2.NoiseGenerator3;
+import net.minecraft.server.v1_16_R2.NoiseGeneratorOctaves;
+import net.minecraft.server.v1_16_R2.NoiseSettings;
+import net.minecraft.server.v1_16_R2.RegionLimitedWorldAccess;
+import net.minecraft.server.v1_16_R2.SeededRandom;
+import net.minecraft.server.v1_16_R2.SpawnerCreature;
+import net.minecraft.server.v1_16_R2.StructureGenerator;
+import net.minecraft.server.v1_16_R2.StructureManager;
+import net.minecraft.server.v1_16_R2.WorldChunkManager;
+import net.minecraft.server.v1_16_R2.WorldGenStage.Features;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator.HeightType;
@@ -346,7 +346,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public List<BiomeMeta> getMobsFor(BiomeBase biomebase, StructureManager structuremanager,
+    public List<BiomeSettingsMobs.c> getMobsFor(BiomeBase biomebase, StructureManager structuremanager,
             EnumCreatureType enumcreaturetype, BlockPosition blockposition) {
         if (structuremanager.a(blockposition, true, StructureGenerator.SWAMP_HUT).e()) {
             if (enumcreaturetype == EnumCreatureType.MONSTER) {

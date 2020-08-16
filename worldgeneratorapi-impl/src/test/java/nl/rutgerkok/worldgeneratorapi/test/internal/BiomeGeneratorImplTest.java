@@ -7,8 +7,9 @@ import org.bukkit.block.Biome;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.server.v1_16_R1.WorldChunkManager;
-import net.minecraft.server.v1_16_R1.WorldChunkManagerOverworld;
+import net.minecraft.server.v1_16_R2.RegistryGeneration;
+import net.minecraft.server.v1_16_R2.WorldChunkManager;
+import net.minecraft.server.v1_16_R2.WorldChunkManagerOverworld;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
@@ -23,7 +24,8 @@ public class BiomeGeneratorImplTest {
     @Test
     public void isGetStructureBiomesInSync() {
         // Create vanilla biome generator
-        WorldChunkManager worldChunkManager = new WorldChunkManagerOverworld(10, false, false);
+        WorldChunkManager worldChunkManager = new WorldChunkManagerOverworld(10, false, false,
+                RegistryGeneration.WORLDGEN_BIOME);
 
         // Check the structures
         BiomeGeneratorImpl biomeGenerator = new BiomeGeneratorImpl(worldChunkManager);

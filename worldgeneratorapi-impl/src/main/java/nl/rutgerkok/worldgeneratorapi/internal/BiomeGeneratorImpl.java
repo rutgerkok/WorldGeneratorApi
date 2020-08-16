@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.Objects;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
 
 import com.google.common.collect.ImmutableSet;
 
-import net.minecraft.server.v1_16_R1.BiomeBase;
-import net.minecraft.server.v1_16_R1.WorldChunkManager;
+import net.minecraft.server.v1_16_R2.BiomeBase;
+import net.minecraft.server.v1_16_R2.RegistryGeneration;
+import net.minecraft.server.v1_16_R2.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
 /**
@@ -48,7 +49,7 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
                     .get(this.internal);
 
             for (BiomeBase biome : biomeBases) {
-                biomes.add(CraftBlock.biomeBaseToBiome(biome));
+                biomes.add(CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME, biome));
             }
             return biomes.build();
         } catch (IllegalAccessException e) {
@@ -60,7 +61,7 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
 
     @Override
     public Biome getZoomedOutBiome(int x, int y, int z) {
-        return CraftBlock.biomeBaseToBiome(internal.getBiome(x, y, z));
+        return CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME, internal.getBiome(x, y, z));
     }
 
 }

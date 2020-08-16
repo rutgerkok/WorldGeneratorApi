@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Set;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.server.v1_16_R1.BiomeBase;
-import net.minecraft.server.v1_16_R1.Biomes;
-import net.minecraft.server.v1_16_R1.IRegistry;
-import net.minecraft.server.v1_16_R1.WorldChunkManager;
+import net.minecraft.server.v1_16_R2.BiomeBase;
+import net.minecraft.server.v1_16_R2.Biomes;
+import net.minecraft.server.v1_16_R2.RegistryGeneration;
+import net.minecraft.server.v1_16_R2.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 
@@ -26,17 +26,19 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
      * generators.) Instead, we serialize as if we are a biome generator that
      * generates only oceans.
      */
-    private static final Codec<InjectedBiomeGenerator> DUMMY_CODEC = IRegistry.BIOME.fieldOf(
+    private static final Codec<InjectedBiomeGenerator> DUMMY_CODEC = RegistryGeneration.WORLDGEN_BIOME.fieldOf(
             "[" + WorldGeneratorApi.class.getSimpleName()
                     + "] Custom biome generators cannot be stored in the level.dat, please ignore this error")
             .xmap(biome -> new InjectedBiomeGenerator(), biomeGenToSerialize -> {
                 // Serializes as a single-biome generator
-                return Biomes.OCEAN;
+                return RegistryGeneration.WORLDGEN_BIOME.a(Biomes.OCEAN);
             })
             .stable().codec();
 
     private static List<BiomeBase> toBiomeBase(Set<Biome> biomes) {
-        return biomes.stream().map(CraftBlock::biomeToBiomeBase).collect(toList());
+        return biomes.stream()
+                .map(biome -> CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome))
+                .collect(toList());
     }
 
     /**
@@ -63,7 +65,7 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
      * generator.
      */
     private InjectedBiomeGenerator() {
-        super(Arrays.asList(Biomes.OCEAN));
+        super(Arrays.asList(RegistryGeneration.WORLDGEN_BIOME.a(Biomes.OCEAN)));
         this.biomeGenerator = (x, y, z) -> Biome.OCEAN;
     }
 
@@ -84,6 +86,7 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
 
     @Override
     public BiomeBase getBiome(int x, int y, int z) {
-        return CraftBlock.biomeToBiomeBase(biomeGenerator.getZoomedOutBiome(x, y, z));
+        return CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME,
+                biomeGenerator.getZoomedOutBiome(x, y, z));
     }
 }

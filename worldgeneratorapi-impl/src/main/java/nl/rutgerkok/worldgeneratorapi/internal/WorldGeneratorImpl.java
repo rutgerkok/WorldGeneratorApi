@@ -7,16 +7,14 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_16_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R1.generator.CustomChunkGenerator;
+import org.bukkit.craftbukkit.v1_16_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R2.generator.CustomChunkGenerator;
 
-import net.minecraft.server.v1_16_R1.ChunkGenerator;
-import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_16_R1.ChunkProviderServer;
-import net.minecraft.server.v1_16_R1.GeneratorSettingBase;
-import net.minecraft.server.v1_16_R1.GeneratorSettings;
-import net.minecraft.server.v1_16_R1.WorldChunkManager;
-import net.minecraft.server.v1_16_R1.WorldServer;
+import net.minecraft.server.v1_16_R2.ChunkGenerator;
+import net.minecraft.server.v1_16_R2.ChunkProviderServer;
+import net.minecraft.server.v1_16_R2.GeneratorSettingBase;
+import net.minecraft.server.v1_16_R2.WorldChunkManager;
+import net.minecraft.server.v1_16_R2.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -29,6 +27,10 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.NoiseToTerrainGen
 
 final class WorldGeneratorImpl implements WorldGenerator {
 
+    private static GeneratorSettingBase createDefaultSettings() {
+        return GeneratorSettingBase.i();
+    }
+
     private static GeneratorSettingBase extractSettings(ChunkGenerator chunkGenerator, long seed) {
         try {
             // First, unwrap Bukkit generator if necessary
@@ -38,16 +40,11 @@ final class WorldGeneratorImpl implements WorldGenerator {
             }
 
             // Then, extract the settings
-            return (GeneratorSettingBase) ReflectionUtil.getFieldOfType(chunkGenerator, GeneratorSettingBase.class).get(chunkGenerator);
+            return (GeneratorSettingBase) ReflectionUtil.getFieldOfType(chunkGenerator, GeneratorSettingBase.class)
+                    .get(chunkGenerator);
         } catch (IllegalAccessException | IllegalArgumentException | NoSuchElementException e) {
             // Get default settings
-            ChunkGeneratorAbstract standardGenerator = GeneratorSettings.a(seed);
-            try {
-                return (GeneratorSettingBase) ReflectionUtil
-                        .getFieldOfType(standardGenerator, GeneratorSettingBase.class).get(chunkGenerator);
-            } catch (IllegalAccessException e1) {
-                throw new RuntimeException("Failed to extract settings", e1);
-            }
+            return createDefaultSettings();
         }
     }
 

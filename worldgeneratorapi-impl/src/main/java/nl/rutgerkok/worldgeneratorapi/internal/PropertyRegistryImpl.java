@@ -13,10 +13,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
 
-import net.minecraft.server.v1_16_R1.BiomeBase;
-import net.minecraft.server.v1_16_R1.Biomes;
+import net.minecraft.server.v1_16_R2.BiomeBase;
+import net.minecraft.server.v1_16_R2.Biomes;
+import net.minecraft.server.v1_16_R2.RegistryGeneration;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.property.AbstractProperty;
@@ -56,20 +57,21 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
     private final Map<NamespacedKey, AbstractProperty> properties = new ConcurrentHashMap<>();
 
     public PropertyRegistryImpl() {
-        addMinecraftBiomeFloatProperty(TEMPERATURE, BiomeBase::getTemperature);
+        addMinecraftBiomeFloatProperty(TEMPERATURE, BiomeBase::k);
         addMinecraftBiomeFloatProperty(WETNESS, BiomeBase::getHumidity);
-        addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::k);
-        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::o);
+        addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::h);
+        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::j);
         addMinecraftWorldProperty(WORLD_SEED, world -> (Long) world.getSeed(), -1L);
         addSeaLevelProperty(SEA_LEVEL, world -> (float) world.getSeaLevel());
     }
 
     private void addMinecraftBiomeFloatProperty(NamespacedKey name, Function<BiomeBase, Float> value) {
-        FloatProperty property = new FloatProperty(name, value.apply(Biomes.b)) {
+        FloatProperty property = new FloatProperty(name,
+                value.apply(RegistryGeneration.WORLDGEN_BIOME.a(Biomes.PLAINS))) {
 
             @Override
             public float getBiomeDefault(Biome biome) {
-                BiomeBase base = CraftBlock.biomeToBiomeBase(biome);
+                BiomeBase base = CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome);
                 return value.apply(base);
             }
 

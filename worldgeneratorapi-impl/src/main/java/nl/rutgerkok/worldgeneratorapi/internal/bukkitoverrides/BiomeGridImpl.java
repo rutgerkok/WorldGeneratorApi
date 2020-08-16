@@ -3,10 +3,11 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 import java.util.Objects;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 
-import net.minecraft.server.v1_16_R1.BiomeStorage;
+import net.minecraft.server.v1_16_R2.BiomeStorage;
+import net.minecraft.server.v1_16_R2.RegistryGeneration;
 
 public final class BiomeGridImpl implements BiomeGrid {
     private final BiomeStorage biomeStorage;
@@ -17,17 +18,19 @@ public final class BiomeGridImpl implements BiomeGrid {
 
     @Override
     public Biome getBiome(final int x, final int z) {
-        return CraftBlock.biomeBaseToBiome(this.biomeStorage.getBiome(x >> 2, 0, z >> 2));
+        return CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME,
+                this.biomeStorage.getBiome(x >> 2, 0, z >> 2));
     }
 
     @Override
     public Biome getBiome(int x, int y, int z) {
-        return CraftBlock.biomeBaseToBiome(this.biomeStorage.getBiome(x >> 2, y >> 2, z >> 2));
+        return CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME,
+                this.biomeStorage.getBiome(x >> 2, y >> 2, z >> 2));
     }
 
     /**
      * Gets the internal biome storage.
-     * 
+     *
      * @return The biome storage.
      */
     public BiomeStorage getHandle() {
@@ -36,11 +39,13 @@ public final class BiomeGridImpl implements BiomeGrid {
 
     @Override
     public void setBiome(int x, int z, Biome biome) {
-        this.biomeStorage.setBiome(x >> 2, 0, z >> 2, CraftBlock.biomeToBiomeBase(biome));
+        this.biomeStorage.setBiome(x >> 2, 0, z >> 2,
+                CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome));
     }
 
     @Override
     public void setBiome(int x, int y, int z, Biome biome) {
-        this.biomeStorage.setBiome(x >> 2, y >> 2, z >> 2, CraftBlock.biomeToBiomeBase(biome));
+        this.biomeStorage.setBiome(x >> 2, y >> 2, z >> 2,
+                CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome));
     }
 }

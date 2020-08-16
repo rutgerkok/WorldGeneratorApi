@@ -9,39 +9,36 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-import org.bukkit.craftbukkit.v1_16_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_16_R2.block.data.CraftBlockData;
 
-import net.minecraft.server.v1_16_R1.BlockColumn;
-import net.minecraft.server.v1_16_R1.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_16_R1.Blocks;
-import net.minecraft.server.v1_16_R1.ChunkCoordIntPair;
-import net.minecraft.server.v1_16_R1.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_16_R1.ChunkSection;
-import net.minecraft.server.v1_16_R1.GeneratorAccess;
-import net.minecraft.server.v1_16_R1.GeneratorSettingBase;
-import net.minecraft.server.v1_16_R1.GeneratorSettings;
-import net.minecraft.server.v1_16_R1.HeightMap;
-import net.minecraft.server.v1_16_R1.HeightMap.Type;
-import net.minecraft.server.v1_16_R1.IBlockAccess;
-import net.minecraft.server.v1_16_R1.IBlockData;
-import net.minecraft.server.v1_16_R1.IChunkAccess;
-import net.minecraft.server.v1_16_R1.MathHelper;
-import net.minecraft.server.v1_16_R1.NoiseSettings;
-import net.minecraft.server.v1_16_R1.ProtoChunk;
-import net.minecraft.server.v1_16_R1.SectionPosition;
-import net.minecraft.server.v1_16_R1.StructureBoundingBox;
-import net.minecraft.server.v1_16_R1.StructureGenerator;
-import net.minecraft.server.v1_16_R1.StructureManager;
-import net.minecraft.server.v1_16_R1.StructurePiece;
-import net.minecraft.server.v1_16_R1.SystemUtils;
-import net.minecraft.server.v1_16_R1.WorldGenFeatureDefinedStructureJigsawJunction;
-import net.minecraft.server.v1_16_R1.WorldGenFeatureDefinedStructurePoolTemplate.Matching;
-import net.minecraft.server.v1_16_R1.WorldGenFeaturePillagerOutpostPoolPiece;
+import net.minecraft.server.v1_16_R2.BlockColumn;
+import net.minecraft.server.v1_16_R2.BlockPosition.MutableBlockPosition;
+import net.minecraft.server.v1_16_R2.Blocks;
+import net.minecraft.server.v1_16_R2.ChunkCoordIntPair;
+import net.minecraft.server.v1_16_R2.ChunkSection;
+import net.minecraft.server.v1_16_R2.GeneratorAccess;
+import net.minecraft.server.v1_16_R2.GeneratorSettingBase;
+import net.minecraft.server.v1_16_R2.HeightMap;
+import net.minecraft.server.v1_16_R2.HeightMap.Type;
+import net.minecraft.server.v1_16_R2.IBlockAccess;
+import net.minecraft.server.v1_16_R2.IBlockData;
+import net.minecraft.server.v1_16_R2.IChunkAccess;
+import net.minecraft.server.v1_16_R2.MathHelper;
+import net.minecraft.server.v1_16_R2.NoiseSettings;
+import net.minecraft.server.v1_16_R2.ProtoChunk;
+import net.minecraft.server.v1_16_R2.SectionPosition;
+import net.minecraft.server.v1_16_R2.StructureBoundingBox;
+import net.minecraft.server.v1_16_R2.StructureGenerator;
+import net.minecraft.server.v1_16_R2.StructureManager;
+import net.minecraft.server.v1_16_R2.StructurePiece;
+import net.minecraft.server.v1_16_R2.SystemUtils;
+import net.minecraft.server.v1_16_R2.WorldGenFeatureDefinedStructureJigsawJunction;
+import net.minecraft.server.v1_16_R2.WorldGenFeatureDefinedStructurePoolTemplate.Matching;
+import net.minecraft.server.v1_16_R2.WorldGenFeaturePillagerOutpostPoolPiece;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator.TerrainSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
-import nl.rutgerkok.worldgeneratorapi.internal.ReflectionUtil;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator.GeneratingChunkImpl;
 
 public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
@@ -82,15 +79,9 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
     }
 
     private static NoiseSettings defaultNoiseSettings() {
-        // I don't know how to properly construct the default settings, so I'm using this for now
-        ChunkGeneratorAbstract defaultGenerator = GeneratorSettings.a(0);
-        try {
-            GeneratorSettingBase settings = (GeneratorSettingBase) ReflectionUtil.getFieldOfType(defaultGenerator, GeneratorSettingBase.class).get(defaultGenerator);
-            return settings.b();
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to create default noise settings", e);
-        }
+        return GeneratorSettingBase.i().b();
     }
+
     private final int l;
     private final int m;
     private final int n;

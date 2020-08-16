@@ -10,22 +10,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
-import net.minecraft.server.v1_16_R1.BiomeBase;
-import net.minecraft.server.v1_16_R1.BiomeManager;
-import net.minecraft.server.v1_16_R1.BlockPosition;
-import net.minecraft.server.v1_16_R1.ChunkCoordIntPair;
-import net.minecraft.server.v1_16_R1.ChunkGenerator;
-import net.minecraft.server.v1_16_R1.CrashReport;
-import net.minecraft.server.v1_16_R1.IChunkAccess;
-import net.minecraft.server.v1_16_R1.IRegistry;
-import net.minecraft.server.v1_16_R1.ProtoChunk;
-import net.minecraft.server.v1_16_R1.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_16_R1.ReportedException;
-import net.minecraft.server.v1_16_R1.SeededRandom;
-import net.minecraft.server.v1_16_R1.StructureManager;
-import net.minecraft.server.v1_16_R1.WorldGenCarverWrapper;
-import net.minecraft.server.v1_16_R1.WorldGenStage;
+import net.minecraft.server.v1_16_R2.BiomeBase;
+import net.minecraft.server.v1_16_R2.BiomeManager;
+import net.minecraft.server.v1_16_R2.BiomeSettingsGeneration;
+import net.minecraft.server.v1_16_R2.BlockPosition;
+import net.minecraft.server.v1_16_R2.ChunkCoordIntPair;
+import net.minecraft.server.v1_16_R2.ChunkGenerator;
+import net.minecraft.server.v1_16_R2.CrashReport;
+import net.minecraft.server.v1_16_R2.IChunkAccess;
+import net.minecraft.server.v1_16_R2.ProtoChunk;
+import net.minecraft.server.v1_16_R2.RegionLimitedWorldAccess;
+import net.minecraft.server.v1_16_R2.ReportedException;
+import net.minecraft.server.v1_16_R2.SeededRandom;
+import net.minecraft.server.v1_16_R2.StructureManager;
+import net.minecraft.server.v1_16_R2.WorldGenCarverWrapper;
+import net.minecraft.server.v1_16_R2.WorldGenStage;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
@@ -61,7 +62,6 @@ public final class WorldDecoratorImpl implements WorldDecorator {
     private BiomeBase getBiome(BiomeManager biomeManager, BlockPosition blockPosition) {
         return biomeManager.a(blockPosition);
     }
-
 
     @Override
     public List<BaseChunkGenerator> getCustomBaseDecorations(BaseDecorationType type) {
@@ -109,25 +109,25 @@ public final class WorldDecoratorImpl implements WorldDecorator {
             ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
             int i = chunkcoordintpair.x;
             int j = chunkcoordintpair.z;
-            BiomeBase biomeBase = this.getBiome(biomeManager, chunkcoordintpair.l());
+            BiomeSettingsGeneration biomeConfig = this.getBiome(biomeManager, chunkcoordintpair.l()).e();
             BitSet bitset = ((ProtoChunk) ichunkaccess).b(stage);
 
-            for(int k = i - 8; k <= i + 8; ++k) {
-                for(int l = j - 8; l <= j + 8; ++l) {
-                    List<WorldGenCarverWrapper<?>> list = biomeBase.a(stage);
-                    ListIterator<WorldGenCarverWrapper<?>> listiterator = list.listIterator();
+            for (int k = i - 8; k <= i + 8; ++k) {
+                for (int l = j - 8; l <= j + 8; ++l) {
+                    List<Supplier<WorldGenCarverWrapper<?>>> list = biomeConfig.a(stage);
+                    ListIterator<Supplier<WorldGenCarverWrapper<?>>> listiterator = list.listIterator();
 
-                   while(listiterator.hasNext()) {
-                      int i1 = listiterator.nextIndex();
-                      WorldGenCarverWrapper<?> worldgencarverwrapper = listiterator.next();
+                    while (listiterator.hasNext()) {
+                        int i1 = listiterator.nextIndex();
+                        WorldGenCarverWrapper<?> worldgencarverwrapper = listiterator.next().get();
 
                         seededrandom.c(seed + i1, k, l);
-                      if (worldgencarverwrapper.a(seededrandom, k, l)) {
-                         worldgencarverwrapper.a(ichunkaccess, (blockposition) -> {
+                        if (worldgencarverwrapper.a(seededrandom, k, l)) {
+                            worldgencarverwrapper.a(ichunkaccess, (blockposition) -> {
                                 return this.getBiome(biomeManager, blockposition);
                             }, seededrandom, seaLevel, k, l, i, j, bitset);
-                      }
-                   }
+                        }
+                    }
                 }
             }
         }
@@ -171,12 +171,12 @@ public final class WorldDecoratorImpl implements WorldDecorator {
             // Spawn default decorations
             if (!this.disabledDecorations.contains(type)) {
                 try {
-                    biomebase.a(decorationStage, structureManager, chunkGenerator, populationArea, chunkSeed,
-                            seededrandom, blockposition);
+                    biomebase.a(structureManager, chunkGenerator, populationArea, chunkSeed, seededrandom,
+                            blockposition);
                 } catch (Exception var18) {
                     CrashReport crashreport = CrashReport.a(var18, "Biome decoration");
-                    crashreport.a("Generation").a("CenterX", i).a("CenterZ", j).a("Step", decorationStage)
-                            .a("Seed", chunkSeed).a("Biome", IRegistry.BIOME.getKey(biomebase));
+                    crashreport.a("Generation").a("CenterX", i).a("CenterZ", j).a("Seed", chunkSeed).a("Biome",
+                            biomebase);
                     throw new ReportedException(crashreport);
                 }
             }
