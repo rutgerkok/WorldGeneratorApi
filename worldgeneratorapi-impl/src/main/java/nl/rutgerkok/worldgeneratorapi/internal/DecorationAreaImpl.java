@@ -39,13 +39,14 @@ import org.bukkit.craftbukkit.v1_16_R2.block.CraftSmoker;
 import org.bukkit.craftbukkit.v1_16_R2.block.CraftStructureBlock;
 import org.bukkit.craftbukkit.v1_16_R2.block.data.CraftBlockData;
 
+import net.minecraft.server.v1_16_R2.BiomeBase;
 import net.minecraft.server.v1_16_R2.BlockPosition;
 import net.minecraft.server.v1_16_R2.BlockPosition.MutableBlockPosition;
 import net.minecraft.server.v1_16_R2.IBlockData;
 import net.minecraft.server.v1_16_R2.IChunkAccess;
+import net.minecraft.server.v1_16_R2.IRegistry;
 import net.minecraft.server.v1_16_R2.NBTTagCompound;
 import net.minecraft.server.v1_16_R2.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_16_R2.RegistryGeneration;
 import net.minecraft.server.v1_16_R2.TileEntity;
 import net.minecraft.server.v1_16_R2.TileEntityBanner;
 import net.minecraft.server.v1_16_R2.TileEntityBarrel;
@@ -94,9 +95,9 @@ class DecorationAreaImpl implements DecorationArea {
     @Override
     public Biome getBiome(int x, int z) {
         reusableBlockPos.c(x, 0, z);
-        return CraftBlock.biomeBaseToBiome(RegistryGeneration.WORLDGEN_BIOME, internal.getBiome(reusableBlockPos));
+        IRegistry<BiomeBase> biomeRegistry = this.internal.r().b(IRegistry.ay);
+        return CraftBlock.biomeBaseToBiome(biomeRegistry, internal.getBiome(reusableBlockPos));
     }
-
     @Override
     public Material getBlock(int x, int y, int z) {
         return getBlockData(x, y, z).getMaterial();
