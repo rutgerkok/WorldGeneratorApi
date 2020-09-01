@@ -1,8 +1,11 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
+import java.lang.reflect.Field;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -20,12 +23,18 @@ import net.minecraft.server.v1_16_R2.ChunkCoordIntPair;
 import net.minecraft.server.v1_16_R2.ChunkGenerator;
 import net.minecraft.server.v1_16_R2.CrashReport;
 import net.minecraft.server.v1_16_R2.IChunkAccess;
+import net.minecraft.server.v1_16_R2.IRegistry;
 import net.minecraft.server.v1_16_R2.ProtoChunk;
 import net.minecraft.server.v1_16_R2.RegionLimitedWorldAccess;
 import net.minecraft.server.v1_16_R2.ReportedException;
+import net.minecraft.server.v1_16_R2.SectionPosition;
 import net.minecraft.server.v1_16_R2.SeededRandom;
+import net.minecraft.server.v1_16_R2.StructureBoundingBox;
+import net.minecraft.server.v1_16_R2.StructureGenerator;
 import net.minecraft.server.v1_16_R2.StructureManager;
+import net.minecraft.server.v1_16_R2.WorldChunkManager;
 import net.minecraft.server.v1_16_R2.WorldGenCarverWrapper;
+import net.minecraft.server.v1_16_R2.WorldGenFeatureConfigured;
 import net.minecraft.server.v1_16_R2.WorldGenStage;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
@@ -38,19 +47,27 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGene
 
 public final class WorldDecoratorImpl implements WorldDecorator {
 
-    private static final Map<WorldGenStage.Decoration, DecorationType> DECORATION_TRANSLATION;
+    private static final DecorationType[] DECORATION_TRANSLATION;
     private static final Map<WorldGenStage.Features, BaseDecorationType> CARVER_TRANSLATION;
+    private static final Field BIOME_DECORATIONS_FIELD;
+    private static final Field BIOME_SETTINGS_FIELD;
 
     static {
-        DECORATION_TRANSLATION = new EnumMap<>(WorldGenStage.Decoration.class);
-        for (WorldGenStage.Decoration type : WorldGenStage.Decoration.values()) {
-            DECORATION_TRANSLATION.put(type, DecorationType.valueOf(type.name()));
+        WorldGenStage.Decoration[] vanillaArray = WorldGenStage.Decoration.values();
+        DECORATION_TRANSLATION = new DecorationType[vanillaArray.length];
+        for (int i = 0; i < vanillaArray.length; i++) {
+            DECORATION_TRANSLATION[i] = DecorationType.valueOf(vanillaArray[i].name());
         }
 
         CARVER_TRANSLATION = new EnumMap<>(WorldGenStage.Features.class);
         for (WorldGenStage.Features type : WorldGenStage.Features.values()) {
             CARVER_TRANSLATION.put(type, BaseDecorationType.valueOf("CARVING_" + type.name()));
         }
+
+        BIOME_DECORATIONS_FIELD = ReflectionUtil.getFieldOfType(BiomeBase.class, Map.class);
+        BIOME_DECORATIONS_FIELD.setAccessible(true);
+        BIOME_SETTINGS_FIELD = ReflectionUtil.getFieldOfType(BiomeBase.class, BiomeSettingsGeneration.class);
+        BIOME_SETTINGS_FIELD.setAccessible(true);
     }
 
     private final Map<DecorationType, List<Decoration>> customDecorations = new ConcurrentHashMap<>();
@@ -58,6 +75,89 @@ public final class WorldDecoratorImpl implements WorldDecorator {
 
     private final Map<BaseDecorationType, List<BaseChunkGenerator>> customBaseDecorations = new ConcurrentHashMap<>();
     private final Set<BaseDecorationType> disabledBaseDecorations = EnumSet.noneOf(BaseDecorationType.class);
+
+    @SuppressWarnings({ "unchecked", "rawtypes" }) // Decompiled code
+    public void a(BiomeBase biomeBase, StructureManager var0, ChunkGenerator var1, RegionLimitedWorldAccess var2,
+            long var3, SeededRandom var5, BlockPosition var6) throws IllegalAccessException {
+        // Adapted from the same method in BiomeBase
+        BiomeSettingsGeneration k = (BiomeSettingsGeneration) BIOME_SETTINGS_FIELD.get(biomeBase);
+        Map g = (Map) BIOME_DECORATIONS_FIELD.get(biomeBase);
+        DecorationArea decorationArea = new DecorationAreaImpl(var2);
+
+        // Start of original method
+        List<List<Supplier<WorldGenFeatureConfigured<?, ?>>>> var7 = k.c();
+        int var8 = WorldGenStage.Decoration.values().length;
+
+        for (int var9 = 0; var9 < var8; ++var9) {
+            // Start of modifications
+            DecorationType apiType = DECORATION_TRANSLATION[var9];
+            // Spawn custom decorations
+            List<Decoration> decorations = this.customDecorations.get(apiType);
+            if (decorations != null) {
+                int decorationIndex = 0;
+                for (Decoration decoration : decorations) {
+                    if (decoration == null) {
+                        continue;
+                    }
+                    var5.b(var3, decorationIndex, apiType.ordinal());
+                    decoration.decorate(decorationArea, var5);
+                    decorationIndex++;
+                }
+            }
+            if (this.disabledDecorations.contains(apiType)) {
+                continue; // Skip vanilla decorations when requested
+            }
+            // End of modifications
+
+            int var10 = 0;
+            if (var0.a()) {
+                List<StructureGenerator<?>> var11 = (List) g.getOrDefault(var9, Collections.emptyList());
+
+                for (StructureGenerator<?> var13 : var11) {
+                    var10++;
+                    var5.b(var3, var10, var9);
+                    int var14 = var6.getX() >> 4;
+                    int var15 = var6.getZ() >> 4;
+                    int var16 = var14 << 4;
+                    int var17 = var15 << 4;
+
+                    try {
+                        var0.a(SectionPosition.a(var6), var13).forEach((var8x) -> {
+                            var8x.a(var2, var0, var1, var5,
+                                    new StructureBoundingBox(var16, var17, var16 + 15, var17 + 15),
+                                    new ChunkCoordIntPair(var14, var15));
+                        });
+                    } catch (Exception var21) {
+                        CrashReport var19 = CrashReport.a(var21, "Feature placement");
+                        var19.a("Feature").a("Id", IRegistry.STRUCTURE_FEATURE.getKey(var13)).a("Description", () -> {
+                            return var13.toString();
+                        });
+                        throw new ReportedException(var19);
+                    }
+                }
+            }
+
+            if (var7.size() > var9) {
+                for (Iterator<Supplier<WorldGenFeatureConfigured<?, ?>>> var23 = var7.get(var9).iterator(); var23.hasNext(); ++var10) {
+                    Supplier<WorldGenFeatureConfigured<?, ?>> var12 = var23.next();
+                    WorldGenFeatureConfigured<?, ?> var13 = var12.get();
+                    var5.b(var3, var10, var9);
+
+                    try {
+                        var13.a(var2, var1, var5, var6);
+                    } catch (Exception var22) {
+                        CrashReport var15 = CrashReport.a(var22, "Feature placement");
+                        var15.a("Feature").a("Id", IRegistry.FEATURE.getKey(var13.e)).a("Config", var13.f)
+                                .a("Description", () -> {
+                                    return var13.e.toString();
+                                });
+                        throw new ReportedException(var15);
+                    }
+                }
+            }
+        }
+
+    }
 
     private BiomeBase getBiome(BiomeManager biomeManager, BlockPosition blockPosition) {
         return biomeManager.a(blockPosition);
@@ -154,47 +254,25 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         }
     }
 
-    public void spawnDecorations(ChunkGenerator chunkGenerator, StructureManager structureManager,
-            RegionLimitedWorldAccess populationArea) {
+    public void spawnDecorations(ChunkGenerator chunkGenerator, WorldChunkManager worldChunkManager,
+            StructureManager structureManager, RegionLimitedWorldAccess populationArea) {
+        // Copied from ChunkGeneratorAbstract - modified to call own biome decorator
         int i = populationArea.a();
         int j = populationArea.b();
         int k = i * 16;
         int l = j * 16;
         BlockPosition blockposition = new BlockPosition(k, 0, l);
-        BiomeBase biomebase = this.getBiome(populationArea.d(), blockposition.b(8, 8, 8));
+        BiomeBase biomebase = worldChunkManager.getBiome((i << 2) + 2, 2, (j << 2) + 2);
+
         SeededRandom seededrandom = new SeededRandom();
-        DecorationArea decorationArea = new DecorationAreaImpl(populationArea);
-        long chunkSeed = seededrandom.a(populationArea.getSeed(), k, l);
-        for (WorldGenStage.Decoration decorationStage : WorldGenStage.Decoration.values()) {
-            DecorationType type = DECORATION_TRANSLATION.get(decorationStage);
+        long i1 = seededrandom.a(populationArea.getSeed(), k, l);
 
-            // Spawn default decorations
-            if (!this.disabledDecorations.contains(type)) {
-                try {
-                    biomebase.a(structureManager, chunkGenerator, populationArea, chunkSeed, seededrandom,
-                            blockposition);
-                } catch (Exception var18) {
-                    CrashReport crashreport = CrashReport.a(var18, "Biome decoration");
-                    crashreport.a("Generation").a("CenterX", i).a("CenterZ", j).a("Seed", chunkSeed).a("Biome",
-                            biomebase);
-                    throw new ReportedException(crashreport);
-                }
-            }
-
-            // Spawn custom decorations
-            List<Decoration> decorations = this.customDecorations.get(type);
-            if (decorations == null) {
-                continue;
-            }
-            int decorationIndex = 0;
-            for (Decoration decoration : decorations) {
-                if (decoration == null) {
-                    continue;
-                }
-                seededrandom.b(chunkSeed, decorationIndex, type.ordinal());
-                decoration.decorate(decorationArea, seededrandom);
-                decorationIndex++;
-            }
+        try {
+            a(biomebase, structureManager, chunkGenerator, populationArea, i1, seededrandom, blockposition);
+        } catch (Exception var14) {
+            CrashReport crashreport = CrashReport.a(var14, "Biome decoration");
+            crashreport.a("Generation").a("CenterX", i).a("CenterZ", j).a("Seed", i1).a("Biome", biomebase);
+            throw new ReportedException(crashreport);
         }
     }
 

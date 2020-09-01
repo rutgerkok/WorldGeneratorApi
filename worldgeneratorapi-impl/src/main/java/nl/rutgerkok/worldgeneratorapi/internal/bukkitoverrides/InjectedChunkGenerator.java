@@ -236,8 +236,8 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void addDecorations(RegionLimitedWorldAccess populationArea, StructureManager structureManager) {
-        this.worldDecorator.spawnDecorations(this, structureManager, populationArea);
+    public void addDecorations(RegionLimitedWorldAccess regionlimitedworldaccess, StructureManager structuremanager) {
+        this.worldDecorator.spawnDecorations(this, this.b, structuremanager, regionlimitedworldaccess);
     }
 
     @Override
