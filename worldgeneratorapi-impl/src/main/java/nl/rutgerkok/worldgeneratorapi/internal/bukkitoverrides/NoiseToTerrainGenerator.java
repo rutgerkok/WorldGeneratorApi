@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -105,7 +106,7 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
     /**
      * WorldGeneratorApi - custom or vanilla biome generator
      */
-    private final BiomeGenerator biomeGenerator;
+    private final Supplier<BiomeGenerator> biomeGenerator;
 
     /**
      * WorldGeneratorApi - custom sea level
@@ -116,7 +117,7 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
     private final StructureManager structureManager;
 
     public NoiseToTerrainGenerator(GeneratorAccess generatorAccess, StructureManager structureManager,
-            BiomeGenerator biomeGenerator, BaseNoiseGenerator noiseGenerator, long seed) {
+            Supplier<BiomeGenerator> biomeGenerator, BaseNoiseGenerator noiseGenerator, long seed) {
         this.structureManager = Objects.requireNonNull(structureManager, "structureManager");
         this.generatorAccess = Objects.requireNonNull(generatorAccess, "generatorAccess");
         this.biomeGenerator = Objects.requireNonNull(biomeGenerator, "biomeGenerator");
@@ -152,7 +153,7 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
 
     private void a(double[] adouble, int i, int j) {
         // WorldGeneratorApi - call noise function
-        noiseGenerator.getNoise(biomeGenerator, adouble, i, j);
+        noiseGenerator.getNoise(biomeGenerator.get(), adouble, i, j);
     }
 
     IBlockAccess a(int i, int j) {

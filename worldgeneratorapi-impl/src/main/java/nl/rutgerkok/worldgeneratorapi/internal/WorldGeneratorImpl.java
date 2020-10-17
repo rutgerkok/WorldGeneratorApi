@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -116,6 +117,11 @@ final class WorldGeneratorImpl implements WorldGenerator {
      */
     private final ChunkGenerator oldChunkGenerator;
 
+    /**
+     * Cache of the vanilla biome generator. Assumes that the WorldChunkManager is never replaced outside of the {@link #setBiomeGenerator(BiomeGenerator)} or {@link #injectInternalChunkGenerator(ChunkGenerator)} methods.
+     */
+    private BiomeGeneratorImpl cachedVanillaWrapperBiomeGenerator = null;
+
     WorldGeneratorImpl(World world) {
         this.world = Objects.requireNonNull(world, "world");
         this.worldRef = WorldRef.of(world);
@@ -139,13 +145,18 @@ final class WorldGeneratorImpl implements WorldGenerator {
             return injected.getBiomeGenerator();
         }
 
+        if (this.cachedVanillaWrapperBiomeGenerator == null) {
+            WorldServer world = getWorldHandle();
+            WorldChunkManager worldChunkManager = world
+                    .getChunkProvider()
+                    .getChunkGenerator()
+                    .getWorldChunkManager();
+            this.cachedVanillaWrapperBiomeGenerator = new BiomeGeneratorImpl(getBiomeRegistry(world),
+                    worldChunkManager);
+        }
+
         // Create a new one, based on the currently used biome generator
-        WorldServer world = getWorldHandle();
-        WorldChunkManager worldChunkManager = world
-                .getChunkProvider()
-                .getChunkGenerator()
-                .getWorldChunkManager();
-        return new BiomeGeneratorImpl(getBiomeRegistry(world), worldChunkManager);
+        return this.cachedVanillaWrapperBiomeGenerator;
     }
 
     @Override
@@ -179,6 +190,8 @@ final class WorldGeneratorImpl implements WorldGenerator {
      *            The new ChunkGenerator.
      */
     private void injectInternalChunkGenerator(ChunkGenerator injected) {
+        this.cachedVanillaWrapperBiomeGenerator = null; // Wipe out cache - we're replacing the chunk generator
+
         ChunkProviderServer chunkProvider = getWorldHandle().getChunkProvider();
         try {
             Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
@@ -262,7 +275,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
 
     @Override
     public BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base) {
-        BiomeGenerator biomeGenerator = this.getBiomeGenerator();
+        Supplier<BiomeGenerator> biomeGenerator = this::getBiomeGenerator;
         WorldServer world = getWorldHandle();
         BaseTerrainGenerator generator = new NoiseToTerrainGenerator(world, world.getStructureManager(), biomeGenerator,
                 base, world.getSeed());
@@ -284,6 +297,9 @@ final class WorldGeneratorImpl implements WorldGenerator {
     @Override
     public void setBiomeGenerator(BiomeGenerator biomeGenerator) {
         Objects.requireNonNull(biomeGenerator, "biomeGenerator");
+
+        this.cachedVanillaWrapperBiomeGenerator = null; // Wipe out cache - we're replacing the biome generator
+
         InjectedChunkGenerator injected = this.injected;
         if (injected == null) {
             replaceChunkGenerator(BaseTerrainGeneratorImpl.fromMinecraft(world));
