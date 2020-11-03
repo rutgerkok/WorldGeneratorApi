@@ -8,15 +8,15 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.server.v1_16_R2.BiomeBase;
-import net.minecraft.server.v1_16_R2.Biomes;
-import net.minecraft.server.v1_16_R2.IRegistry;
-import net.minecraft.server.v1_16_R2.RegistryGeneration;
-import net.minecraft.server.v1_16_R2.WorldChunkManager;
+import net.minecraft.server.v1_16_R3.BiomeBase;
+import net.minecraft.server.v1_16_R3.Biomes;
+import net.minecraft.server.v1_16_R3.IRegistry;
+import net.minecraft.server.v1_16_R3.RegistryGeneration;
+import net.minecraft.server.v1_16_R3.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 

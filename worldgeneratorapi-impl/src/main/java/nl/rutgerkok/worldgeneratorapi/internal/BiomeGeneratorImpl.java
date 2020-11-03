@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Objects;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R2.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
 
 import com.google.common.collect.ImmutableSet;
 
-import net.minecraft.server.v1_16_R2.BiomeBase;
-import net.minecraft.server.v1_16_R2.IRegistry;
-import net.minecraft.server.v1_16_R2.WorldChunkManager;
+import net.minecraft.server.v1_16_R3.BiomeBase;
+import net.minecraft.server.v1_16_R3.IRegistry;
+import net.minecraft.server.v1_16_R3.WorldChunkManager;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
 /**

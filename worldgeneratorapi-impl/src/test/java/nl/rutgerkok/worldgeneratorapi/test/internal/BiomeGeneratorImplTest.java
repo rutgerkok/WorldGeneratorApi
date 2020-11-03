@@ -7,9 +7,9 @@ import org.bukkit.block.Biome;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.server.v1_16_R2.RegistryGeneration;
-import net.minecraft.server.v1_16_R2.WorldChunkManager;
-import net.minecraft.server.v1_16_R2.WorldChunkManagerOverworld;
+import net.minecraft.server.v1_16_R3.RegistryGeneration;
+import net.minecraft.server.v1_16_R3.WorldChunkManager;
+import net.minecraft.server.v1_16_R3.WorldChunkManagerOverworld;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
