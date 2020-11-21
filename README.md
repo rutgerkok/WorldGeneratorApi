@@ -1,6 +1,6 @@
 # WorldGeneratorApi
 
-[![Build Status](https://travis-ci.com/rutgerkok/WorldGeneratorApi.svg?branch=master)](https://travis-ci.com/rutgerkok/WorldGeneratorApi)
+[![Build Status](https://img.shields.io/github/workflow/status/rutgerkok/WorldGeneratorApi/dev%20build)](https://github.com/rutgerkok/WorldGeneratorApi/actions?query=workflow%3A%22dev+build%22)
 [![Download at SpigotMC.org](https://img.shields.io/badge/download-SpigotMC.org-orange.svg)](https://www.spigotmc.org/resources/worldgeneratorapi.77976/)
 [![Dev Builds at codemc.io](https://img.shields.io/badge/dev_builds-codemc.io-blue.svg)](https://ci.codemc.io/job/rutgerkok/job/WorldGeneratorApi/)
 [![Latest release](https://img.shields.io/github/release/rutgerkok/WorldGeneratorApi.svg)](https://github.com/rutgerkok/WorldGeneratorApi/releases)
