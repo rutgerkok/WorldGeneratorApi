@@ -12,17 +12,17 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 
 import net.minecraft.server.v1_16_R3.BiomeBase;
+import net.minecraft.server.v1_16_R3.Blocks;
 import net.minecraft.server.v1_16_R3.ChunkGenerator;
 import net.minecraft.server.v1_16_R3.ChunkProviderServer;
 import net.minecraft.server.v1_16_R3.GeneratorSettingBase;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.WorldChunkManager;
-import net.minecraft.server.v1_16_R3.WorldServer;
-import net.minecraft.server.v1_16_R3.StructureSettings;
 import net.minecraft.server.v1_16_R3.IBlockData;
+import net.minecraft.server.v1_16_R3.IRegistry;
 import net.minecraft.server.v1_16_R3.MinecraftKey;
 import net.minecraft.server.v1_16_R3.ResourceKey;
-import net.minecraft.server.v1_16_R3.Blocks;
+import net.minecraft.server.v1_16_R3.StructureSettings;
+import net.minecraft.server.v1_16_R3.WorldChunkManager;
+import net.minecraft.server.v1_16_R3.WorldServer;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -35,36 +35,10 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.NoiseToTerrainGen
 
 final class WorldGeneratorImpl implements WorldGenerator {
 
-    private static GeneratorSettingBase createDefaultSettings() {
-        return GeneratorSettingBase.i();
-    }
-
-    private static GeneratorSettingBase createDefaultNetherSettings() {
-        // Equiv. to `a(e, a(new StructureSettings(false), Blocks.NETHERRACK.getBlockData(), Blocks.LAVA.getBlockData(), e.a()));`
-        // in GeneratorSettingsBase
-        try {
-            Method meth1 = GeneratorSettingBase.class.getDeclaredMethod("a", StructureSettings.class,
-                    IBlockData.class, IBlockData.class, MinecraftKey.class);
-            Method meth2 = GeneratorSettingBase.class.getDeclaredMethod("a", ResourceKey.class,
-                    GeneratorSettingBase.class);
-
-            meth1.setAccessible(true);
-            meth2.setAccessible(true);
-
-            StructureSettings genStronghold = new StructureSettings(false);
-            GeneratorSettingBase generatorSettings = (GeneratorSettingBase)meth1.invoke(null, genStronghold,
-                    Blocks.NETHERRACK.getBlockData(), Blocks.LAVA.getBlockData(), GeneratorSettingBase.e.a());
-
-            return (GeneratorSettingBase)meth2.invoke(null, GeneratorSettingBase.e, generatorSettings);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // If something goes wrong just default to Overworld Settings.
-            e.printStackTrace();
-            return createDefaultSettings();
-        }
-    }
-
     private static GeneratorSettingBase createDefaultEndSettings() {
-        // Equiv. to `a(f, a(new StructureSettings(false), Blocks.END_STONE.getBlockData(), Blocks.AIR.getBlockData(), f.a(), true, true));`
+        // Equiv. to `a(f, a(new StructureSettings(false),
+        // Blocks.END_STONE.getBlockData(), Blocks.AIR.getBlockData(), f.a(), true,
+        // true));`
         // in GeneratorSettingsBase
         try {
             Method meth1 = GeneratorSettingBase.class.getDeclaredMethod("a", StructureSettings.class,
@@ -76,10 +50,10 @@ final class WorldGeneratorImpl implements WorldGenerator {
             meth2.setAccessible(true);
 
             StructureSettings genStronghold = new StructureSettings(false);
-            GeneratorSettingBase generatorSettings = (GeneratorSettingBase)meth1.invoke(null, genStronghold,
+            GeneratorSettingBase generatorSettings = (GeneratorSettingBase) meth1.invoke(null, genStronghold,
                     Blocks.END_STONE.getBlockData(), Blocks.AIR.getBlockData(), GeneratorSettingBase.f.a(), true, true);
 
-            return (GeneratorSettingBase)meth2.invoke(null, GeneratorSettingBase.f, generatorSettings);
+            return (GeneratorSettingBase) meth2.invoke(null, GeneratorSettingBase.f, generatorSettings);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             // If something goes wrong just default to Overworld Settings.
             e.printStackTrace();
@@ -87,9 +61,39 @@ final class WorldGeneratorImpl implements WorldGenerator {
         }
     }
 
+    private static GeneratorSettingBase createDefaultNetherSettings() {
+        // Equiv. to `a(e, a(new StructureSettings(false),
+        // Blocks.NETHERRACK.getBlockData(), Blocks.LAVA.getBlockData(), e.a()));`
+        // in GeneratorSettingsBase
+        try {
+            Method meth1 = GeneratorSettingBase.class.getDeclaredMethod("a", StructureSettings.class,
+                    IBlockData.class, IBlockData.class, MinecraftKey.class);
+            Method meth2 = GeneratorSettingBase.class.getDeclaredMethod("a", ResourceKey.class,
+                    GeneratorSettingBase.class);
+
+            meth1.setAccessible(true);
+            meth2.setAccessible(true);
+
+            StructureSettings genStronghold = new StructureSettings(false);
+            GeneratorSettingBase generatorSettings = (GeneratorSettingBase) meth1.invoke(null, genStronghold,
+                    Blocks.NETHERRACK.getBlockData(), Blocks.LAVA.getBlockData(), GeneratorSettingBase.e.a());
+
+            return (GeneratorSettingBase) meth2.invoke(null, GeneratorSettingBase.e, generatorSettings);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            // If something goes wrong just default to Overworld Settings.
+            e.printStackTrace();
+            return createDefaultSettings();
+        }
+    }
+
+    private static GeneratorSettingBase createDefaultSettings() {
+        return GeneratorSettingBase.i();
+    }
+
     private static GeneratorSettingBase extractSettings(CraftWorld world) {
         // Get default settings based on environment
-        // Not sure if there's a new way to extract the existing settings, which may be a better option, since
+        // Not sure if there's a new way to extract the existing settings, which may be
+        // a better option, since
         // ChunkGenerator has no GeneratorSettingBase fields in it (anymore?)
         World.Environment env = world.getEnvironment();
 
@@ -105,10 +109,9 @@ final class WorldGeneratorImpl implements WorldGenerator {
     private static IRegistry<BiomeBase> getBiomeRegistry(WorldServer world) {
         return world.r().b(IRegistry.ay); // Copied from CraftWorld.getBiome
     }
+
     private @Nullable InjectedChunkGenerator injected;
-
     private final World world;
-
     private final WorldRef worldRef;
 
     /**
@@ -118,7 +121,9 @@ final class WorldGeneratorImpl implements WorldGenerator {
     private final ChunkGenerator oldChunkGenerator;
 
     /**
-     * Cache of the vanilla biome generator. Assumes that the WorldChunkManager is never replaced outside of the {@link #setBiomeGenerator(BiomeGenerator)} or {@link #injectInternalChunkGenerator(ChunkGenerator)} methods.
+     * Cache of the vanilla biome generator. Assumes that the WorldChunkManager is
+     * never replaced outside of the {@link #setBiomeGenerator(BiomeGenerator)} or
+     * {@link #injectInternalChunkGenerator(ChunkGenerator)} methods.
      */
     private BiomeGeneratorImpl cachedVanillaWrapperBiomeGenerator = null;
 

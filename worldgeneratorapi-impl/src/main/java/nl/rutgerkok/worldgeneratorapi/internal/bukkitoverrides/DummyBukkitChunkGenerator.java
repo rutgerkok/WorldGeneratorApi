@@ -11,6 +11,7 @@ import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
+import nl.rutgerkok.worldgeneratorapi.WorldRef;
 
 /**
  * An internal class to satisfy the Bukkit API, so that plugins can still
@@ -30,9 +31,11 @@ public final class DummyBukkitChunkGenerator extends ChunkGenerator {
     public final boolean PAPER_ASYNC_SAFE = true;
 
     private final WorldGeneratorApi impl;
+    private final WorldRef worldRef;
 
-    public DummyBukkitChunkGenerator(WorldGeneratorApi impl) {
-        this.impl = Objects.requireNonNull(impl);
+    public DummyBukkitChunkGenerator(WorldGeneratorApi impl, WorldRef worldRef) {
+        this.impl = Objects.requireNonNull(impl, "impl");
+        this.worldRef = Objects.requireNonNull(worldRef, "worldRef");
     }
 
     @Override
@@ -55,6 +58,15 @@ public final class DummyBukkitChunkGenerator extends ChunkGenerator {
         return new ArrayList<>(); // We don't use Bukkit's populators
     }
 
+    /**
+     * Gets the world this chunk generator was originally created for.
+     * @return The world.
+     */
+    public WorldRef getWorldRef() {
+        return worldRef;
+    }
+
+    @Override
     public boolean isParallelCapable() {
         return true;
     }

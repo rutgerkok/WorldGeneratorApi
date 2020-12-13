@@ -46,7 +46,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     @Override
     public ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer) {
         this.worldGeneratorModifiers.putIfAbsent(world, consumer);
-        return new DummyBukkitChunkGenerator(this);
+        return new DummyBukkitChunkGenerator(this, world);
     }
 
     private void disableWorldGenerators() {
@@ -130,6 +130,20 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     }
 
     public void onWorldAdd(World world) {
+        ChunkGenerator chunkGenerator = world.getGenerator();
+        if (chunkGenerator instanceof DummyBukkitChunkGenerator) {
+            WorldRef worldRef = ((DummyBukkitChunkGenerator) chunkGenerator).getWorldRef();
+            if (!worldRef.matches(world)) {
+                // Generator from another world was copied to a new world
+                // WorldEdit does this. Initialize for that world
+                World copiedFrom = this.getServer().getWorld(worldRef.getName());
+                if (copiedFrom == null) {
+                    return;
+                }
+
+                // TODO: record settings from other world, reapply here
+            }
+        }
         getForWorld(world); // Force initialization
     }
 
