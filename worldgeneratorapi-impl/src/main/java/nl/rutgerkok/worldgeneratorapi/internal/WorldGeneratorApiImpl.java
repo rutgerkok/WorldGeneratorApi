@@ -3,6 +3,8 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -24,6 +26,7 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.DummyBukkitChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.command.CommandHandler;
+import nl.rutgerkok.worldgeneratorapi.internal.recording.RecordingWorldGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorApi, Listener {
@@ -42,6 +45,45 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     private final PropertyRegistry propertyRegistry = new PropertyRegistryImpl();
     private final Map<WorldRef, Consumer<WorldGenerator>> worldGeneratorModifiers = new HashMap<>();
     private Map<String, World> oldWorldsMap;
+
+    /**
+     * If you create a new world, copying over {@link World#getGenerator()}, then by
+     * default all the modifications made to the world generator aren't copied over.
+     * This method takes care of that.
+     *
+     * @param world
+     *            The world that is being loaded.
+     * @return The world generator, if it needed to be copied over from another
+     *         world (transferring only the settings), otherwise empty.
+     */
+    private Optional<WorldGeneratorImpl> checkForCopiedWorldGenerator(World world) {
+        ChunkGenerator chunkGenerator = world.getGenerator();
+        if (chunkGenerator instanceof DummyBukkitChunkGenerator) {
+            WorldRef worldRef = ((DummyBukkitChunkGenerator) chunkGenerator).getWorldRef();
+            if (!worldRef.matches(world)) {
+                // Generator from another world was copied to a new world
+                // WorldEdit does this. Initialize for that world
+                World copiedFrom = this.getServer().getWorld(worldRef.getName());
+                if (copiedFrom != null) {
+                    WorldGenerator existing = Objects
+                            .requireNonNull(worldGenerators.get(copiedFrom.getUID()), "existing");
+
+                    // Record modifications done to the world generator
+                    RecordingWorldGeneratorImpl recording = new RecordingWorldGeneratorImpl(existing);
+                    this.worldGeneratorModifiers.getOrDefault(worldRef, empty -> {
+                    }).accept(recording);
+                    getServer().getPluginManager().callEvent(new WorldGeneratorInitEvent(recording));
+
+                    // Apply to new world
+                    WorldGeneratorImpl newWorldGenerator = new WorldGeneratorImpl(world);
+                    recording.reapply(newWorldGenerator);
+                    return Optional.of(newWorldGenerator);
+                }
+
+            }
+        }
+        return Optional.empty();
+    }
 
     @Override
     public ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer) {
@@ -63,7 +105,13 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
     @Override
     public WorldGenerator getForWorld(World world) {
+
         return worldGenerators.computeIfAbsent(world.getUID(), uuid -> {
+            Optional<WorldGeneratorImpl> copiedFromAnotherWorld = checkForCopiedWorldGenerator(world);
+            if (copiedFromAnotherWorld.isPresent()) {
+                return copiedFromAnotherWorld.get();
+            }
+
             // Initialize world generator
             WorldGeneratorImpl worldGenerator = new WorldGeneratorImpl(world);
 
@@ -130,20 +178,6 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     }
 
     public void onWorldAdd(World world) {
-        ChunkGenerator chunkGenerator = world.getGenerator();
-        if (chunkGenerator instanceof DummyBukkitChunkGenerator) {
-            WorldRef worldRef = ((DummyBukkitChunkGenerator) chunkGenerator).getWorldRef();
-            if (!worldRef.matches(world)) {
-                // Generator from another world was copied to a new world
-                // WorldEdit does this. Initialize for that world
-                World copiedFrom = this.getServer().getWorld(worldRef.getName());
-                if (copiedFrom == null) {
-                    return;
-                }
-
-                // TODO: record settings from other world, reapply here
-            }
-        }
         getForWorld(world); // Force initialization
     }
 

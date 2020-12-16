@@ -12,12 +12,16 @@ import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 
-public class RecordingWorldGeneratorImpl implements WorldGenerator {
+/**
+ * Only records the changes to a world generator, without actually applying
+ * them. Useful for capturing settings.
+ *
+ */
+public final class RecordingWorldGeneratorImpl implements WorldGenerator {
 
     private final WorldGenerator internal;
 
     private BaseTerrainGenerator baseTerrainGeneratorOrNull;
-    private BaseNoiseGenerator baseNoiseGeneratorOrNull;
     private BiomeGenerator biomeGeneratorOrNull;
 
     public RecordingWorldGeneratorImpl(WorldGenerator internal) {
@@ -63,11 +67,6 @@ public class RecordingWorldGeneratorImpl implements WorldGenerator {
     }
 
     public void reapply(WorldGenerator worldGenerator) {
-        BaseNoiseGenerator recordedNoise = this.baseNoiseGeneratorOrNull;
-        if (recordedNoise != null) {
-            worldGenerator.setBaseNoiseGenerator(recordedNoise);
-        }
-
         BaseTerrainGenerator recordedTerrain = this.baseTerrainGeneratorOrNull;
         if (recordedTerrain != null) {
             worldGenerator.setBaseTerrainGenerator(recordedTerrain);
@@ -96,23 +95,18 @@ public class RecordingWorldGeneratorImpl implements WorldGenerator {
     }
 
     @Override
-    public BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base) {
-        this.baseNoiseGeneratorOrNull = Objects.requireNonNull(base, "base");
-        this.baseTerrainGeneratorOrNull = null; // Only one of the two can be active
-        return internal.setBaseNoiseGenerator(base);
-    }
-
-    @Override
     public void setBaseTerrainGenerator(BaseTerrainGenerator base) {
         this.baseTerrainGeneratorOrNull = Objects.requireNonNull(base, "base");
-        this.baseNoiseGeneratorOrNull = null; // Only one of the two can be active
-        internal.setBaseTerrainGenerator(base);
     }
 
     @Override
     public void setBiomeGenerator(BiomeGenerator biomeGenerator) {
         this.biomeGeneratorOrNull = Objects.requireNonNull(biomeGenerator, "biomeGenerator");
-        internal.setBiomeGenerator(biomeGenerator);
+    }
+
+    @Override
+    public BaseTerrainGenerator toBaseTerrainGenerator(BaseNoiseGenerator base) {
+        return internal.toBaseTerrainGenerator(base);
     }
 
 }

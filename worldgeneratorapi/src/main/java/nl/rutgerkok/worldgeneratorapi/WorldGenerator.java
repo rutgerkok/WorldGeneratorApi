@@ -110,7 +110,11 @@ public interface WorldGenerator {
      *         terrain generator, which is returned here.
      * @since 0.3
      */
-    BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base);
+    default BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base) {
+        BaseTerrainGenerator generator = toBaseTerrainGenerator(base);
+        setBaseTerrainGenerator(generator);
+        return generator;
+    }
 
     /**
      * Sets the basic terrain generator. This method (unlike
@@ -141,5 +145,17 @@ public interface WorldGenerator {
      *             another plugin is poking around in Minecraft internals.
      */
     void setBiomeGenerator(BiomeGenerator biomeGenerator);
+
+    /**
+     * Wraps a noise generator into a terrain generator. Calling
+     * {@code setBaseTerrainGenerator(toBaseTerrainGenerator(noiseGenerator))} is
+     * equivalent to calling {@code setBaseNoiseGenerator(noiseGenerator)}.
+     *
+     * @param base
+     *            The base noise generator.
+     * @return The base terrain generator.
+     * @since 1.2
+     */
+    BaseTerrainGenerator toBaseTerrainGenerator(BaseNoiseGenerator base);
 
 }

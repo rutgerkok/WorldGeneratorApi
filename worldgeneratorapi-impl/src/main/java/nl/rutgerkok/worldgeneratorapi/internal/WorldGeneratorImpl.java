@@ -279,16 +279,6 @@ final class WorldGeneratorImpl implements WorldGenerator {
     }
 
     @Override
-    public BaseTerrainGenerator setBaseNoiseGenerator(BaseNoiseGenerator base) {
-        Supplier<BiomeGenerator> biomeGenerator = this::getBiomeGenerator;
-        WorldServer world = getWorldHandle();
-        BaseTerrainGenerator generator = new NoiseToTerrainGenerator(world, world.getStructureManager(), biomeGenerator,
-                base, world.getSeed());
-        setBaseTerrainGenerator(generator);
-        return generator;
-    }
-
-    @Override
     public void setBaseTerrainGenerator(BaseTerrainGenerator base) {
         Objects.requireNonNull(base, "base");
         InjectedChunkGenerator injected = this.injected;
@@ -310,6 +300,13 @@ final class WorldGeneratorImpl implements WorldGenerator {
             replaceChunkGenerator(BaseTerrainGeneratorImpl.fromMinecraft(world));
         }
         this.injected.setBiomeGenerator(biomeGenerator);
+    }
+
+    @Override
+    public BaseTerrainGenerator toBaseTerrainGenerator(BaseNoiseGenerator base) {
+        Supplier<BiomeGenerator> biomeGenerator = this::getBiomeGenerator;
+        WorldServer world = getWorldHandle();
+        return new NoiseToTerrainGenerator(world, world.getStructureManager(), biomeGenerator, base, world.getSeed());
     }
 
 }
