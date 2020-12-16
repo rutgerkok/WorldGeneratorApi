@@ -76,7 +76,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
                     // Apply to new world
                     WorldGeneratorImpl newWorldGenerator = new WorldGeneratorImpl(world);
-                    recording.reapply(newWorldGenerator);
+                    recording.applyTo(newWorldGenerator);
                     return Optional.of(newWorldGenerator);
                 }
 
@@ -154,8 +154,8 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
             @SuppressWarnings("unchecked")
             Map<String, World> oldMap = (Map<String, World>) SERVER_WORLDS_FIELD.get(server);
             this.oldWorldsMap = oldMap;
-            PutListeningMap<String, World> wrapper = new PutListeningMap<>(oldMap);
-            wrapper.addListener((name, world) -> onWorldAdd(world));
+            ChangeListeningMap<String, World> wrapper = new ChangeListeningMap<>(oldMap);
+            wrapper.addListener((world, addition) -> onWorldAddOrRemove(world, addition));
             SERVER_WORLDS_FIELD.set(server, wrapper);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Failed to change CraftServer.world", e);
@@ -177,8 +177,15 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
                 new CommandHandler(this::reloadWorldGenerators, propertyRegistry));
     }
 
-    public void onWorldAdd(World world) {
-        getForWorld(world); // Force initialization
+    public void onWorldAddOrRemove(World world, boolean addition) {
+        if (addition) {
+            // Force initialization
+            getForWorld(world);
+        } else {
+            // Unload that world (WorldUnloadEvent is not called for WorldEdit regen temp
+            // worlds)
+            this.worldGenerators.remove(world.getUID());
+        }
     }
 
     @EventHandler

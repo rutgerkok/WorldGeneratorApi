@@ -16,26 +16,27 @@ import java.util.function.BiConsumer;
  * @param <V>
  *            Type of the value.
  */
-final class PutListeningMap<K, V> extends AbstractMap<K, V> {
+final class ChangeListeningMap<K, V> extends AbstractMap<K, V> {
 
     /**
      * The backing map, used for storage.
      */
     private final Map<K, V> backingMap;
 
-    private final CopyOnWriteArrayList<BiConsumer<K, V>> eventListeners = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<BiConsumer<V, Boolean>> eventListeners = new CopyOnWriteArrayList<>();
 
-    PutListeningMap(Map<K, V> backingMap) {
+    ChangeListeningMap(Map<K, V> backingMap) {
         this.backingMap = Objects.requireNonNull(backingMap, "backingMap");
     }
 
     /**
-     * Adds a listener that will receive all calls to {@link #put(Object, Object)}.
+     * Adds a listener that will receive all calls to {@link #put(Object, Object)}
+     * and {@link #remove(Object)}.
      *
      * @param listener
      *            The listener.
      */
-    void addListener(BiConsumer<K, V> listener) {
+    void addListener(BiConsumer<V, Boolean> listener) {
         Objects.requireNonNull(listener, "listener");
         this.eventListeners.add(listener);
     }
@@ -53,15 +54,27 @@ final class PutListeningMap<K, V> extends AbstractMap<K, V> {
     @Override
     public V put(K key, V value) {
         V returnValue = backingMap.put(key, value);
-        for (BiConsumer<K, V> listener : this.eventListeners) {
-            listener.accept(key, value);
+        if (returnValue != null) {
+            // A values is being removed
+            for (BiConsumer<V, Boolean> listener : this.eventListeners) {
+                listener.accept(returnValue, false);
+            }
+        }
+        for (BiConsumer<V, Boolean> listener : this.eventListeners) {
+            listener.accept(value, true);
         }
         return returnValue;
     }
 
     @Override
     public V remove(Object key) {
-        return backingMap.remove(key);
+        V oldValue = backingMap.remove(key);
+        if (oldValue != null) {
+            for (BiConsumer<V, Boolean> listener : this.eventListeners) {
+                listener.accept(oldValue, false);
+            }
+        }
+        return oldValue;
     }
 
 }

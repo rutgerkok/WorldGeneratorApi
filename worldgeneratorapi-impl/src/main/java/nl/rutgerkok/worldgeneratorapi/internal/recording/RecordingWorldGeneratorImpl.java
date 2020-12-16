@@ -14,7 +14,8 @@ import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 
 /**
  * Only records the changes to a world generator, without actually applying
- * them. Useful for capturing settings.
+ * them. Useful for capturing settings, and then applying those at a later point
+ * in time, or to another world.
  *
  */
 public final class RecordingWorldGeneratorImpl implements WorldGenerator {
@@ -23,9 +24,32 @@ public final class RecordingWorldGeneratorImpl implements WorldGenerator {
 
     private BaseTerrainGenerator baseTerrainGeneratorOrNull;
     private BiomeGenerator biomeGeneratorOrNull;
+    private RecordingWorldDecoratorImpl worldDecoratorOrNull;
+
 
     public RecordingWorldGeneratorImpl(WorldGenerator internal) {
         this.internal = Objects.requireNonNull(internal, "internal");
+    }
+
+    /**
+     * Applies all settings to the given world generator.
+     * @param worldGenerator The world generator.
+     */
+    public void applyTo(WorldGenerator worldGenerator) {
+        BaseTerrainGenerator recordedTerrain = this.baseTerrainGeneratorOrNull;
+        if (recordedTerrain != null) {
+            worldGenerator.setBaseTerrainGenerator(recordedTerrain);
+        }
+
+        BiomeGenerator recordedBiomes = this.biomeGeneratorOrNull;
+        if (recordedBiomes != null) {
+            worldGenerator.setBiomeGenerator(recordedBiomes);
+        }
+
+        RecordingWorldDecoratorImpl recordedDecorations = this.worldDecoratorOrNull;
+        if (recordedDecorations != null) {
+            recordedDecorations.applyTo(worldGenerator.getWorldDecorator());
+        }
     }
 
     @Override
@@ -58,24 +82,20 @@ public final class RecordingWorldGeneratorImpl implements WorldGenerator {
 
     @Override
     public WorldDecorator getWorldDecorator() throws UnsupportedOperationException {
-        return internal.getWorldDecorator();
+        RecordingWorldDecoratorImpl worldDecorator = this.worldDecoratorOrNull;
+        if (worldDecorator == null) {
+            // Need to initialize. This code cannot be moved to the constructor of this
+            // class, since for some modded worlds it's not possible to get the world
+            // decorator
+            worldDecorator = new RecordingWorldDecoratorImpl(internal.getWorldDecorator());
+            this.worldDecoratorOrNull = worldDecorator;
+        }
+        return worldDecorator;
     }
 
     @Override
     public WorldRef getWorldRef() {
         return internal.getWorldRef();
-    }
-
-    public void reapply(WorldGenerator worldGenerator) {
-        BaseTerrainGenerator recordedTerrain = this.baseTerrainGeneratorOrNull;
-        if (recordedTerrain != null) {
-            worldGenerator.setBaseTerrainGenerator(recordedTerrain);
-        }
-
-        BiomeGenerator recordedBiomes = this.biomeGeneratorOrNull;
-        if (recordedBiomes != null) {
-            worldGenerator.setBiomeGenerator(recordedBiomes);
-        }
     }
 
     @Override
