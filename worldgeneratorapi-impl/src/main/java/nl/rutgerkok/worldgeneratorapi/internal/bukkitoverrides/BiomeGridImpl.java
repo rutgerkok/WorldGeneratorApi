@@ -20,13 +20,14 @@ public final class BiomeGridImpl implements BiomeGrid {
 
     @Override
     public Biome getBiome(final int x, final int z) {
-        return CraftBlock.biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.g,
+        return CraftBlock.biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.registry,
                 this.biomeStorage.getBiome(x >> 2, 0, z >> 2));
     }
 
     @Override
     public Biome getBiome(int x, int y, int z) {
-        return CraftBlock.biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.g,
+        return CraftBlock
+                .biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.registry,
                 this.biomeStorage.getBiome(x >> 2, y >> 2, z >> 2));
     }
 
