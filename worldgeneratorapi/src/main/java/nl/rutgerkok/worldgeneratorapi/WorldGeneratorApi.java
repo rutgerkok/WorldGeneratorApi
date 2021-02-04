@@ -61,9 +61,11 @@ public interface WorldGeneratorApi {
      * This method is intended to be called from within the
      * {@link Plugin#getDefaultWorldGenerator(String, String)} method. It returns a
      * dummy {@link ChunkGenerator} that can be passed back to Bukkit. This returned
-     * {@link ChunkGenerator} is not actually capable of generating terrain: this is
-     * why it must be replaced using
-     * {@link WorldGenerator#setBaseChunkGenerator(BaseChunkGenerator)}.
+     * {@link ChunkGenerator} is not actually capable of generating terrain. You
+     * need to register a base terrain generator
+     * ({@link WorldGenerator#setBaseTerrainGenerator(BaseTerrainGenerator)}), which
+     * will poke around in Minecraft internals so you base terrain generator is
+     * used.
      *
      * <p>
      * If you don't want to modify the base terrain, then you must not use this
