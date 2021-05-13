@@ -71,6 +71,9 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
 
             @Override
             public float getBiomeDefault(Biome biome) {
+                if (biome == Biome.CUSTOM) {
+                    return 0;
+                }
                 BiomeBase base = CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome);
                 return value.apply(base);
             }
