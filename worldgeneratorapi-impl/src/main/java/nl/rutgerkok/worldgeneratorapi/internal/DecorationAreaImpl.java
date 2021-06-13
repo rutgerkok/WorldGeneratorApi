@@ -3,101 +3,99 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 import java.util.Objects;
 
 import org.bukkit.Material;
-import org.bukkit.block.Biome;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBanner;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBarrel;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBeacon;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBeehive;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBell;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlastFurnace;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlockEntityState;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlockState;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBrewingStand;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftCampfire;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftChest;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftCommandBlock;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftComparator;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftCreatureSpawner;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftDaylightDetector;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftDispenser;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftDropper;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftEnchantingTable;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftEndGateway;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftEnderChest;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftFurnaceFurnace;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftHopper;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftJigsaw;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftJukebox;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftLectern;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftShulkerBox;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftSign;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftSkull;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftSmoker;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftStructureBlock;
-import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBanner;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBarrel;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBeacon;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBeehive;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBell;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlastFurnace;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlockEntityState;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlockState;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBrewingStand;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftCampfire;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftChest;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftCommandBlock;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftComparator;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftCreatureSpawner;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftDaylightDetector;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftDispenser;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftDropper;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftEnchantingTable;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftEndGateway;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftEnderChest;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftFurnaceFurnace;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftHopper;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftJigsaw;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftJukebox;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftLectern;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftShulkerBox;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftSign;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftSkull;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftSmoker;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftStructureBlock;
+import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_16_R3.IBlockData;
-import net.minecraft.server.v1_16_R3.IChunkAccess;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.NBTTagCompound;
-import net.minecraft.server.v1_16_R3.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_16_R3.TileEntity;
-import net.minecraft.server.v1_16_R3.TileEntityBanner;
-import net.minecraft.server.v1_16_R3.TileEntityBarrel;
-import net.minecraft.server.v1_16_R3.TileEntityBeacon;
-import net.minecraft.server.v1_16_R3.TileEntityBeehive;
-import net.minecraft.server.v1_16_R3.TileEntityBell;
-import net.minecraft.server.v1_16_R3.TileEntityBlastFurnace;
-import net.minecraft.server.v1_16_R3.TileEntityBrewingStand;
-import net.minecraft.server.v1_16_R3.TileEntityCampfire;
-import net.minecraft.server.v1_16_R3.TileEntityChest;
-import net.minecraft.server.v1_16_R3.TileEntityCommand;
-import net.minecraft.server.v1_16_R3.TileEntityComparator;
-import net.minecraft.server.v1_16_R3.TileEntityDispenser;
-import net.minecraft.server.v1_16_R3.TileEntityDropper;
-import net.minecraft.server.v1_16_R3.TileEntityEnchantTable;
-import net.minecraft.server.v1_16_R3.TileEntityEndGateway;
-import net.minecraft.server.v1_16_R3.TileEntityEnderChest;
-import net.minecraft.server.v1_16_R3.TileEntityFurnaceFurnace;
-import net.minecraft.server.v1_16_R3.TileEntityHopper;
-import net.minecraft.server.v1_16_R3.TileEntityJigsaw;
-import net.minecraft.server.v1_16_R3.TileEntityJukeBox;
-import net.minecraft.server.v1_16_R3.TileEntityLectern;
-import net.minecraft.server.v1_16_R3.TileEntityLightDetector;
-import net.minecraft.server.v1_16_R3.TileEntityMobSpawner;
-import net.minecraft.server.v1_16_R3.TileEntityShulkerBox;
-import net.minecraft.server.v1_16_R3.TileEntitySign;
-import net.minecraft.server.v1_16_R3.TileEntitySkull;
-import net.minecraft.server.v1_16_R3.TileEntitySmoker;
-import net.minecraft.server.v1_16_R3.TileEntityStructure;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.entity.BannerBlockEntity;
+import net.minecraft.world.level.block.entity.BarrelBlockEntity;
+import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+import net.minecraft.world.level.block.entity.BeehiveBlockEntity;
+import net.minecraft.world.level.block.entity.BellBlockEntity;
+import net.minecraft.world.level.block.entity.BlastFurnaceBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
+import net.minecraft.world.level.block.entity.CampfireBlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.CommandBlockEntity;
+import net.minecraft.world.level.block.entity.ComparatorBlockEntity;
+import net.minecraft.world.level.block.entity.DaylightDetectorBlockEntity;
+import net.minecraft.world.level.block.entity.DispenserBlockEntity;
+import net.minecraft.world.level.block.entity.DropperBlockEntity;
+import net.minecraft.world.level.block.entity.EnchantmentTableBlockEntity;
+import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
+import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.entity.JigsawBlockEntity;
+import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SmokerBlockEntity;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
+import net.minecraft.world.level.block.entity.StructureBlockEntity;
+import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationArea;
 
 class DecorationAreaImpl implements DecorationArea {
 
-    final RegionLimitedWorldAccess internal;
+    final WorldGenRegion internal;
 
     /**
      * Only one thread is working on a single decoration area, so no need to worry
      * about thread-safety for this mutable field.
      */
-    private final MutableBlockPosition reusableBlockPos = new MutableBlockPosition();
+    private final MutableBlockPos reusableBlockPos = new MutableBlockPos();
 
-    DecorationAreaImpl(RegionLimitedWorldAccess internal) {
+    DecorationAreaImpl(WorldGenRegion internal) {
         this.internal = Objects.requireNonNull(internal, "internal");
     }
 
     @Override
-    public Biome getBiome(int x, int z) {
+    public org.bukkit.block.Biome getBiome(int x, int z) {
         reusableBlockPos.c(x, 0, z);
-        IRegistry<BiomeBase> biomeRegistry = this.internal.r().b(IRegistry.ay);
+        Registry<Biome> biomeRegistry = this.internal.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
         return CraftBlock.biomeBaseToBiome(biomeRegistry, internal.getBiome(reusableBlockPos));
     }
+
     @Override
     public Material getBlock(int x, int y, int z) {
         return getBlockData(x, y, z).getMaterial();
@@ -106,14 +104,14 @@ class DecorationAreaImpl implements DecorationArea {
     @Override
     public BlockData getBlockData(int x, int y, int z) {
         reusableBlockPos.c(x, y, z);
-        return CraftBlockData.fromData(internal.getType(reusableBlockPos));
+        return CraftBlockData.fromData(internal.getBlockState(reusableBlockPos));
     }
 
     @Override
     public BlockState getBlockState(int x, int y, int z) {
-        BlockPosition position = new BlockPosition(x, y, z);
-        TileEntity tileEntity = internal.getTileEntity(position);
-        Material material = CraftBlockData.fromData(internal.getType(position)).getMaterial();
+        BlockPos position = new BlockPos(x, y, z);
+        BlockEntity tileEntity = internal.getBlockEntity(position);
+        Material material = CraftBlockData.fromData(internal.getBlockState(position)).getMaterial();
         // This code is based on the following: (this code is similar, in that it
         // creates tile entities that have not been added to a world)
         // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaBlockState.java?until=3f0c333870ba74705e98d19322174d6f0c10c900&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fcraftbukkit%2Finventory%2FCraftMetaBlockState.java#302
@@ -135,26 +133,26 @@ class DecorationAreaImpl implements DecorationArea {
             case SPRUCE_WALL_SIGN:
             case WARPED_SIGN:
             case WARPED_WALL_SIGN:
-                return new CraftSign(material, (TileEntitySign) tileEntity);
+                return new CraftSign(material, (SignBlockEntity) tileEntity);
             case CHEST:
             case TRAPPED_CHEST:
-                return new CraftChest(material, (TileEntityChest) tileEntity);
+                return new CraftChest(material, (ChestBlockEntity) tileEntity);
             case FURNACE:
-                return new CraftFurnaceFurnace(material, (TileEntityFurnaceFurnace) tileEntity);
+                return new CraftFurnaceFurnace(material, (FurnaceBlockEntity) tileEntity);
             case DISPENSER:
-                return new CraftDispenser(material, (TileEntityDispenser) tileEntity);
+                return new CraftDispenser(material, (DispenserBlockEntity) tileEntity);
             case DROPPER:
-                return new CraftDropper(material, (TileEntityDropper) tileEntity);
+                return new CraftDropper(material, (DropperBlockEntity) tileEntity);
             case END_GATEWAY:
-                return new CraftEndGateway(material, (TileEntityEndGateway) tileEntity);
+                return new CraftEndGateway(material, (TheEndGatewayBlockEntity) tileEntity);
             case HOPPER:
-                return new CraftHopper(material, (TileEntityHopper) tileEntity);
+                return new CraftHopper(material, (HopperBlockEntity) tileEntity);
             case SPAWNER:
-                return new CraftCreatureSpawner(material, (TileEntityMobSpawner) tileEntity);
+                return new CraftCreatureSpawner(material, (SpawnerBlockEntity) tileEntity);
             case JUKEBOX:
-                return new CraftJukebox(material, (TileEntityJukeBox) tileEntity);
+                return new CraftJukebox(material, (JukeboxBlockEntity) tileEntity);
             case BREWING_STAND:
-                return new CraftBrewingStand(material, (TileEntityBrewingStand) tileEntity);
+                return new CraftBrewingStand(material, (BrewingStandBlockEntity) tileEntity);
             case CREEPER_HEAD:
             case CREEPER_WALL_HEAD:
             case DRAGON_HEAD:
@@ -167,13 +165,13 @@ class DecorationAreaImpl implements DecorationArea {
             case WITHER_SKELETON_WALL_SKULL:
             case ZOMBIE_HEAD:
             case ZOMBIE_WALL_HEAD:
-                return new CraftSkull(material, (TileEntitySkull) tileEntity);
+                return new CraftSkull(material, (SkullBlockEntityl) tileEntity);
             case COMMAND_BLOCK:
             case REPEATING_COMMAND_BLOCK:
             case CHAIN_COMMAND_BLOCK:
-                return new CraftCommandBlock(material, (TileEntityCommand) tileEntity);
+                return new CraftCommandBlock(material, (CommandBlockEntity) tileEntity);
             case BEACON:
-                return new CraftBeacon(material, (TileEntityBeacon) tileEntity);
+                return new CraftBeacon(material, (BeaconBlockEntity) tileEntity);
             case BLACK_BANNER:
             case BLACK_WALL_BANNER:
             case BLUE_BANNER:
@@ -206,9 +204,9 @@ class DecorationAreaImpl implements DecorationArea {
             case WHITE_WALL_BANNER:
             case YELLOW_BANNER:
             case YELLOW_WALL_BANNER:
-                return new CraftBanner(material, (TileEntityBanner) tileEntity);
+                return new CraftBanner(material, (BannerBlockEntity) tileEntity);
             case STRUCTURE_BLOCK:
-                return new CraftStructureBlock(material, (TileEntityStructure) tileEntity);
+                return new CraftStructureBlock(material, (StructureBlockEntity) tileEntity);
             case SHULKER_BOX:
             case WHITE_SHULKER_BOX:
             case ORANGE_SHULKER_BOX:
@@ -226,32 +224,32 @@ class DecorationAreaImpl implements DecorationArea {
             case GREEN_SHULKER_BOX:
             case RED_SHULKER_BOX:
             case BLACK_SHULKER_BOX:
-                return new CraftShulkerBox(material, (TileEntityShulkerBox) tileEntity);
+                return new CraftShulkerBox(material, (ShulkerBoxBlockEntity) tileEntity);
             case ENCHANTING_TABLE:
-                return new CraftEnchantingTable(material, (TileEntityEnchantTable) tileEntity);
+                return new CraftEnchantingTable(material, (EnchantmentTableBlockEntity) tileEntity);
             case ENDER_CHEST:
-                return new CraftEnderChest(material, (TileEntityEnderChest) tileEntity);
+                return new CraftEnderChest(material, (EnderChestBlockEntity) tileEntity);
             case DAYLIGHT_DETECTOR:
-                return new CraftDaylightDetector(material, (TileEntityLightDetector) tileEntity);
+                return new CraftDaylightDetector(material, (DaylightDetectorBlockEntity) tileEntity);
             case COMPARATOR:
-                return new CraftComparator(material, (TileEntityComparator) tileEntity);
+                return new CraftComparator(material, (ComparatorBlockEntity) tileEntity);
             case BARREL:
-                return new CraftBarrel(material, (TileEntityBarrel) tileEntity);
+                return new CraftBarrel(material, (BarrelBlockEntity) tileEntity);
             case BELL:
-                return new CraftBell(material, (TileEntityBell) tileEntity);
+                return new CraftBell(material, (BellBlockEntity) tileEntity);
             case BLAST_FURNACE:
-                return new CraftBlastFurnace(material, (TileEntityBlastFurnace) tileEntity);
+                return new CraftBlastFurnace(material, (BlastFurnaceBlockEntity) tileEntity);
             case CAMPFIRE:
-                return new CraftCampfire(material, (TileEntityCampfire) tileEntity);
+                return new CraftCampfire(material, (CampfireBlockEntity) tileEntity);
             case JIGSAW:
-                return new CraftJigsaw(material, (TileEntityJigsaw) tileEntity);
+                return new CraftJigsaw(material, (JigsawBlockEntity) tileEntity);
             case LECTERN:
-                return new CraftLectern(material, (TileEntityLectern) tileEntity);
+                return new CraftLectern(material, (LecternBlockEntity) tileEntity);
             case SMOKER:
-                return new CraftSmoker(material, (TileEntitySmoker) tileEntity);
+                return new CraftSmoker(material, (SmokerBlockEntity) tileEntity);
             case BEE_NEST:
             case BEEHIVE:
-                return new CraftBeehive(material, (TileEntityBeehive) tileEntity);
+                return new CraftBeehive(material, (BeehiveBlockEntity) tileEntity);
             default:
                 return new CraftBlockState(material);
         }
@@ -274,25 +272,25 @@ class DecorationAreaImpl implements DecorationArea {
 
     @Override
     public void setBlockData(int x, int y, int z, BlockData blockData) {
-        BlockPosition position = new BlockPosition(x, y, z);
-        IBlockData mcBlockData = ((CraftBlockData) blockData).getState();
-        internal.setTypeAndData(position, mcBlockData, 2);
+        BlockPos position = new BlockPos(x, y, z);
+        net.minecraft.world.level.block.state.BlockState mcBlockData = ((CraftBlockData) blockData).getState();
+        internal.setBlock(position, mcBlockData, 2);
     }
 
     @Override
     public void setBlockState(int x, int y, int z, BlockState blockState) {
-        BlockPosition position = new BlockPosition(x, y, z);
+        BlockPos position = new BlockPos(x, y, z);
 
         // Update basic material
-        IBlockData mcBlockData = ((CraftBlockState) blockState).getHandle();
-        internal.setTypeAndData(position, mcBlockData, 2);
+        net.minecraft.world.level.block.state.BlockState mcBlockData = ((CraftBlockState) blockState).getHandle();
+        internal.setBlock(position, mcBlockData, 2);
 
         // Update TileEntity data
         if (blockState instanceof CraftBlockEntityState) {
-            IChunkAccess chunk = internal.z(position);
-            NBTTagCompound tag = ((CraftBlockEntityState<?>) blockState).getSnapshotNBT();
-            TileEntity tileEntity = TileEntity.create(mcBlockData, tag);
-            chunk.setTileEntity(position, tileEntity);
+            ChunkAccess chunk = internal.getChunk(position);
+            CompoundTag tag = ((CraftBlockEntityState<?>) blockState).getSnapshotNBT();
+            BlockEntity tileEntity = BlockEntity.loadStatic(position, mcBlockData, tag);
+            chunk.setBlockEntity(tileEntity);
         }
     }
 

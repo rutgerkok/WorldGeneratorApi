@@ -12,12 +12,11 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.Biomes;
-import net.minecraft.server.v1_16_R3.RegistryGeneration;
+import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 import nl.rutgerkok.worldgeneratorapi.WorldRef;
 import nl.rutgerkok.worldgeneratorapi.property.AbstractProperty;
@@ -57,29 +56,29 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
     private final Map<NamespacedKey, AbstractProperty> properties = new ConcurrentHashMap<>();
 
     public PropertyRegistryImpl() {
-        addMinecraftBiomeFloatProperty(TEMPERATURE, BiomeBase::k);
-        addMinecraftBiomeFloatProperty(WETNESS, BiomeBase::getHumidity);
-        addMinecraftBiomeFloatProperty(BASE_HEIGHT, BiomeBase::h);
-        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, BiomeBase::j);
+        addMinecraftBiomeFloatProperty(TEMPERATURE, Biome::getBaseTemperature);
+        addMinecraftBiomeFloatProperty(WETNESS, Biome::getDownfall);
+        addMinecraftBiomeFloatProperty(BASE_HEIGHT, Biome::getDepth);
+        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, Biome::getScale);
         addMinecraftWorldProperty(WORLD_SEED, world -> (Long) world.getSeed(), -1L);
         addSeaLevelProperty(SEA_LEVEL, world -> (float) world.getSeaLevel());
     }
 
-    private void addMinecraftBiomeFloatProperty(NamespacedKey name, Function<BiomeBase, Float> value) {
+    private void addMinecraftBiomeFloatProperty(NamespacedKey name, Function<Biome, Float> value) {
         FloatProperty property = new FloatProperty(name,
-                value.apply(RegistryGeneration.WORLDGEN_BIOME.a(Biomes.PLAINS))) {
+                value.apply(BuiltinRegistries.BIOME.get(Biomes.PLAINS))) {
 
             @Override
-            public float getBiomeDefault(Biome biome) {
-                if (biome == Biome.CUSTOM) {
+            public float getBiomeDefault(org.bukkit.block.Biome biome) {
+                if (biome == org.bukkit.block.Biome.CUSTOM) {
                     return 0;
                 }
-                BiomeBase base = CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome);
+                Biome base = CraftBlock.biomeToBiomeBase(BuiltinRegistries.BIOME, biome);
                 return value.apply(base);
             }
 
             @Override
-            public void setBiomeDefault(Biome biome, float value) {
+            public void setBiomeDefault(org.bukkit.block.Biome biome, float value) {
                 throw new UnsupportedOperationException(
                         "Cannot change " + getKey().getKey() + " globally for biomes. Try"
                                 + " setting it per-world instead.");
@@ -90,7 +89,7 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
     }
 
     private <T> void addMinecraftWorldProperty(NamespacedKey name, Function<World, T> value, T defaultValue) {
-        Property<T> property = new Property<T>(name, defaultValue) {
+        Property<T> property = new Property<>(name, defaultValue) {
 
             @Override
             public @Nullable T getWorldDefault(WorldRef worldRef) {

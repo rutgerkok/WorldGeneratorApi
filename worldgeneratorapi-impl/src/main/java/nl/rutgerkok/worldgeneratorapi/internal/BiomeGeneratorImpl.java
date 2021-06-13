@@ -4,14 +4,13 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
 
-import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
 
 import com.google.common.collect.ImmutableSet;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.WorldChunkManager;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
 /**
@@ -23,17 +22,17 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
 
     static {
         try {
-            STRUCTURE_FIELD = WorldChunkManager.class.getDeclaredField("c");
+            STRUCTURE_FIELD = BiomeSource.class.getDeclaredField("c");
             STRUCTURE_FIELD.setAccessible(true);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to get structure field", e);
         }
     }
 
-    final IRegistry<BiomeBase> biomeRegistry;
-    final WorldChunkManager internal;
+    final Registry<Biome> biomeRegistry;
+    final BiomeSource internal;
 
-    public BiomeGeneratorImpl(IRegistry<BiomeBase> biomeRegistry, WorldChunkManager worldChunkManager) {
+    public BiomeGeneratorImpl(Registry<Biome> biomeRegistry, BiomeSource worldChunkManager) {
         if (worldChunkManager instanceof InjectedBiomeGenerator) {
             // Not allowed - the injected biome generator itself wraps a BiomeGenerator
             throw new IllegalArgumentException("double wrapping of biome generator");
@@ -43,15 +42,15 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
     }
 
     @Override
-    public ImmutableSet<Biome> getStructureBiomes() {
-        ImmutableSet.Builder<Biome> biomes = ImmutableSet.builder();
+    public ImmutableSet<org.bukkit.block.Biome> getStructureBiomes() {
+        ImmutableSet.Builder<org.bukkit.block.Biome> biomes = ImmutableSet.builder();
 
         try {
             @SuppressWarnings("unchecked")
-            List<BiomeBase> biomeBases = (List<BiomeBase>) ReflectionUtil.getFieldByName(this.internal, "d")
+            List<Biome> biomeBases = (List<Biome>) ReflectionUtil.getFieldByName(this.internal, "d")
                     .get(this.internal);
 
-            for (BiomeBase biome : biomeBases) {
+            for (Biome biome : biomeBases) {
                 biomes.add(CraftBlock.biomeBaseToBiome(this.biomeRegistry, biome));
             }
             return biomes.build();
@@ -63,8 +62,8 @@ public final class BiomeGeneratorImpl implements BiomeGenerator {
     }
 
     @Override
-    public Biome getZoomedOutBiome(int x, int y, int z) {
-        return CraftBlock.biomeBaseToBiome(this.biomeRegistry, internal.getBiome(x, y, z));
+    public org.bukkit.block.Biome getZoomedOutBiome(int x, int y, int z) {
+        return CraftBlock.biomeBaseToBiome(this.biomeRegistry, internal.getNoiseBiome(x, y, z));
     }
 
 }

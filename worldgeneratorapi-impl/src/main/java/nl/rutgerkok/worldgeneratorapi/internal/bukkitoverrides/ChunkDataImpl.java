@@ -2,21 +2,21 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
-import net.minecraft.server.v1_16_R3.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_16_R3.IBlockData;
-import net.minecraft.server.v1_16_R3.IChunkAccess;
+import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
 
 public final class ChunkDataImpl implements ChunkData {
-    private final IChunkAccess internal;
+    private final ChunkAccess internal;
 
     private final int xOffset;
     private final int zOffset;
-    private final MutableBlockPosition reusableBlockPos = new MutableBlockPosition();
+    private final MutableBlockPos reusableBlockPos = new MutableBlockPos();
 
-    ChunkDataImpl(IChunkAccess internal) {
+    ChunkDataImpl(ChunkAccess internal) {
         this.internal = internal;
 
         this.xOffset = internal.getPos().x * 16;
@@ -25,8 +25,8 @@ public final class ChunkDataImpl implements ChunkData {
 
     @Override
     public BlockData getBlockData(int x, int y, int z) {
-        reusableBlockPos.c(xOffset + x, y, zOffset + z);
-        return CraftBlockData.fromData(internal.getType(reusableBlockPos));
+        reusableBlockPos.set(xOffset + x, y, zOffset + z);
+        return CraftBlockData.fromData(internal.getBlockState(reusableBlockPos));
     }
 
     @Override
@@ -35,13 +35,18 @@ public final class ChunkDataImpl implements ChunkData {
         throw new UnsupportedOperationException("block data bytes are deprecated, use the BlockData class");
     }
 
-    public IChunkAccess getHandle() {
+    public ChunkAccess getHandle() {
         return this.internal;
     }
 
     @Override
     public int getMaxHeight() {
-        return 256;
+        return this.internal.getMaxBuildHeight();
+    }
+
+    @Override
+    public int getMinHeight() {
+        return internal.getMinBuildHeight();
     }
 
     @Override
@@ -60,9 +65,9 @@ public final class ChunkDataImpl implements ChunkData {
         setBlock(x, y, z, ((CraftBlockData) blockData).getState());
     }
 
-    private void setBlock(int x, int y, int z, IBlockData blockData) {
+    private void setBlock(int x, int y, int z, BlockState blockData) {
         reusableBlockPos.c(xOffset + x, y, zOffset + z);
-        internal.setType(reusableBlockPos, blockData, false);
+        internal.setBlockState(reusableBlockPos, blockData, false);
     }
 
     @Override
@@ -78,7 +83,7 @@ public final class ChunkDataImpl implements ChunkData {
 
     @Override
     public void setRegion(int xMin, int yMin, int zMin, int xMax, int yMax, int zMax, BlockData blockData) {
-        IBlockData mcBlockData = ((CraftBlockData) blockData).getState();
+        BlockState mcBlockData = ((CraftBlockData) blockData).getState();
         for (int y = yMin; y < yMax; y++) {
             for (int x = xMin; x < xMax; x++) {
                 for (int z = zMin; z < zMax; z++) {

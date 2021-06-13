@@ -10,32 +10,16 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
-import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
+import org.bukkit.HeightMap;
+import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
 
-import net.minecraft.server.v1_16_R3.BlockColumn;
-import net.minecraft.server.v1_16_R3.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_16_R3.Blocks;
-import net.minecraft.server.v1_16_R3.ChunkCoordIntPair;
-import net.minecraft.server.v1_16_R3.ChunkSection;
-import net.minecraft.server.v1_16_R3.GeneratorAccess;
-import net.minecraft.server.v1_16_R3.GeneratorSettingBase;
-import net.minecraft.server.v1_16_R3.HeightMap;
-import net.minecraft.server.v1_16_R3.HeightMap.Type;
-import net.minecraft.server.v1_16_R3.IBlockAccess;
-import net.minecraft.server.v1_16_R3.IBlockData;
-import net.minecraft.server.v1_16_R3.IChunkAccess;
-import net.minecraft.server.v1_16_R3.MathHelper;
-import net.minecraft.server.v1_16_R3.NoiseSettings;
-import net.minecraft.server.v1_16_R3.ProtoChunk;
-import net.minecraft.server.v1_16_R3.SectionPosition;
-import net.minecraft.server.v1_16_R3.StructureBoundingBox;
-import net.minecraft.server.v1_16_R3.StructureGenerator;
-import net.minecraft.server.v1_16_R3.StructureManager;
-import net.minecraft.server.v1_16_R3.StructurePiece;
-import net.minecraft.server.v1_16_R3.SystemUtils;
-import net.minecraft.server.v1_16_R3.WorldGenFeatureDefinedStructureJigsawJunction;
-import net.minecraft.server.v1_16_R3.WorldGenFeatureDefinedStructurePoolTemplate.Matching;
-import net.minecraft.server.v1_16_R3.WorldGenFeaturePillagerOutpostPoolPiece;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ProtoChunk;
+import net.minecraft.world.level.levelgen.NoiseSettings;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator.TerrainSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -54,9 +38,9 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
 
     });
 
-    private static final IBlockData k;
+    private static final BlockState k;
     static {
-        k = Blocks.AIR.getBlockData();
+        k = Blocks.AIR.defaultBlockState();
     }
 
     private static double a(int i, int j, int k) {
@@ -75,7 +59,7 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
         double d1 = j + 0.5D;
         double d2 = d1 * d1;
         double d3 = Math.pow(2.718281828459045D, -(d2 / 16.0D + d0 / 16.0D));
-        double d4 = -d1 * MathHelper.i(d2 / 2.0D + d0 / 2.0D) / 2.0D;
+        double d4 = -d1 * Mth.i(d2 / 2.0D + d0 / 2.0D) / 2.0D;
         return d4 * d3;
     }
 
@@ -92,12 +76,12 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
     /**
      * Stone block.
      */
-    private final IBlockData f;
+    private final BlockState f;
 
     /**
      * Water block.
      */
-    private final IBlockData g;
+    private final BlockState g;
     /**
      * WorldGeneratorApi - custom noise function
      */
@@ -130,16 +114,16 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
         this.l = noisesettings.f() * 4;
         this.m = noisesettings.e() * 4;
         this.f = settings.stoneBlock != null ? ((CraftBlockData) settings.stoneBlock).getState()
-                : Blocks.STONE.getBlockData();
+                : Blocks.STONE.defaultBlockState();
         this.g = settings.waterBlock != null ? ((CraftBlockData) settings.waterBlock).getState()
-                : Blocks.WATER.getBlockData();
+                : Blocks.WATER.defaultBlockState();
         this.n = 16 / this.m;
         this.o = noisesettings.a() / this.l;
         this.p = 16 / this.m;
     }
 
-    private IBlockData a(double d0, int i) {
-        IBlockData iblockdata;
+    private BlockState a(double d0, int i) {
+        BlockState iblockdata;
         if (d0 > 0.0D) {
             iblockdata = this.f;
         } else if (i < this.seaLevel) {
@@ -157,12 +141,12 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
     }
 
     IBlockAccess a(int i, int j) {
-        IBlockData[] aiblockdata = new IBlockData[this.o * this.l];
-        this.a(i, j, aiblockdata, (Predicate<IBlockData>) null);
+        BlockState[] aiblockdata = new BlockState[this.o * this.l];
+        this.a(i, j, aiblockdata, (Predicate<BlockState>) null);
         return new BlockColumn(aiblockdata);
     }
 
-    private int a(int i, int j, @Nullable IBlockData[] aiblockdata, @Nullable Predicate<IBlockData> predicate) {
+    private int a(int i, int j, @Nullable BlockState[] aiblockdata, @Nullable Predicate<IBlockData> predicate) {
         int k = Math.floorDiv(i, this.m);
         int l = Math.floorDiv(j, this.m);
         int i1 = Math.floorMod(i, this.m);
@@ -214,7 +198,7 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
 
     void buildNoise(GeneratorAccess generatoraccess, StructureManager structuremanager,
             IChunkAccess ichunkaccess) {
-        List<StructurePiece> objectlist = new ArrayList<StructurePiece>(10);
+        List<StructurePiece> objectlist = new ArrayList<>(10);
         List<WorldGenFeatureDefinedStructureJigsawJunction> objectlist1 = new ArrayList<WorldGenFeatureDefinedStructureJigsawJunction>(
                 32);
         ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();

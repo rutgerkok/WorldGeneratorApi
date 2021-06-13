@@ -6,21 +6,26 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.Biomes;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.RegistryGeneration;
-import net.minecraft.server.v1_16_R3.WorldChunkManager;
+import net.minecraft.core.Registry;
+import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.biome.Biomes;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 
-public class InjectedBiomeGenerator extends WorldChunkManager {
+public class InjectedBiomeGenerator extends BiomeSource {
+
+    private final static Function<? super Supplier<Biome>, ? extends InjectedBiomeGenerator> BIOME_TO_GENERATOR = biome -> new InjectedBiomeGenerator();
+    private final static Function<? super InjectedBiomeGenerator, ? extends Supplier<Biome>> GENERATOR_TO_BIOME = generator -> () -> BuiltinRegistries.BIOME
+            .get(Biomes.OCEAN);
 
     /**
      * Apparently, sometimes we need to serialize the biome generator. We cannot do
@@ -28,16 +33,14 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
      * generators.) Instead, we serialize as if we are a biome generator that
      * generates only oceans.
      */
-    private static final Codec<InjectedBiomeGenerator> DUMMY_CODEC = RegistryGeneration.WORLDGEN_BIOME.fieldOf(
+    private static final Codec<? extends InjectedBiomeGenerator> DUMMY_CODEC = Biome.CODEC
+            .fieldOf(
             "[" + WorldGeneratorApi.class.getSimpleName()
                     + "] Custom biome generators cannot be stored in the level.dat, please ignore this error")
-            .xmap(biome -> new InjectedBiomeGenerator(), biomeGenToSerialize -> {
-                // Serializes as a single-biome generator
-                return RegistryGeneration.WORLDGEN_BIOME.a(Biomes.OCEAN);
-            })
+            .xmap(BIOME_TO_GENERATOR, GENERATOR_TO_BIOME)
             .stable().codec();
 
-    private static List<BiomeBase> toBiomeBase(IRegistry<BiomeBase> biomeRegistry, Set<Biome> biomes) {
+    private static List<Biome> toBiomeBase(Registry<Biome> biomeRegistry, Set<org.bukkit.block.Biome> biomes) {
         return biomes.stream()
                 .map(biome -> CraftBlock.biomeToBiomeBase(biomeRegistry, biome))
                 .collect(toList());
@@ -52,7 +55,7 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
      *            The biome generator.
      * @return A Minecraft-compatible biome generator.
      */
-    public static WorldChunkManager wrapOrUnwrap(IRegistry<BiomeBase> registry, BiomeGenerator biomeGenerator) {
+    public static BiomeSource wrapOrUnwrap(Registry<Biome> registry, BiomeGenerator biomeGenerator) {
         if (biomeGenerator instanceof BiomeGeneratorImpl) {
             // Already wrapping a WorldChunkManager
             BiomeGeneratorImpl biomeGeneratorImpl = (BiomeGeneratorImpl) biomeGenerator;
@@ -65,7 +68,7 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
     }
 
     private final BiomeGenerator biomeGenerator;
-    private final IRegistry<BiomeBase> biomeRegistry;
+    private final Registry<Biome> biomeRegistry;
 
     /**
      * Constructor only used for deserialization. Just provides a dummy biome
@@ -74,12 +77,12 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
      */
     private InjectedBiomeGenerator() {
         // Dummy constructor
-        super(Arrays.asList(RegistryGeneration.WORLDGEN_BIOME.a(Biomes.OCEAN)));
-        this.biomeRegistry = RegistryGeneration.WORLDGEN_BIOME;
-        this.biomeGenerator = (x, y, z) -> Biome.OCEAN;
+        super(Arrays.asList(BuiltinRegistries.BIOME.get(Biomes.OCEAN)));
+        this.biomeRegistry = BuiltinRegistries.BIOME;
+        this.biomeGenerator = (x, y, z) -> org.bukkit.block.Biome.OCEAN;
     }
 
-    public InjectedBiomeGenerator(IRegistry<BiomeBase> biomeRegistry, BiomeGenerator biomeGenerator) {
+    public InjectedBiomeGenerator(Registry<Biome> biomeRegistry, BiomeGenerator biomeGenerator) {
         super(toBiomeBase(biomeRegistry, biomeGenerator.getStructureBiomes()));
 
         if (biomeGenerator instanceof BiomeGeneratorImpl
@@ -92,13 +95,18 @@ public class InjectedBiomeGenerator extends WorldChunkManager {
     }
 
     @Override
-    protected Codec<? extends WorldChunkManager> a() {
+    protected Codec<? extends BiomeSource> codec() {
         return DUMMY_CODEC;
     }
 
     @Override
-    public BiomeBase getBiome(int x, int y, int z) {
+    public Biome getNoiseBiome(int x, int y, int z) {
         return CraftBlock.biomeToBiomeBase(biomeRegistry,
                 biomeGenerator.getZoomedOutBiome(x, y, z));
+    }
+
+    @Override
+    public BiomeSource withSeed(long seed) {
+        return this; // We cannot change the seed in our biome generators
     }
 }

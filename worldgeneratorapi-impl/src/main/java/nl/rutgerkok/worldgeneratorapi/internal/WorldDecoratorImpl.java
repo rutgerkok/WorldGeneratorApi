@@ -15,27 +15,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.BiomeManager;
-import net.minecraft.server.v1_16_R3.BiomeSettingsGeneration;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.ChunkCoordIntPair;
-import net.minecraft.server.v1_16_R3.ChunkGenerator;
-import net.minecraft.server.v1_16_R3.CrashReport;
-import net.minecraft.server.v1_16_R3.IChunkAccess;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.ProtoChunk;
-import net.minecraft.server.v1_16_R3.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_16_R3.ReportedException;
-import net.minecraft.server.v1_16_R3.SectionPosition;
-import net.minecraft.server.v1_16_R3.SeededRandom;
-import net.minecraft.server.v1_16_R3.StructureBoundingBox;
-import net.minecraft.server.v1_16_R3.StructureGenerator;
-import net.minecraft.server.v1_16_R3.StructureManager;
-import net.minecraft.server.v1_16_R3.WorldChunkManager;
-import net.minecraft.server.v1_16_R3.WorldGenCarverWrapper;
-import net.minecraft.server.v1_16_R3.WorldGenFeatureConfigured;
-import net.minecraft.server.v1_16_R3.WorldGenStage;
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeGenerationSettings;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.ProtoChunk;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
@@ -48,25 +43,25 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGene
 public final class WorldDecoratorImpl implements WorldDecorator {
 
     private static final DecorationType[] DECORATION_TRANSLATION;
-    private static final Map<WorldGenStage.Features, BaseDecorationType> CARVER_TRANSLATION;
+    private static final Map<GenerationStep.Carving, BaseDecorationType> CARVER_TRANSLATION;
     private static final Field BIOME_DECORATIONS_FIELD;
     private static final Field BIOME_SETTINGS_FIELD;
 
     static {
-        WorldGenStage.Decoration[] vanillaArray = WorldGenStage.Decoration.values();
+        GenerationStep.Decoration[] vanillaArray = GenerationStep.Decoration.values();
         DECORATION_TRANSLATION = new DecorationType[vanillaArray.length];
         for (int i = 0; i < vanillaArray.length; i++) {
             DECORATION_TRANSLATION[i] = DecorationType.valueOf(vanillaArray[i].name());
         }
 
-        CARVER_TRANSLATION = new EnumMap<>(WorldGenStage.Features.class);
-        for (WorldGenStage.Features type : WorldGenStage.Features.values()) {
+        CARVER_TRANSLATION = new EnumMap<>(GenerationStep.Carving.class);
+        for (GenerationStep.Carving type : GenerationStep.Carving.values()) {
             CARVER_TRANSLATION.put(type, BaseDecorationType.valueOf("CARVING_" + type.name()));
         }
 
-        BIOME_DECORATIONS_FIELD = ReflectionUtil.getFieldOfType(BiomeBase.class, Map.class);
+        BIOME_DECORATIONS_FIELD = ReflectionUtil.getFieldOfType(Biome.class, Map.class);
         BIOME_DECORATIONS_FIELD.setAccessible(true);
-        BIOME_SETTINGS_FIELD = ReflectionUtil.getFieldOfType(BiomeBase.class, BiomeSettingsGeneration.class);
+        BIOME_SETTINGS_FIELD = ReflectionUtil.getFieldOfType(Biome.class, BiomeGenerationSettings.class);
         BIOME_SETTINGS_FIELD.setAccessible(true);
     }
 
@@ -77,16 +72,16 @@ public final class WorldDecoratorImpl implements WorldDecorator {
     private final Set<BaseDecorationType> disabledBaseDecorations = EnumSet.noneOf(BaseDecorationType.class);
 
     @SuppressWarnings({ "unchecked", "rawtypes" }) // Decompiled code
-    public void a(BiomeBase biomeBase, StructureManager var0, ChunkGenerator var1, RegionLimitedWorldAccess var2,
-            long var3, SeededRandom var5, BlockPosition var6) throws IllegalAccessException {
+    public void a(Biome biomeBase, StructureManager var0, ChunkGenerator var1, RegionLimitedWorldAccess var2,
+            long var3, WorldgenRandom var5, BlockPos var6) throws IllegalAccessException {
         // Adapted from the same method in BiomeBase
-        BiomeSettingsGeneration k = (BiomeSettingsGeneration) BIOME_SETTINGS_FIELD.get(biomeBase);
+        BiomeGenerationSettings k = (BiomeGenerationSettings) BIOME_SETTINGS_FIELD.get(biomeBase);
         Map g = (Map) BIOME_DECORATIONS_FIELD.get(biomeBase);
         DecorationArea decorationArea = new DecorationAreaImpl(var2);
 
         // Start of original method
-        List<List<Supplier<WorldGenFeatureConfigured<?, ?>>>> var7 = k.c();
-        int var8 = WorldGenStage.Decoration.values().length;
+        List<List<Supplier<ConfiguredFeature<?, ?>>>> var7 = k.features();
+        int var8 = GenerationStep.Decoration.values().length;
 
         for (int var9 = 0; var9 < var8; ++var9) {
             // Start of modifications
@@ -99,7 +94,7 @@ public final class WorldDecoratorImpl implements WorldDecorator {
                     if (decoration == null) {
                         continue;
                     }
-                    var5.b(var3, decorationIndex, apiType.ordinal());
+                    var5.setFeatureSeed(var3, decorationIndex, apiType.ordinal());
                     decoration.decorate(decorationArea, var5);
                     decorationIndex++;
                 }
@@ -122,14 +117,14 @@ public final class WorldDecoratorImpl implements WorldDecorator {
                     int var17 = var15 << 4;
 
                     try {
-                        var0.a(SectionPosition.a(var6), var13).forEach((var8x) -> {
+                        var0.a(SectionPos.a(var6), var13).forEach((var8x) -> {
                             var8x.a(var2, var0, var1, var5,
                                     new StructureBoundingBox(var16, var17, var16 + 15, var17 + 15),
                                     new ChunkCoordIntPair(var14, var15));
                         });
                     } catch (Exception var21) {
-                        CrashReport var19 = CrashReport.a(var21, "Feature placement");
-                        var19.a("Feature").a("Id", IRegistry.STRUCTURE_FEATURE.getKey(var13)).a("Description", () -> {
+                        CrashReport var19 = CrashReport.forThrowable(var21, "Feature placement");
+                        var19.a("Feature").a("Id", Registry.STRUCTURE_FEATURE.getKey(var13)).a("Description", () -> {
                             return var13.toString();
                         });
                         throw new ReportedException(var19);
@@ -199,14 +194,14 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         }
     }
 
-    public void spawnCarvers(BiomeManager biomeManager, GeneratingChunkImpl chunk, WorldGenStage.Features stage,
+    public void spawnCarvers(BiomeManager biomeManager, GeneratingChunkImpl chunk, GenerationStep.Carving stage,
             int seaLevel, long seed) {
-        IChunkAccess ichunkaccess = chunk.internal;
-        SeededRandom seededrandom = new SeededRandom(seed);
+        ChunkAccess ichunkaccess = chunk.internal;
+        WorldgenRandom seededrandom = new WorldgenRandom(seed);
         BaseDecorationType decorationType = CARVER_TRANSLATION.get(stage);
         if (!this.disabledBaseDecorations.contains(decorationType)) {
             // Spawn default carvers (code based on ChunkGenerator.doCarving)
-            ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
+            ChunkPos chunkcoordintpair = ichunkaccess.getPos();
             int i = chunkcoordintpair.x;
             int j = chunkcoordintpair.z;
             BiomeSettingsGeneration biomeConfig = this.getBiome(biomeManager, chunkcoordintpair.l()).e();
@@ -261,17 +256,18 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         int j = populationArea.b();
         int k = i * 16;
         int l = j * 16;
-        BlockPosition blockposition = new BlockPosition(k, 0, l);
-        BiomeBase biomebase = worldChunkManager.getBiome((i << 2) + 2, 2, (j << 2) + 2);
+        BlockPos blockposition = new BlockPos(k, 0, l);
+        Biome biomebase = worldChunkManager.getBiome((i << 2) + 2, 2, (j << 2) + 2);
 
-        SeededRandom seededrandom = new SeededRandom();
+        WorldgenRandom seededrandom = new WorldgenRandom();
         long i1 = seededrandom.a(populationArea.getSeed(), k, l);
 
         try {
             a(biomebase, structureManager, chunkGenerator, populationArea, i1, seededrandom, blockposition);
         } catch (Exception var14) {
-            CrashReport crashreport = CrashReport.a(var14, "Biome decoration");
-            crashreport.a("Generation").a("CenterX", i).a("CenterZ", j).a("Seed", i1).a("Biome", biomebase);
+            CrashReport crashreport = CrashReport.forThrowable(var14, "Biome decoration");
+            crashreport.addCategory("Generation").setDetail("CenterX", i).setDetail("CenterZ", j).setDetail("Seed", i1)
+                    .setDetail("Biome", biomebase);
             throw new ReportedException(crashreport);
         }
     }

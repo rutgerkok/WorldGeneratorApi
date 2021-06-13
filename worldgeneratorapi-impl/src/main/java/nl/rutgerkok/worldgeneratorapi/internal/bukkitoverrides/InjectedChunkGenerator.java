@@ -8,41 +8,31 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.IntStream;
 
+import org.bukkit.HeightMap;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
+import org.bukkit.util.noise.NoiseGenerator;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.BiomeManager;
-import net.minecraft.server.v1_16_R3.BiomeSettingsMobs;
-import net.minecraft.server.v1_16_R3.BlockColumn;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.BlockPosition.MutableBlockPosition;
-import net.minecraft.server.v1_16_R3.Blocks;
-import net.minecraft.server.v1_16_R3.ChunkCoordIntPair;
-import net.minecraft.server.v1_16_R3.ChunkGenerator;
-import net.minecraft.server.v1_16_R3.ChunkGeneratorAbstract;
-import net.minecraft.server.v1_16_R3.EnumCreatureType;
-import net.minecraft.server.v1_16_R3.GeneratorAccess;
-import net.minecraft.server.v1_16_R3.GeneratorSettingBase;
-import net.minecraft.server.v1_16_R3.HeightMap;
-import net.minecraft.server.v1_16_R3.HeightMap.Type;
-import net.minecraft.server.v1_16_R3.IBlockAccess;
-import net.minecraft.server.v1_16_R3.IBlockData;
-import net.minecraft.server.v1_16_R3.IChunkAccess;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.NoiseGenerator;
-import net.minecraft.server.v1_16_R3.NoiseGenerator3;
-import net.minecraft.server.v1_16_R3.NoiseGeneratorOctaves;
-import net.minecraft.server.v1_16_R3.NoiseSettings;
-import net.minecraft.server.v1_16_R3.RegionLimitedWorldAccess;
-import net.minecraft.server.v1_16_R3.SeededRandom;
-import net.minecraft.server.v1_16_R3.SpawnerCreature;
-import net.minecraft.server.v1_16_R3.StructureGenerator;
-import net.minecraft.server.v1_16_R3.StructureManager;
-import net.minecraft.server.v1_16_R3.WorldChunkManager;
-import net.minecraft.server.v1_16_R3.WorldGenStage.Features;
+import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.data.worldgen.Features;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+import net.minecraft.world.level.levelgen.NoiseSettings;
+import net.minecraft.world.level.levelgen.WorldGenSettings;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator.GeneratingChunk;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator.HeightType;
@@ -55,8 +45,8 @@ import nl.rutgerkok.worldgeneratorapi.internal.ReflectionUtil;
 import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
 
 /**
- * Standard Minecraft chunk generator (see {@link ChunkGeneratorAbstract}) - but
- * with support to change some settings.
+ * Standard Minecraft chunk generator (see {@link NoiseBasedChunkGenerator}) -
+ * but with support to change some settings.
  *
  */
 public final class InjectedChunkGenerator extends ChunkGenerator {
@@ -67,14 +57,14 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         private final ChunkDataImpl blocks;
         private final BiomeGenerator biomeGenerator;
         private final BiomeGridImpl biomeGrid;
-        public final IChunkAccess internal;
+        public final ChunkAccess internal;
 
-        GeneratingChunkImpl(IChunkAccess internal, BiomeGenerator biomeGenerator) {
+        GeneratingChunkImpl(ChunkAccess internal, BiomeGenerator biomeGenerator) {
             this.internal = Objects.requireNonNull(internal, "internal");
             this.chunkX = internal.getPos().x;
             this.chunkZ = internal.getPos().z;
             this.blocks = new ChunkDataImpl(internal);
-            this.biomeGrid = new BiomeGridImpl(internal.getBiomeIndex());
+            this.biomeGrid = new BiomeGridImpl(internal.getBiomes());
 
             this.biomeGenerator = Objects.requireNonNull(biomeGenerator, "biomeManager");
         }
@@ -106,15 +96,15 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
 
     }
 
-    private static final IBlockData k;
+    private static final BlockState k;
     static {
-        k = Blocks.AIR.getBlockData();
+        k = Blocks.AIR.defaultBlockState();
     }
 
     private final NoiseGenerator surfaceNoise;
-    protected final IBlockData f;
-    protected final IBlockData g;
-    protected final GeneratorSettingBase h;
+    protected final BlockState f;
+    protected final BlockState g;
+    protected final WorldGenSettings h;
     private final int x;
     public final WorldDecoratorImpl worldDecorator = new WorldDecoratorImpl();
     private BaseTerrainGenerator baseTerrainGenerator;
@@ -124,10 +114,10 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
      * Original biome generator, ready to be restored when the plugin unloads.
      */
     private final BiomeGeneratorImpl originalBiomeGenerator;
-    private final IRegistry<BiomeBase> biomeRegistry;
+    private final Registry<Biome> biomeRegistry;
 
-    public InjectedChunkGenerator(WorldChunkManager worldchunkmanager, IRegistry<BiomeBase> biomeRegistry,
-            BaseTerrainGenerator baseChunkGenerator, long seed, GeneratorSettingBase settings) {
+    public InjectedChunkGenerator(BiomeSource worldchunkmanager, Registry<Biome> biomeRegistry,
+            BaseTerrainGenerator baseChunkGenerator, long seed, WorldGenSettings settings) {
         super(worldchunkmanager, worldchunkmanager, settings.a(), seed);
 
         this.h = settings;
@@ -135,7 +125,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         this.x = noisesettings.a();
         this.f = settings.c();
         this.g = settings.d();
-        SeededRandom e = new SeededRandom(seed);
+        WorldgenRandom e = new WorldgenRandom(seed);
         new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-15, 0));
         new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-15, 0));
         new NoiseGeneratorOctaves(e, IntStream.rangeClosed(-7, 0));
@@ -155,23 +145,10 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         throw new UnsupportedOperationException("Cannot serialize a custom chunk generator");
     }
 
-    protected IBlockData a(double d0, int i) {
-        IBlockData iblockdata;
-        if (d0 > 0.0D) {
-            iblockdata = this.f;
-        } else if (i < this.getSeaLevel()) {
-            iblockdata = this.g;
-        } else {
-            iblockdata = k;
-        }
-
-        return iblockdata;
-    }
-
-    private void a(IChunkAccess ichunkaccess, Random random) {
+    private void a(ChunkAccess ichunkaccess, Random random) {
         // Bedrock
 
-        MutableBlockPosition blockposition_mutableblockposition = new MutableBlockPosition();
+        MutableBlockPos blockposition_mutableblockposition = new MutableBlockPosition();
         int i = ichunkaccess.getPos().d();
         int j = ichunkaccess.getPos().e();
         int k = this.h.f();
@@ -210,6 +187,19 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         }
     }
 
+    protected BlockState a(double d0, int i) {
+        BlockState iblockdata;
+        if (d0 > 0.0D) {
+            iblockdata = this.f;
+        } else if (i < this.getSeaLevel()) {
+            iblockdata = this.g;
+        } else {
+            iblockdata = k;
+        }
+
+        return iblockdata;
+    }
+
     @Override
     public IBlockAccess a(int blockX, int blockZ) {
         // Generates a single column.
@@ -244,8 +234,8 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     public void addMobs(RegionLimitedWorldAccess regionlimitedworldaccess) {
         int i = regionlimitedworldaccess.a();
         int j = regionlimitedworldaccess.b();
-        BiomeBase biomebase = regionlimitedworldaccess.getBiome((new ChunkCoordIntPair(i, j)).l());
-        SeededRandom seededrandom = new SeededRandom();
+        Biome biomebase = regionlimitedworldaccess.getBiome((new ChunkPos(i, j)).getMiddleBlockPosition());
+        WorldgenRandom seededrandom = new WorldgenRandom();
         seededrandom.a(regionlimitedworldaccess.getSeed(), i << 4, j << 4);
         SpawnerCreature.a(regionlimitedworldaccess, biomebase, i, j, seededrandom);
     }
@@ -275,13 +265,13 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         HeightMap.a(ichunkaccess, EnumSet.of(HeightMap.Type.WORLD_SURFACE_WG, HeightMap.Type.OCEAN_FLOOR_WG));
 
         // Generate surface
-        MutableBlockPosition blockposition_mutableblockposition = new MutableBlockPosition();
+        MutableBlockPos blockposition_mutableblockposition = new MutableBlockPos();
         if (this.worldDecorator.isDefaultEnabled(BaseDecorationType.SURFACE)) {
             for (int i1 = 0; i1 < 16; ++i1) {
                 for (int j1 = 0; j1 < 16; ++j1) {
                     int k1 = blockX + i1;
                     int l1 = blockZ + j1;
-                    int i2 = ichunkaccess.getHighestBlock(Type.WORLD_SURFACE_WG, i1, j1) + 1;
+                    int i2 = ichunkaccess.getHighestBlock(Heightmap.Types.WORLD_SURFACE_WG, i1, j1) + 1;
                     double d1 = this.surfaceNoise.a(k1 * 0.0625D, l1 * 0.0625D, 0.0625D, i1 * 0.0625D) * 15.0D;
                     regionlimitedworldaccess
                             .getBiome(blockposition_mutableblockposition.d(blockX + i1, i2, blockZ + j1)).a(
@@ -301,8 +291,8 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void buildNoise(GeneratorAccess generatoraccess, StructureManager structureManager,
-            IChunkAccess ichunkaccess) {
+    public void buildNoise(LevelAccessor generatoraccess, StructureManager structureManager,
+            ChunkAccess ichunkaccess) {
         BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
         if ((baseTerrainGenerator instanceof NoiseToTerrainGenerator)) {
             ((NoiseToTerrainGenerator) baseTerrainGenerator).buildNoise(generatoraccess, structureManager,
@@ -314,7 +304,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void doCarving(long seed, BiomeManager biomeManager, IChunkAccess chunkAccess,
+    public void doCarving(long seed, BiomeManager biomeManager, ChunkAccess chunkAccess,
             Features stage) {
         BiomeManager soupedUpBiomeManager = biomeManager.a(this.b); // No idea why this is necessary
         GeneratingChunkImpl generatingChunk = new GeneratingChunkImpl(chunkAccess, biomeGenerator);
@@ -322,7 +312,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public int getBaseHeight(int i, int j, Type heightType) {
+    public int getBaseHeight(int i, int j, Heightmap.Types heightType) {
         // Shortcut
         BaseTerrainGenerator baseTerrainGenerator = this.baseTerrainGenerator;
         if (baseTerrainGenerator instanceof NoiseToTerrainGenerator) {
@@ -349,7 +339,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public List<BiomeSettingsMobs.c> getMobsFor(BiomeBase biomebase, StructureManager structuremanager,
+    public List<BiomeSettingsMobs.c> getMobsFor(Biome biomebase, StructureManager structuremanager,
             EnumCreatureType enumcreaturetype, BlockPosition blockposition) {
         if (structuremanager.a(blockposition, true, StructureGenerator.SWAMP_HUT).e()) {
             if (enumcreaturetype == EnumCreatureType.MONSTER) {
@@ -388,15 +378,15 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         return getSeaLevel() + 1;
     }
 
-    private void injectWorldChunkManager(WorldChunkManager worldChunkManager) {
+    private void injectWorldChunkManager(BiomeSource worldChunkManager) {
         try {
-            for (Field field : ReflectionUtil.getAllFieldsOfType(getClass().getSuperclass(), WorldChunkManager.class)) {
+            for (Field field : ReflectionUtil.getAllFieldsOfType(getClass().getSuperclass(), BiomeSource.class)) {
                 field.set(this, worldChunkManager);
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Failed to update the biome generator field", e);
         }
-        if (this.c != worldChunkManager || this.b != worldChunkManager) {
+        if (this.biomeSource != worldChunkManager || this.runtimeBiomeSource != worldChunkManager) {
             throw new RuntimeException("Failed to update the biome generator field - old value is still present");
         }
     }
@@ -418,7 +408,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         this.biomeGenerator = Objects.requireNonNull(biomeGenerator, "biomeGenerator");
 
         // Update Minecraft's field too
-        WorldChunkManager worldChunkManager = InjectedBiomeGenerator.wrapOrUnwrap(this.biomeRegistry, biomeGenerator);
+        BiomeSource worldChunkManager = InjectedBiomeGenerator.wrapOrUnwrap(this.biomeRegistry, biomeGenerator);
         this.injectWorldChunkManager(worldChunkManager);
 
         // Inject in base terrain generator too
