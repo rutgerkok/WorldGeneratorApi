@@ -1,25 +1,25 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
+import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.StructureSettings;
 import net.minecraft.world.level.levelgen.WorldGenSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
@@ -33,73 +33,22 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.NoiseToTerrainGen
 
 final class WorldGeneratorImpl implements WorldGenerator {
 
-    private static WorldGenSettings createDefaultEndSettings() {
-        // Equiv. to `a(f, a(new StructureSettings(false),
-        // Blocks.END_STONE.getBlockData(), Blocks.AIR.getBlockData(), f.a(), true,
-        // true));`
-        // in GeneratorSettingsBase
-        try {
-            Method meth1 = WorldGenSettings.class.getDeclaredMethod("a", StructureSettings.class,
-                    IBlockData.class, IBlockData.class, MinecraftKey.class, boolean.class, boolean.class);
-            Method meth2 = WorldGenSettings.class.getDeclaredMethod("a", ResourceKey.class, WorldGenSettings.class);
 
-            meth1.setAccessible(true);
-            meth2.setAccessible(true);
+    private static WorldGenSettings createDefaultSettings(WorldCreator creator) {
+        // Based on code in CraftServer.createWorld
+        DedicatedServer server = ((CraftServer) Bukkit.getServer()).getHandle().getServer();
 
-            StructureSettings genStronghold = new StructureSettings(false);
-            WorldGenSettings generatorSettings = (WorldGenSettings) meth1.invoke(null, genStronghold, Blocks.END_STONE
-                    .getBlockData(), Blocks.AIR.getBlockData(), WorldGenSettings.f.a(), true, true);
+        Properties properties = new Properties();
+        properties.put("generator-settings", Objects.toString(creator.generatorSettings()));
+        properties.put("level-seed", Objects.toString(creator.seed()));
+        properties.put("generate-structures", Objects.toString(creator.generateStructures()));
+        properties.put("level-type", Objects.toString(creator.type().getName()));
 
-            return (WorldGenSettings) meth2.invoke(null, WorldGenSettings.f, generatorSettings);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // If something goes wrong just default to Overworld Settings.
-            e.printStackTrace();
-            return createDefaultSettings();
-        }
-    }
-
-    private static WorldGenSettings createDefaultNetherSettings() {
-        // Equiv. to `a(e, a(new StructureSettings(false),
-        // Blocks.NETHERRACK.getBlockData(), Blocks.LAVA.getBlockData(), e.a()));`
-        // in GeneratorSettingsBase
-        try {
-            Method meth1 = WorldGenSettings.class.getDeclaredMethod("a", StructureSettings.class,
-                    IBlockData.class, IBlockData.class, MinecraftKey.class);
-            Method meth2 = WorldGenSettings.class.getDeclaredMethod("a", ResourceKey.class, WorldGenSettings.class);
-
-            meth1.setAccessible(true);
-            meth2.setAccessible(true);
-
-            StructureSettings genStronghold = new StructureSettings(false);
-            WorldGenSettings generatorSettings = (WorldGenSettings) meth1.invoke(null, genStronghold, Blocks.NETHERRACK
-                    .getBlockData(), Blocks.LAVA.getBlockData(), WorldGenSettings.e.a());
-
-            return (WorldGenSettings) meth2.invoke(null, WorldGenSettings.e, generatorSettings);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // If something goes wrong just default to Overworld Settings.
-            e.printStackTrace();
-            return createDefaultSettings();
-        }
-    }
-
-    private static WorldGenSettings createDefaultSettings() {
-        return WorldGenSettings.i();
+        return WorldGenSettings.create(server.registryAccess(), properties);
     }
 
     private static WorldGenSettings extractSettings(CraftWorld world) {
-        // Get default settings based on environment
-        // Not sure if there's a new way to extract the existing settings, which may be
-        // a better option, since
-        // ChunkGenerator has no WorldGenSettings fields in it (anymore?)
-        World.Environment env = world.getEnvironment();
-
-        if (env.equals(World.Environment.THE_END)) {
-            return createDefaultEndSettings();
-        } else if (env.equals(World.Environment.NETHER)) {
-            return createDefaultNetherSettings();
-        } else {
-            return createDefaultSettings();
-        }
+        return createDefaultSettings(WorldCreator.name("unused").copy(world));
     }
 
     private static Registry<Biome> getBiomeRegistry(ServerLevel world) {
@@ -186,7 +135,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
     }
 
     /**
-     * Injects a nms.ChunkGenerator.
+     * Injects a net.minecraft.world.level.chunk.ChunkGenerator.
      *
      * @param injected
      *            The new ChunkGenerator.

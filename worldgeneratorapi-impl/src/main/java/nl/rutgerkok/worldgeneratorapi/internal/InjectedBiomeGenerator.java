@@ -57,7 +57,7 @@ public class InjectedBiomeGenerator extends BiomeSource {
      */
     public static BiomeSource wrapOrUnwrap(Registry<Biome> registry, BiomeGenerator biomeGenerator) {
         if (biomeGenerator instanceof BiomeGeneratorImpl) {
-            // Already wrapping a WorldChunkManager
+            // Already wrapping a BiomeSource
             BiomeGeneratorImpl biomeGeneratorImpl = (BiomeGeneratorImpl) biomeGenerator;
             if (biomeGeneratorImpl.biomeRegistry == registry) {
                 // Uses the same biome registry - safe to use that instance directly
