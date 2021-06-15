@@ -1,6 +1,7 @@
 package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -10,7 +11,12 @@ import javax.annotation.Nullable;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.StructureFeatureManager;
 import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.levelgen.NoiseModifier;
@@ -105,6 +111,19 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Failed to inject noise generator", e);
         }
+    }
+
+    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, StructureFeatureManager structureManager,
+            ChunkAccess chunkAccess) {
+        return internal.fillFromNoise(executor, structureManager, chunkAccess);
+    }
+
+    public NoiseColumn getBaseColumn(int blockX, int blockZ, LevelHeightAccessor levelHeight) {
+        return internal.getBaseColumn(blockX, blockZ, levelHeight);
+    }
+
+    public int getBaseHeight(int var0, int var1, Heightmap.Types var2, LevelHeightAccessor var3) {
+        return this.internal.getBaseHeight(var0, var1, var2, var3);
     }
 
     @Override

@@ -2,25 +2,25 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.WorldCreator;
+import org.bukkit.World.Environment;
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.WorldGenSettings;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -34,21 +34,25 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.NoiseToTerrainGen
 final class WorldGeneratorImpl implements WorldGenerator {
 
 
-    private static WorldGenSettings createDefaultSettings(WorldCreator creator) {
-        // Based on code in CraftServer.createWorld
+    private static NoiseGeneratorSettings createDefaultSettings(Environment environment) {
+        // You can always follow the code in CraftServer.createWorld to find out how
+        // Minecraft gets the default settings
         DedicatedServer server = ((CraftServer) Bukkit.getServer()).getHandle().getServer();
+        Registry<NoiseGeneratorSettings> generatorSettingsRegistry = server.registryAccess()
+                .registryOrThrow(Registry.NOISE_GENERATOR_SETTINGS_REGISTRY);
 
-        Properties properties = new Properties();
-        properties.put("generator-settings", Objects.toString(creator.generatorSettings()));
-        properties.put("level-seed", Objects.toString(creator.seed()));
-        properties.put("generate-structures", Objects.toString(creator.generateStructures()));
-        properties.put("level-type", Objects.toString(creator.type().getName()));
-
-        return WorldGenSettings.create(server.registryAccess(), properties);
+        ResourceKey<NoiseGeneratorSettings> key = switch (environment) {
+            case NETHER -> NoiseGeneratorSettings.NETHER;
+            case CUSTOM -> NoiseGeneratorSettings.OVERWORLD;
+            case NORMAL -> NoiseGeneratorSettings.OVERWORLD;
+            case THE_END -> NoiseGeneratorSettings.END;
+            default -> throw new IllegalArgumentException("Unexpected value: " + environment);
+        };
+        return generatorSettingsRegistry.get(key);
     }
 
-    private static WorldGenSettings extractSettings(CraftWorld world) {
-        return createDefaultSettings(WorldCreator.name("unused").copy(world));
+    private static NoiseGeneratorSettings extractSettings(CraftWorld world) {
+        return createDefaultSettings(world.getEnvironment());
     }
 
     private static Registry<Biome> getBiomeRegistry(ServerLevel world) {
@@ -188,7 +192,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
         ChunkGenerator chunkGenerator = world.getChunkProvider().getGenerator();
         BiomeSource worldChunkManager = chunkGenerator.getBiomeSource();
         long seed = world.getSeed();
-        WorldGenSettings settings = extractSettings(world.getWorld());
+        NoiseGeneratorSettings settings = extractSettings(world.getWorld());
         InjectedChunkGenerator injected = new InjectedChunkGenerator(worldChunkManager, getBiomeRegistry(world), base,
                 seed, settings);
 
