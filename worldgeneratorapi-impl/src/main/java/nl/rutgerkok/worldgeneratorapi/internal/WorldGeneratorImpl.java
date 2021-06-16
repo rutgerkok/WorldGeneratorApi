@@ -173,6 +173,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
         }
     }
 
+    @Deprecated // Not going to work in 1.17
     private Class<?> nmsClass(String simpleName) throws ClassNotFoundException {
         // Returns a class in the net.mineraft.server package
         Class<?> exampleNmsClass = ChunkGenerator.class;

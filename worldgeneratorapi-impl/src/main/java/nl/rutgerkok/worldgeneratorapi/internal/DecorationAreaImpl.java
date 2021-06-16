@@ -31,6 +31,7 @@ import org.bukkit.craftbukkit.v1_17_R1.block.CraftHopper;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftJigsaw;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftJukebox;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftLectern;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftSculkSensor;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftShulkerBox;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftSign;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftSkull;
@@ -43,6 +44,7 @@ import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BarrelBlockEntity;
@@ -66,8 +68,10 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.entity.JigsawBlockEntity;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.block.entity.SculkSensorBlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.level.block.entity.SmokerBlockEntity;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
@@ -77,7 +81,8 @@ import nl.rutgerkok.worldgeneratorapi.decoration.DecorationArea;
 
 class DecorationAreaImpl implements DecorationArea {
 
-    final WorldGenRegion internal;
+    final WorldGenRegion region;
+    final ChunkPos chunkPos;
 
     /**
      * Only one thread is working on a single decoration area, so no need to worry
@@ -85,15 +90,16 @@ class DecorationAreaImpl implements DecorationArea {
      */
     private final MutableBlockPos reusableBlockPos = new MutableBlockPos();
 
-    DecorationAreaImpl(WorldGenRegion internal) {
-        this.internal = Objects.requireNonNull(internal, "internal");
+    DecorationAreaImpl(WorldGenRegion region, ChunkPos chunkPos) {
+        this.region = Objects.requireNonNull(region, "region");
+        this.chunkPos = Objects.requireNonNull(chunkPos, "chunkPos");
     }
 
     @Override
     public org.bukkit.block.Biome getBiome(int x, int z) {
-        reusableBlockPos.c(x, 0, z);
-        Registry<Biome> biomeRegistry = this.internal.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
-        return CraftBlock.biomeBaseToBiome(biomeRegistry, internal.getBiome(reusableBlockPos));
+        reusableBlockPos.set(x, 0, z);
+        Registry<Biome> biomeRegistry = this.region.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+        return CraftBlock.biomeBaseToBiome(biomeRegistry, region.getBiome(reusableBlockPos));
     }
 
     @Override
@@ -103,19 +109,19 @@ class DecorationAreaImpl implements DecorationArea {
 
     @Override
     public BlockData getBlockData(int x, int y, int z) {
-        reusableBlockPos.c(x, y, z);
-        return CraftBlockData.fromData(internal.getBlockState(reusableBlockPos));
+        reusableBlockPos.set(x, y, z);
+        return CraftBlockData.fromData(region.getBlockState(reusableBlockPos));
     }
 
     @Override
     public BlockState getBlockState(int x, int y, int z) {
         BlockPos position = new BlockPos(x, y, z);
-        BlockEntity tileEntity = internal.getBlockEntity(position);
-        Material material = CraftBlockData.fromData(internal.getBlockState(position)).getMaterial();
+        BlockEntity tileEntity = region.getBlockEntity(position);
+        Material material = CraftBlockData.fromData(region.getBlockState(position)).getMaterial();
         // This code is based on the following: (this code is similar, in that it
-        // creates tile entities that have not been added to a world)
-        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaBlockState.java?until=3f0c333870ba74705e98d19322174d6f0c10c900&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fcraftbukkit%2Finventory%2FCraftMetaBlockState.java#302
-        // If new tile entities are added, don't forget to add them here
+        // creates block entities that have not been added to a world)
+        // https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaBlockState.java?until=622cf6111905e787add191b9a88d62656439ef31&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fcraftbukkit%2Finventory%2FCraftMetaBlockState.java#313
+        // If new block entities are added, don't forget to add them here
         switch (material) {
             case ACACIA_SIGN:
             case ACACIA_WALL_SIGN:
@@ -165,7 +171,7 @@ class DecorationAreaImpl implements DecorationArea {
             case WITHER_SKELETON_WALL_SKULL:
             case ZOMBIE_HEAD:
             case ZOMBIE_WALL_HEAD:
-                return new CraftSkull(material, (SkullBlockEntityl) tileEntity);
+                return new CraftSkull(material, (SkullBlockEntity) tileEntity);
             case COMMAND_BLOCK:
             case REPEATING_COMMAND_BLOCK:
             case CHAIN_COMMAND_BLOCK:
@@ -250,6 +256,8 @@ class DecorationAreaImpl implements DecorationArea {
             case BEE_NEST:
             case BEEHIVE:
                 return new CraftBeehive(material, (BeehiveBlockEntity) tileEntity);
+            case SCULK_SENSOR:
+                return new CraftSculkSensor(material, (SculkSensorBlockEntity) tileEntity);
             default:
                 return new CraftBlockState(material);
         }
@@ -257,12 +265,14 @@ class DecorationAreaImpl implements DecorationArea {
 
     @Override
     public int getCenterX() {
-        return internal.a() * 16;
+        // Center of 2x2 chunks, so min of this chunk
+        return chunkPos.getMinBlockX();
     }
 
     @Override
     public int getCenterZ() {
-        return internal.b() * 16;
+        // Center of 2x2 chunks, so min of this chunk
+        return chunkPos.getMinBlockZ();
     }
 
     @Override
@@ -274,7 +284,7 @@ class DecorationAreaImpl implements DecorationArea {
     public void setBlockData(int x, int y, int z, BlockData blockData) {
         BlockPos position = new BlockPos(x, y, z);
         net.minecraft.world.level.block.state.BlockState mcBlockData = ((CraftBlockData) blockData).getState();
-        internal.setBlock(position, mcBlockData, 2);
+        region.setBlock(position, mcBlockData, 2);
     }
 
     @Override
@@ -283,11 +293,11 @@ class DecorationAreaImpl implements DecorationArea {
 
         // Update basic material
         net.minecraft.world.level.block.state.BlockState mcBlockData = ((CraftBlockState) blockState).getHandle();
-        internal.setBlock(position, mcBlockData, 2);
+        region.setBlock(position, mcBlockData, 2);
 
-        // Update TileEntity data
+        // Update BlockEntity data
         if (blockState instanceof CraftBlockEntityState) {
-            ChunkAccess chunk = internal.getChunk(position);
+            ChunkAccess chunk = region.getChunk(position);
             CompoundTag tag = ((CraftBlockEntityState<?>) blockState).getSnapshotNBT();
             BlockEntity tileEntity = BlockEntity.loadStatic(position, mcBlockData, tag);
             chunk.setBlockEntity(tileEntity);

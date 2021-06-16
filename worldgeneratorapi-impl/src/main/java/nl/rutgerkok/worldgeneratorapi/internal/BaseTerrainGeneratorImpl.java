@@ -2,12 +2,14 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.StructureFeatureManager;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.DebugLevelSource;
@@ -15,7 +17,6 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.ChunkDataImpl;
@@ -56,7 +57,7 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
     static BaseTerrainGenerator fromMinecraft(World world) {
         ServerLevel worldServer = ((CraftWorld) world).getHandle();
         ChunkGenerator chunkGenerator = worldServer.getChunkProvider().getGenerator();
-        StructureManager structureManager = worldServer.getStructureManager();
+        StructureFeatureManager structureManager = worldServer.structureFeatureManager();
         if (chunkGenerator instanceof InjectedChunkGenerator) {
             return ((InjectedChunkGenerator) chunkGenerator).getBaseTerrainGenerator();
         }
@@ -81,10 +82,10 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
 
     private final ChunkGenerator internal;
     private final LevelAccessor world;
-    private final StructureManager structureManager;
+    private final StructureFeatureManager structureManager;
 
     private BaseTerrainGeneratorImpl(LevelAccessor world, ChunkGenerator chunkGenerator,
-            StructureManager structureManager) {
+            StructureFeatureManager structureManager) {
         if (chunkGenerator instanceof InjectedChunkGenerator) {
             throw new IllegalArgumentException("Double-wrapping");
         }
@@ -119,17 +120,8 @@ public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
         ChunkDataImpl blocks = (ChunkDataImpl) chunk.getBlocksForChunk();
         WorldgenRandom random = new WorldgenRandom();
         random.setBaseChunkSeed(chunk.getChunkX(), chunk.getChunkZ());
-
-        // Make sure this matches isSupported above
-        if (internal instanceof NoiseBasedChunkGenerator) {
-            ((NoiseBasedChunkGenerator) internal).buildSurfaceAndBedrock(world, structureManager, blocks.getHandle());
-        } else if (internal instanceof FlatLevelSource) {
-            ((FlatLevelSource) internal).buildSurfaceAndBedrock(world, structureManager, blocks.getHandle());
-        } else if (internal instanceof DebugLevelSource) {
-            // Generate nothing - there is no base terrain
-        } else {
-            throw new UnsupportedOperationException("Didn't recognize " + internal.getClass());
-        }
+        Executor directly = Runnable::run;
+        internal.fillFromNoise(directly, structureManager, blocks.getHandle());
     }
 
 }

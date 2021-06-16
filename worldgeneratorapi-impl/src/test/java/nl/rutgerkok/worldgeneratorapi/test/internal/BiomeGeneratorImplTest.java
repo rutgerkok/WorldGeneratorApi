@@ -3,13 +3,14 @@ package nl.rutgerkok.worldgeneratorapi.test.internal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.bukkit.block.Biome;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.server.v1_16_R3.RegistryGeneration;
-import net.minecraft.server.v1_16_R3.WorldChunkManager;
-import net.minecraft.server.v1_16_R3.WorldChunkManagerOverworld;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.biome.OverworldBiomeSource;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
@@ -24,21 +25,21 @@ public class BiomeGeneratorImplTest {
     @Test
     public void isGetStructureBiomesInSync() {
         // Create vanilla biome generator
-        WorldChunkManager worldChunkManager = new WorldChunkManagerOverworld(10, false, false,
-                RegistryGeneration.WORLDGEN_BIOME);
+        Registry<Biome> biomeRegistry = RegistryAccess.builtin().registryOrThrow(Registry.BIOME_REGISTRY);
+        BiomeSource worldChunkManager = new OverworldBiomeSource(10, false, false, biomeRegistry);
 
         // Check the structures
-        BiomeGeneratorImpl biomeGenerator = new BiomeGeneratorImpl(RegistryGeneration.WORLDGEN_BIOME,
-                worldChunkManager);
+        BiomeGeneratorImpl biomeGenerator = new BiomeGeneratorImpl(biomeRegistry, worldChunkManager);
         assertEquals(BiomeGenerator.VANILLA_OVERWORLD_STRUCTURE_BIOMES, biomeGenerator.getStructureBiomes());
     }
 
     @Test
     public void noDoubleWrapping() {
-        BiomeGenerator ours = (x, y, z) -> Biome.PLAINS;
+        BiomeGenerator ours = (x, y, z) -> org.bukkit.block.Biome.PLAINS;
+        Registry<Biome> biomeRegistry = RegistryAccess.builtin().registryOrThrow(Registry.BIOME_REGISTRY);
 
         assertThrows(IllegalArgumentException.class,
-                () -> new BiomeGeneratorImpl(RegistryGeneration.WORLDGEN_BIOME,
-                        new InjectedBiomeGenerator(RegistryGeneration.WORLDGEN_BIOME, ours)));
+                () -> new BiomeGeneratorImpl(biomeRegistry,
+                        new InjectedBiomeGenerator(biomeRegistry, ours)));
     }
 }

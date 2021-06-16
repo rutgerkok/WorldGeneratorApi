@@ -8,7 +8,8 @@ import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 import org.mockito.Mockito;
 
-import net.minecraft.server.v1_16_R3.DispenserRegistry;
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
 
 public class TestFactory {
 
@@ -22,7 +23,8 @@ public class TestFactory {
         if (Bukkit.getServer() != null) {
             return;
         }
-        DispenserRegistry.init();
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
         Server server = Mockito.mock(Server.class);
         Mockito.when(server.getLogger()).thenReturn(Logger.getLogger(TestFactory.class.getName()));
         Mockito.when(server.getWorld(Mockito.eq("test"))).thenAnswer(args -> world(args.getArgument(0)));
