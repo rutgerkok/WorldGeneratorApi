@@ -34,23 +34,24 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<outputFile>../target/WorldGeneratorApi-${project.version}.jar</outputFile>
-				</configuration>
-			</plugin>
+			
+            <!-- Shade the API in -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</outputFile>
+                </configuration>
+            </plugin>
 
 			<!-- Bunch of stuff to convert to Spigot mappings -->
 			<plugin>
@@ -65,11 +66,12 @@
 						</goals>
 						<id>remap-obf</id>
 						<configuration>
+				            <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</inputFile>
 							<srgIn>org.spigotmc:minecraft-server:1.17-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
 							<reverse>true</reverse>
 							<remappedDependencies>org.spigotmc:spigot:1.17-R0.1-SNAPSHOT:jar:remapped-mojang</remappedDependencies>
 							<remappedArtifactAttached>true</remappedArtifactAttached>
-							<remappedClassifierName>remapped-obf</remappedClassifierName>
+							<remappedClassifierName>remapped-obfuscated</remappedClassifierName>
 						</configuration>
 					</execution>
 					<execution>
@@ -79,13 +81,20 @@
 						</goals>
 						<id>remap-spigot</id>
 						<configuration>
-							<inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar</inputFile>
+							<inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obfuscated.jar</inputFile>
 							<srgIn>org.spigotmc:minecraft-server:1.17-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
 							<remappedDependencies>org.spigotmc:spigot:1.17-R0.1-SNAPSHOT:jar:remapped-obf</remappedDependencies>
+							<remappedArtifactAttached>true</remappedArtifactAttached>
+							<remappedClassifierName>bukkit</remappedClassifierName>
+							<outputDirectory>${project.build.directory}/../../target/</outputDirectory>
+							<remappedArtifactId>WorldGeneratorApi</remappedArtifactId>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+
+
+
 		</plugins>
 		<resources>
 			<resource>
