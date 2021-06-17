@@ -20,11 +20,13 @@ import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.StructureFeatureManager;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
@@ -152,6 +154,24 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         }
 
         return iblockdata;
+    }
+
+    @Override
+    public void applyBiomeDecoration(final WorldGenRegion regionlimitedworldaccess,
+            final StructureFeatureManager structuremanager) {
+        // TODO allow control over biome decorations
+        super.applyBiomeDecoration(regionlimitedworldaccess, structuremanager);
+    }
+
+    @Override
+    public void applyCarvers(long i, BiomeManager biomemanager, ChunkAccess ichunkaccess,
+            GenerationStep.Carving worldgenstage_features) {
+        BaseDecorationType baseDecorationType = worldDecorator.toBaseDecorationType(worldgenstage_features);
+        if (this.worldDecorator.isDefaultEnabled(baseDecorationType)) {
+            super.applyCarvers(i, biomemanager, ichunkaccess, worldgenstage_features);
+        }
+        this.worldDecorator
+                .spawnCustomBaseDecorations(baseDecorationType, new GeneratingChunkImpl(ichunkaccess, biomeGenerator));
     }
 
     @Override

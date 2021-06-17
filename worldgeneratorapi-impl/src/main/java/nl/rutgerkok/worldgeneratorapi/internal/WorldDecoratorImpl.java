@@ -1,6 +1,5 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
-import java.lang.reflect.Field;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -10,8 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.decoration.BaseDecorationType;
@@ -24,8 +21,6 @@ public final class WorldDecoratorImpl implements WorldDecorator {
 
     private static final DecorationType[] DECORATION_TRANSLATION;
     private static final Map<GenerationStep.Carving, BaseDecorationType> CARVER_TRANSLATION;
-    private static final Field BIOME_DECORATIONS_FIELD;
-    private static final Field BIOME_SETTINGS_FIELD;
 
     static {
         GenerationStep.Decoration[] vanillaArray = GenerationStep.Decoration.values();
@@ -38,11 +33,6 @@ public final class WorldDecoratorImpl implements WorldDecorator {
         for (GenerationStep.Carving type : GenerationStep.Carving.values()) {
             CARVER_TRANSLATION.put(type, BaseDecorationType.valueOf("CARVING_" + type.name()));
         }
-
-        BIOME_DECORATIONS_FIELD = ReflectionUtil.getFieldOfType(Biome.class, Map.class);
-        BIOME_DECORATIONS_FIELD.setAccessible(true);
-        BIOME_SETTINGS_FIELD = ReflectionUtil.getFieldOfType(Biome.class, BiomeGenerationSettings.class);
-        BIOME_SETTINGS_FIELD.setAccessible(true);
     }
 
     private final Map<DecorationType, List<Decoration>> customDecorations = new ConcurrentHashMap<>();
@@ -98,6 +88,21 @@ public final class WorldDecoratorImpl implements WorldDecorator {
                 decoration.setBlocksInChunk(chunk);
             }
         }
+    }
+
+    /**
+     * Simple translation from Minecraft Carving GenerationStep to our
+     * BaseDecorationType.
+     *
+     * @param carvingStep
+     *            The carving step.
+     * @return The BaseDecorationType.
+     */
+    public BaseDecorationType toBaseDecorationType(GenerationStep.Carving carvingStep) {
+        return switch (carvingStep) {
+            case AIR -> BaseDecorationType.CARVING_AIR;
+            case LIQUID -> BaseDecorationType.CARVING_LIQUID;
+        };
     }
 
 }
