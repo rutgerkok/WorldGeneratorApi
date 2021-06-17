@@ -1,28 +1,26 @@
 package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
+import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.World.Environment;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.Blocks;
-import net.minecraft.server.v1_16_R3.ChunkGenerator;
-import net.minecraft.server.v1_16_R3.ChunkProviderServer;
-import net.minecraft.server.v1_16_R3.GeneratorSettingBase;
-import net.minecraft.server.v1_16_R3.IBlockData;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.MinecraftKey;
-import net.minecraft.server.v1_16_R3.ResourceKey;
-import net.minecraft.server.v1_16_R3.StructureSettings;
-import net.minecraft.server.v1_16_R3.WorldChunkManager;
-import net.minecraft.server.v1_16_R3.WorldServer;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
@@ -35,79 +33,31 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.NoiseToTerrainGen
 
 final class WorldGeneratorImpl implements WorldGenerator {
 
-    private static GeneratorSettingBase createDefaultEndSettings() {
-        // Equiv. to `a(f, a(new StructureSettings(false),
-        // Blocks.END_STONE.getBlockData(), Blocks.AIR.getBlockData(), f.a(), true,
-        // true));`
-        // in GeneratorSettingsBase
-        try {
-            Method meth1 = GeneratorSettingBase.class.getDeclaredMethod("a", StructureSettings.class,
-                    IBlockData.class, IBlockData.class, MinecraftKey.class, boolean.class, boolean.class);
-            Method meth2 = GeneratorSettingBase.class.getDeclaredMethod("a", ResourceKey.class,
-                    GeneratorSettingBase.class);
 
-            meth1.setAccessible(true);
-            meth2.setAccessible(true);
+    private static NoiseGeneratorSettings createDefaultSettings(Environment environment) {
+        // You can always follow the code in CraftServer.createWorld to find out how
+        // Minecraft gets the default settings
+        DedicatedServer server = ((CraftServer) Bukkit.getServer()).getHandle().getServer();
+        Registry<NoiseGeneratorSettings> generatorSettingsRegistry = server.registryAccess()
+                .registryOrThrow(Registry.NOISE_GENERATOR_SETTINGS_REGISTRY);
 
-            StructureSettings genStronghold = new StructureSettings(false);
-            GeneratorSettingBase generatorSettings = (GeneratorSettingBase) meth1.invoke(null, genStronghold,
-                    Blocks.END_STONE.getBlockData(), Blocks.AIR.getBlockData(), GeneratorSettingBase.f.a(), true, true);
-
-            return (GeneratorSettingBase) meth2.invoke(null, GeneratorSettingBase.f, generatorSettings);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // If something goes wrong just default to Overworld Settings.
-            e.printStackTrace();
-            return createDefaultSettings();
-        }
+        ResourceKey<NoiseGeneratorSettings> key = switch (environment) {
+            case NETHER -> NoiseGeneratorSettings.NETHER;
+            case CUSTOM -> NoiseGeneratorSettings.OVERWORLD;
+            case NORMAL -> NoiseGeneratorSettings.OVERWORLD;
+            case THE_END -> NoiseGeneratorSettings.END;
+            default -> throw new IllegalArgumentException("Unexpected value: " + environment);
+        };
+        return generatorSettingsRegistry.get(key);
     }
 
-    private static GeneratorSettingBase createDefaultNetherSettings() {
-        // Equiv. to `a(e, a(new StructureSettings(false),
-        // Blocks.NETHERRACK.getBlockData(), Blocks.LAVA.getBlockData(), e.a()));`
-        // in GeneratorSettingsBase
-        try {
-            Method meth1 = GeneratorSettingBase.class.getDeclaredMethod("a", StructureSettings.class,
-                    IBlockData.class, IBlockData.class, MinecraftKey.class);
-            Method meth2 = GeneratorSettingBase.class.getDeclaredMethod("a", ResourceKey.class,
-                    GeneratorSettingBase.class);
-
-            meth1.setAccessible(true);
-            meth2.setAccessible(true);
-
-            StructureSettings genStronghold = new StructureSettings(false);
-            GeneratorSettingBase generatorSettings = (GeneratorSettingBase) meth1.invoke(null, genStronghold,
-                    Blocks.NETHERRACK.getBlockData(), Blocks.LAVA.getBlockData(), GeneratorSettingBase.e.a());
-
-            return (GeneratorSettingBase) meth2.invoke(null, GeneratorSettingBase.e, generatorSettings);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // If something goes wrong just default to Overworld Settings.
-            e.printStackTrace();
-            return createDefaultSettings();
-        }
+    private static NoiseGeneratorSettings extractSettings(CraftWorld world) {
+        return createDefaultSettings(world.getEnvironment());
     }
 
-    private static GeneratorSettingBase createDefaultSettings() {
-        return GeneratorSettingBase.i();
-    }
-
-    private static GeneratorSettingBase extractSettings(CraftWorld world) {
-        // Get default settings based on environment
-        // Not sure if there's a new way to extract the existing settings, which may be
-        // a better option, since
-        // ChunkGenerator has no GeneratorSettingBase fields in it (anymore?)
-        World.Environment env = world.getEnvironment();
-
-        if (env.equals(World.Environment.THE_END)) {
-            return createDefaultEndSettings();
-        } else if (env.equals(World.Environment.NETHER)) {
-            return createDefaultNetherSettings();
-        } else {
-            return createDefaultSettings();
-        }
-    }
-
-    private static IRegistry<BiomeBase> getBiomeRegistry(WorldServer world) {
-        return world.r().b(IRegistry.ay); // Copied from CraftWorld.getBiome
+    private static Registry<Biome> getBiomeRegistry(ServerLevel world) {
+        // Copied from CraftWorld.getBiome
+        return world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
     }
 
     private @Nullable InjectedChunkGenerator injected;
@@ -130,7 +80,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
     WorldGeneratorImpl(World world) {
         this.world = Objects.requireNonNull(world, "world");
         this.worldRef = WorldRef.of(world);
-        this.oldChunkGenerator = this.getWorldHandle().getChunkProvider().getChunkGenerator();
+        this.oldChunkGenerator = this.getWorldHandle().getChunkProvider().getGenerator();
     }
 
     @Override
@@ -151,11 +101,11 @@ final class WorldGeneratorImpl implements WorldGenerator {
         }
 
         if (this.cachedVanillaWrapperBiomeGenerator == null) {
-            WorldServer world = getWorldHandle();
-            WorldChunkManager worldChunkManager = world
+            ServerLevel world = getWorldHandle();
+            BiomeSource worldChunkManager = world
                     .getChunkProvider()
-                    .getChunkGenerator()
-                    .getWorldChunkManager();
+                    .getGenerator()
+                    .getBiomeSource();
             this.cachedVanillaWrapperBiomeGenerator = new BiomeGeneratorImpl(getBiomeRegistry(world),
                     worldChunkManager);
         }
@@ -179,7 +129,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
         return injected.worldDecorator;
     }
 
-    private WorldServer getWorldHandle() {
+    private ServerLevel getWorldHandle() {
         return ((CraftWorld) world).getHandle();
     }
 
@@ -189,7 +139,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
     }
 
     /**
-     * Injects a nms.ChunkGenerator.
+     * Injects a net.minecraft.world.level.chunk.ChunkGenerator.
      *
      * @param injected
      *            The new ChunkGenerator.
@@ -197,14 +147,14 @@ final class WorldGeneratorImpl implements WorldGenerator {
     private void injectInternalChunkGenerator(ChunkGenerator injected) {
         this.cachedVanillaWrapperBiomeGenerator = null; // Wipe out cache - we're replacing the chunk generator
 
-        ChunkProviderServer chunkProvider = getWorldHandle().getChunkProvider();
+        ServerChunkCache chunkProvider = getWorldHandle().getChunkProvider();
         try {
             Field chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider, ChunkGenerator.class);
             chunkGeneratorField.set(chunkProvider, injected);
 
             // Also replace chunk generator in PlayerChunkMap
-            chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider.playerChunkMap, ChunkGenerator.class);
-            chunkGeneratorField.set(chunkProvider.playerChunkMap, injected);
+            chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider.chunkMap, ChunkGenerator.class);
+            chunkGeneratorField.set(chunkProvider.chunkMap, injected);
 
             // Paper only: replace chunk generator in ChunkTaskScheduler
             try {
@@ -223,6 +173,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
         }
     }
 
+    @Deprecated // Not going to work in 1.17
     private Class<?> nmsClass(String simpleName) throws ClassNotFoundException {
         // Returns a class in the net.mineraft.server package
         Class<?> exampleNmsClass = ChunkGenerator.class;
@@ -238,11 +189,11 @@ final class WorldGeneratorImpl implements WorldGenerator {
      *            Base chunk generator.
      */
     private void replaceChunkGenerator(BaseTerrainGenerator base) {
-        WorldServer world = this.getWorldHandle();
-        ChunkGenerator chunkGenerator = world.getChunkProvider().getChunkGenerator();
-        WorldChunkManager worldChunkManager = chunkGenerator.getWorldChunkManager();
+        ServerLevel world = this.getWorldHandle();
+        ChunkGenerator chunkGenerator = world.getChunkProvider().getGenerator();
+        BiomeSource worldChunkManager = chunkGenerator.getBiomeSource();
         long seed = world.getSeed();
-        GeneratorSettingBase settings = extractSettings(world.getWorld());
+        NoiseGeneratorSettings settings = extractSettings(world.getWorld());
         InjectedChunkGenerator injected = new InjectedChunkGenerator(worldChunkManager, getBiomeRegistry(world), base,
                 seed, settings);
 
@@ -305,7 +256,7 @@ final class WorldGeneratorImpl implements WorldGenerator {
     @Override
     public BaseTerrainGenerator toBaseTerrainGenerator(BaseNoiseGenerator base) {
         Supplier<BiomeGenerator> biomeGenerator = this::getBiomeGenerator;
-        WorldServer world = getWorldHandle();
+        ServerLevel world = getWorldHandle();
         return new NoiseToTerrainGenerator(world, world.getStructureManager(), biomeGenerator, base, world.getSeed());
     }
 

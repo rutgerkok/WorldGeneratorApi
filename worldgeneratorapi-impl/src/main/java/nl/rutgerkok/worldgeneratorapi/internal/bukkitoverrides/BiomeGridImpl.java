@@ -3,32 +3,31 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 import java.util.Objects;
 
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
 import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 
-import net.minecraft.server.v1_16_R3.BiomeBase;
-import net.minecraft.server.v1_16_R3.BiomeStorage;
-import net.minecraft.server.v1_16_R3.IRegistry;
-import net.minecraft.server.v1_16_R3.RegistryGeneration;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.chunk.ChunkBiomeContainer;
 
 public final class BiomeGridImpl implements BiomeGrid {
-    private final BiomeStorage biomeStorage;
+    private final ChunkBiomeContainer biomeStorage;
 
-    BiomeGridImpl(BiomeStorage biomeStorage) {
+    BiomeGridImpl(ChunkBiomeContainer biomeStorage) {
         this.biomeStorage = Objects.requireNonNull(biomeStorage);
     }
 
     @Override
     public Biome getBiome(final int x, final int z) {
-        return CraftBlock.biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.registry,
-                this.biomeStorage.getBiome(x >> 2, 0, z >> 2));
+        return CraftBlock
+                .biomeBaseToBiome((Registry<net.minecraft.world.level.biome.Biome>) this.biomeStorage.biomeRegistry, this.biomeStorage
+                        .getNoiseBiome(x >> 2, 0, z >> 2));
     }
 
     @Override
     public Biome getBiome(int x, int y, int z) {
         return CraftBlock
-                .biomeBaseToBiome((IRegistry<BiomeBase>) this.biomeStorage.registry,
-                this.biomeStorage.getBiome(x >> 2, y >> 2, z >> 2));
+                .biomeBaseToBiome((Registry<net.minecraft.world.level.biome.Biome>) this.biomeStorage.biomeRegistry, this.biomeStorage
+                        .getNoiseBiome(x >> 2, y >> 2, z >> 2));
     }
 
     /**
@@ -36,19 +35,19 @@ public final class BiomeGridImpl implements BiomeGrid {
      *
      * @return The biome storage.
      */
-    public BiomeStorage getHandle() {
+    public ChunkBiomeContainer getHandle() {
         return biomeStorage;
     }
 
     @Override
     public void setBiome(int x, int z, Biome biome) {
-        this.biomeStorage.setBiome(x >> 2, 0, z >> 2,
-                CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome));
+        this.biomeStorage.setBiome(x >> 2, 0, z >> 2, CraftBlock
+                .biomeToBiomeBase((Registry<net.minecraft.world.level.biome.Biome>) this.biomeStorage.biomeRegistry, biome));
     }
 
     @Override
     public void setBiome(int x, int y, int z, Biome biome) {
-        this.biomeStorage.setBiome(x >> 2, y >> 2, z >> 2,
-                CraftBlock.biomeToBiomeBase(RegistryGeneration.WORLDGEN_BIOME, biome));
+        this.biomeStorage.setBiome(x >> 2, y >> 2, z >> 2, CraftBlock
+                .biomeToBiomeBase((Registry<net.minecraft.world.level.biome.Biome>) this.biomeStorage.biomeRegistry, biome));
     }
 }

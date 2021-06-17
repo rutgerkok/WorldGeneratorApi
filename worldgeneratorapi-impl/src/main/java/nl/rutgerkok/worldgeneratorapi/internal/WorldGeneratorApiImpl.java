@@ -12,9 +12,10 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -145,10 +146,9 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
         return propertyRegistry;
     }
 
-    private void injectWorldAddListener() {
-        // Listening to the WorldInitEvent would be easier, but unfortunately that event
-        // fires after the first chunks have been generated.
-        // See https://github.com/rutgerkok/WorldGeneratorApi/issues/13
+    private void injectWorldRemovalListener() {
+        // Just relying on WorldInitEvent would be easier, but unfortunately that event
+        // is not called by WorldEdit, so proper initialization doesn't happen
         Server server = this.getServer();
         try {
             @SuppressWarnings("unchecked")
@@ -171,7 +171,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
-        injectWorldAddListener();
+        injectWorldRemovalListener();
 
         redirectCommand(getCommand("worldgeneratorapi"),
                 new CommandHandler(this::reloadWorldGenerators, propertyRegistry));
@@ -186,6 +186,12 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
             // worlds)
             this.worldGenerators.remove(world.getUID());
         }
+    }
+
+    @EventHandler
+    public void onWorldInit(WorldInitEvent event) {
+        // Initialize world
+        getForWorld(event.getWorld());
     }
 
     @EventHandler

@@ -15,8 +15,8 @@
 	</properties>
 	<repositories>
 		<repository>
-			<id>nms-repo</id>
-			<url>https://repo.codemc.io/repository/nms/</url>
+			<id>rutger-repo</id>
+			<url>https://rutgerkok.nl/repo/</url>
 		</repository>
 	</repositories>
 
@@ -34,22 +34,67 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+			
+            <!-- Shade the API in -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</outputFile>
+                </configuration>
+            </plugin>
+
+			<!-- Bunch of stuff to convert to Spigot mappings -->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.0</version>
+				<groupId>net.md-5</groupId>
+				<artifactId>specialsource-maven-plugin</artifactId>
+				<version>1.2.2</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
 						<goals>
-							<goal>shade</goal>
+							<goal>remap</goal>
 						</goals>
+						<id>remap-obf</id>
+						<configuration>
+				            <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</inputFile>
+							<srgIn>org.spigotmc:minecraft-server:1.17-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
+							<reverse>true</reverse>
+							<remappedDependencies>org.spigotmc:spigot:1.17-R0.1-SNAPSHOT:jar:remapped-mojang</remappedDependencies>
+							<remappedArtifactAttached>true</remappedArtifactAttached>
+							<remappedClassifierName>remapped-obfuscated</remappedClassifierName>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>remap</goal>
+						</goals>
+						<id>remap-spigot</id>
+						<configuration>
+							<inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obfuscated.jar</inputFile>
+							<srgIn>org.spigotmc:minecraft-server:1.17-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
+							<remappedDependencies>org.spigotmc:spigot:1.17-R0.1-SNAPSHOT:jar:remapped-obf</remappedDependencies>
+							<remappedArtifactAttached>true</remappedArtifactAttached>
+							<remappedClassifierName>bukkit</remappedClassifierName>
+							<outputDirectory>${project.build.directory}/../../target/</outputDirectory>
+							<remappedArtifactId>WorldGeneratorApi</remappedArtifactId>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<outputFile>../target/WorldGeneratorApi-${project.version}.jar</outputFile>
-				</configuration>
 			</plugin>
+
+
+
 		</plugins>
 		<resources>
 			<resource>
@@ -71,8 +116,9 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot</artifactId>
-			<version>1.16.5-R0.1-SNAPSHOT</version>
+			<version>1.17-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
+			<classifier>remapped-mojang</classifier>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
