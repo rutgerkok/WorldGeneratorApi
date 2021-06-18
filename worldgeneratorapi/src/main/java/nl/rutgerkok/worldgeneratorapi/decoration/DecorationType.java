@@ -12,27 +12,8 @@ import com.google.common.collect.ImmutableList;
  */
 public enum DecorationType {
     /*
-     * Keep the names in sync with Minecraft's equivalent. Also, for clarity, try to
-     * keep the order here the same as the order in which Minecraft generates them.
+     * For clarity, keep the names and order in sync with Minecraft.
      */
-
-    /**
-     * Used to generate caves and ravines.
-     *
-     * @deprecated Replaced by {@link BaseDecorationType#CARVING_AIR}.
-     * @since 0.3
-     */
-    @Deprecated
-    CARVING_AIR,
-
-    /**
-     * Used to generate underwater caves and ravines.
-     *
-     * @deprecated Replaced by {@link BaseDecorationType#CARVING_LIQUID}.
-     * @since 0.3
-     */
-    @Deprecated
-    CARVING_LIQUID,
 
     /**
      * Early stage of decoration, just after the two carving stages. Seems to be

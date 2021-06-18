@@ -12,6 +12,8 @@ import org.bukkit.generator.ChunkGenerator.ChunkData;
 
 import com.mojang.serialization.Codec;
 
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.server.level.WorldGenRegion;
@@ -159,8 +161,23 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
     @Override
     public void applyBiomeDecoration(final WorldGenRegion regionlimitedworldaccess,
             final StructureFeatureManager structuremanager) {
-        // TODO allow control over biome decorations
-        super.applyBiomeDecoration(regionlimitedworldaccess, structuremanager);
+        final ChunkPos chunkcoordintpair = regionlimitedworldaccess.getCenter();
+        final int i = chunkcoordintpair.getMinBlockX();
+        final int j = chunkcoordintpair.getMinBlockZ();
+        final BlockPos blockposition = new BlockPos(i, regionlimitedworldaccess.getMinBuildHeight(), j);
+        final Biome biomebase = this.biomeSource.getPrimaryBiome(chunkcoordintpair);
+        final WorldgenRandom seededrandom = new WorldgenRandom();
+        final long k = seededrandom.setDecorationSeed(regionlimitedworldaccess.getSeed(), i, j);
+        try {
+            worldDecorator
+                    .generate(biomebase, structuremanager, this, regionlimitedworldaccess, k, seededrandom, blockposition);
+        } catch (Exception exception) {
+            final CrashReport crashreport = CrashReport.forThrowable((Throwable) exception, "Biome decoration");
+            crashreport.addCategory("Generation").setDetail("CenterX", (Object) chunkcoordintpair.x)
+                    .setDetail("CenterZ", (Object) chunkcoordintpair.z).setDetail("Seed", (Object) k)
+                    .setDetail("Biome", (Object) biomebase);
+            throw new ReportedException(crashreport);
+        }
     }
 
     @Override
