@@ -8,8 +8,14 @@ import java.util.stream.IntStream;
 
 import javax.annotation.Nullable;
 
+import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
+
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
@@ -29,6 +35,7 @@ import net.minecraft.world.level.levelgen.synth.PerlinNoise;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator;
+import nl.rutgerkok.worldgeneratorapi.BaseNoiseGenerator.TerrainSettings;
 import nl.rutgerkok.worldgeneratorapi.BaseTerrainGenerator;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
@@ -55,6 +62,27 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
         }
     }
 
+    private static NoiseGeneratorSettings createNoiseSettings(TerrainSettings settings) {
+        // Practically everything in that class is private, final or protected, so we
+        // need to modify the serialized data :(
+
+        // Change default settings into NBT tag
+        Tag result = NoiseGeneratorSettings.DIRECT_CODEC
+                .encode(NoiseGeneratorSettings.bootstrap(), NbtOps.INSTANCE, new CompoundTag()).result().orElseThrow();
+
+        // Modify that tag
+        CompoundTag serialized = (CompoundTag) result;
+        serialized.put("default_block", NbtUtils.writeBlockState(((CraftBlockData) settings.stoneBlock).getState()));
+        serialized.put("default_fluid", NbtUtils.writeBlockState(((CraftBlockData) settings.waterBlock).getState()));
+        if (settings.seaLevel != -1) {
+            serialized.putInt("sea_level", settings.seaLevel);
+        }
+
+        // And encode again
+        return NoiseGeneratorSettings.DIRECT_CODEC.decode(NbtOps.INSTANCE, serialized).result().orElseThrow()
+                .getFirst();
+    }
+
     private final NoiseBasedChunkGenerator internal;
     private final BaseNoiseGenerator baseNoiseGenerator;
     private final ServerLevel world;
@@ -70,7 +98,7 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
         BiomeSource biomeSource = InjectedBiomeGenerator
                 .wrapOrUnwrap(world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), biomeGenerator.get());
 
-        NoiseGeneratorSettings noiseGeneratorSettings = NoiseGeneratorSettings.bootstrap();
+        NoiseGeneratorSettings noiseGeneratorSettings = createNoiseSettings(baseNoiseGenerator.getTerrainSettings());
         NoiseSettings noiseSettings = noiseGeneratorSettings.noiseSettings();
         this.internal = new NoiseBasedChunkGenerator(biomeSource, seed, () -> noiseGeneratorSettings);
 
