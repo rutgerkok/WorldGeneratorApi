@@ -156,29 +156,10 @@ final class WorldGeneratorImpl implements WorldGenerator {
             chunkGeneratorField = ReflectionUtil.getFieldOfType(chunkProvider.chunkMap, ChunkGenerator.class);
             chunkGeneratorField.set(chunkProvider.chunkMap, injected);
 
-            // Paper only: replace chunk generator in ChunkTaskScheduler
-            try {
-                Field chunkTaskSchedulerField = ReflectionUtil.getFieldOfType(chunkProvider,
-                        nmsClass("ChunkTaskScheduler"));
-                Object scheduler = chunkTaskSchedulerField.get(chunkProvider);
-                chunkGeneratorField = ReflectionUtil.getFieldOfType(scheduler, ChunkGenerator.class);
-                chunkGeneratorField.set(scheduler, injected);
-            } catch (ClassNotFoundException e) {
-                // Ignore, we're not on Paper but on Spigot
-            }
-
             getWorldHandle().generator = null; // Clear out the custom generator
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to inject world generator", e);
         }
-    }
-
-    @Deprecated // Not going to work in 1.17
-    private Class<?> nmsClass(String simpleName) throws ClassNotFoundException {
-        // Returns a class in the net.mineraft.server package
-        Class<?> exampleNmsClass = ChunkGenerator.class;
-        String name = exampleNmsClass.getName().replace(exampleNmsClass.getSimpleName(), simpleName);
-        return Class.forName(name);
     }
 
     /**
