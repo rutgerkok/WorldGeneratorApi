@@ -6,6 +6,8 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Creeper;
+import org.bukkit.entity.Entity;
 
 /**
  * Represents a square area of 32 x 32 blocks which should be populated. (So 2x2
@@ -132,6 +134,18 @@ public interface DecorationArea {
     int getCenterZ();
 
     /**
+     * Gets the highest non-empty coordinate at the given coordinates.
+     *
+     * @param x
+     *            The block x in the world.
+     * @param z
+     *            The block z in the world.
+     * @return The block y.
+     * @since 1.2
+     */
+    int getHighestBlockYAt(int x, int z);
+
+    /**
      * Sets the material at the given position.
      *
      * @param x
@@ -182,4 +196,25 @@ public interface DecorationArea {
      * @since 0.3
      */
     void setBlockState(int x, int y, int z, BlockState blockState);
+
+    /**
+     * Spawns an entity in the world.
+     *
+     * @param <T>
+     *            Type of the entity.
+     * @param entityClass
+     *            Class of the entity, for example {@link Creeper}.class.
+     * @param x
+     *            Block x in the world.
+     * @param y
+     *            Block y in the world.
+     * @param z
+     *            Block z in the world.
+     * @return The entity, so that you can modify it further.
+     * @throws IllegalArgumentException
+     *             If spawning entities of this entity type is not possible.
+     * @since 1.2
+     */
+    <T extends Entity> T spawnEntity(Class<T> entityClass, double x, double y, double z)
+            throws IllegalArgumentException;
 }

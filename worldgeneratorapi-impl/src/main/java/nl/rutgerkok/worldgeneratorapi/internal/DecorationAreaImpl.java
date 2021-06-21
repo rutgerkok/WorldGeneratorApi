@@ -2,9 +2,11 @@ package nl.rutgerkok.worldgeneratorapi.internal;
 
 import java.util.Objects;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftBanner;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftBarrel;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftBeacon;
@@ -38,12 +40,17 @@ import org.bukkit.craftbukkit.v1_17_R1.block.CraftSkull;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftSmoker;
 import org.bukkit.craftbukkit.v1_17_R1.block.CraftStructureBlock;
 import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
+import org.bukkit.entity.Entity;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
@@ -77,6 +84,7 @@ import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.levelgen.Heightmap;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationArea;
 
 class DecorationAreaImpl implements DecorationArea {
@@ -276,6 +284,11 @@ class DecorationAreaImpl implements DecorationArea {
     }
 
     @Override
+    public int getHighestBlockYAt(int x, int z) {
+        return this.region.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
+    }
+
+    @Override
     public void setBlock(int x, int y, int z, Material material) {
         setBlockData(x, y, z, material.createBlockData());
     }
@@ -302,6 +315,32 @@ class DecorationAreaImpl implements DecorationArea {
             BlockEntity tileEntity = BlockEntity.loadStatic(position, mcBlockData, tag);
             chunk.setBlockEntity(tileEntity);
         }
+    }
+
+    @Override
+    public <T extends Entity> T spawnEntity(Class<T> entityClass, double x, double y, double z)
+            throws IllegalArgumentException {
+        // Inspired on
+        // https://github.com/PaperMC/Paper/blob/c4c6e26c00665989d3c1c82fb115a8f7f8de659b/patches/server/0714-Add-Feature-Generation-API.patch
+        Objects.requireNonNull(entityClass, "entityClass");
+
+        CraftWorld world = this.region.getMinecraftWorld().getWorld();
+        net.minecraft.world.entity.Entity entity = world.createEntity(new Location(world, x, y, z), entityClass);
+        if (entity == null) {
+            throw new IllegalArgumentException("No entity for " + entityClass);
+        }
+        if (entity instanceof Mob) {
+            ((Mob) entity).finalizeSpawn(this.region, this.region
+                    .getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.COMMAND, (SpawnGroupData) null, null);
+        }
+
+        // SpawnReason is unused by WorldGenRegion
+        this.region.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+
+        // Should be safe, see world.createEntity
+        @SuppressWarnings("unchecked")
+        T bukkitEntity = (T) entity.getBukkitEntity();
+        return bukkitEntity;
     }
 
 }
