@@ -71,15 +71,19 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
                 .encode(NoiseGeneratorSettings.bootstrap(), NbtOps.INSTANCE, new CompoundTag()).result().orElseThrow();
 
         // Modify that tag
-        CompoundTag serialized = (CompoundTag) result;
-        serialized.put("default_block", NbtUtils.writeBlockState(((CraftBlockData) settings.stoneBlock).getState()));
-        serialized.put("default_fluid", NbtUtils.writeBlockState(((CraftBlockData) settings.waterBlock).getState()));
+        CompoundTag tag = (CompoundTag) result;
+        if (settings.stoneBlock != null) {
+            tag.put("default_block", NbtUtils.writeBlockState(((CraftBlockData) settings.stoneBlock).getState()));
+        }
+        if (settings.waterBlock != null) {
+            tag.put("default_fluid", NbtUtils.writeBlockState(((CraftBlockData) settings.waterBlock).getState()));
+        }
         if (settings.seaLevel != -1) {
-            serialized.putInt("sea_level", settings.seaLevel);
+            tag.putInt("sea_level", settings.seaLevel);
         }
 
         // And encode again
-        return NoiseGeneratorSettings.DIRECT_CODEC.decode(NbtOps.INSTANCE, serialized).result().orElseThrow()
+        return NoiseGeneratorSettings.DIRECT_CODEC.decode(NbtOps.INSTANCE, tag).result().orElseThrow()
                 .getFirst();
     }
 
