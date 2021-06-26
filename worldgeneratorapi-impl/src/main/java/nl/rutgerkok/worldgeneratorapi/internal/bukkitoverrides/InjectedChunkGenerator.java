@@ -17,13 +17,17 @@ import net.minecraft.ReportedException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.StructureFeatureManager;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -34,6 +38,7 @@ import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.levelgen.NoiseSettings;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
+import net.minecraft.world.level.levelgen.feature.StructureFeature;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.synth.PerlinNoise;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
@@ -172,10 +177,10 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
             worldDecorator
                     .generate(biomebase, structuremanager, this, regionlimitedworldaccess, k, seededrandom, blockposition);
         } catch (Exception exception) {
-            final CrashReport crashreport = CrashReport.forThrowable((Throwable) exception, "Biome decoration");
-            crashreport.addCategory("Generation").setDetail("CenterX", (Object) chunkcoordintpair.x)
-                    .setDetail("CenterZ", (Object) chunkcoordintpair.z).setDetail("Seed", (Object) k)
-                    .setDetail("Biome", (Object) biomebase);
+            final CrashReport crashreport = CrashReport.forThrowable(exception, "Biome decoration");
+            crashreport.addCategory("Generation").setDetail("CenterX", chunkcoordintpair.x)
+                    .setDetail("CenterZ", chunkcoordintpair.z).setDetail("Seed", k)
+                    .setDetail("Biome", biomebase);
             throw new ReportedException(crashreport);
         }
     }
@@ -260,7 +265,6 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         return CompletableFuture.completedFuture(chunkAccess);
     }
 
-
     @Override
     public NoiseColumn getBaseColumn(int blockX, int blockZ, LevelHeightAccessor levelHeight) {
         // Generates a single column.
@@ -288,6 +292,7 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         return new NoiseColumn(minY, blockData);
     }
 
+
     @Override
     public int getBaseHeight(int i, int j, Heightmap.Types heightType, LevelHeightAccessor levelHeight) {
         // Shortcut
@@ -302,14 +307,45 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         return this.baseTerrainGenerator.getHeight(biomeGenerator, i, j, wHeightType);
     }
 
-
-
     public BaseTerrainGenerator getBaseTerrainGenerator() {
         return baseTerrainGenerator;
     }
 
+
+
     public BiomeGenerator getBiomeGenerator() {
         return biomeGenerator;
+    }
+
+    @Override
+    public WeightedRandomList<MobSpawnSettings.SpawnerData> getMobsAt(final Biome var0,
+            final StructureFeatureManager var1, final MobCategory var2, final BlockPos var3) {
+        // Copied from NoiseBasedChunkGenerator
+        if (var1.getStructureAt(var3, true, StructureFeature.SWAMP_HUT).isValid()) {
+            if (var2 == MobCategory.MONSTER) {
+                return StructureFeature.SWAMP_HUT.getSpecialEnemies();
+            }
+            if (var2 == MobCategory.CREATURE) {
+                return StructureFeature.SWAMP_HUT.getSpecialAnimals();
+            }
+        }
+        if (var2 == MobCategory.MONSTER) {
+            if (var1.getStructureAt(var3, false, StructureFeature.PILLAGER_OUTPOST).isValid()) {
+                return StructureFeature.PILLAGER_OUTPOST.getSpecialEnemies();
+            }
+            if (var1.getStructureAt(var3, false, StructureFeature.OCEAN_MONUMENT).isValid()) {
+                return StructureFeature.OCEAN_MONUMENT.getSpecialEnemies();
+            }
+            if (var1.getStructureAt(var3, true, StructureFeature.NETHER_BRIDGE).isValid()) {
+                return StructureFeature.NETHER_BRIDGE.getSpecialEnemies();
+            }
+        }
+        if (var2 == MobCategory.UNDERGROUND_WATER_CREATURE
+                && var1.getStructureAt(var3, false, StructureFeature.OCEAN_MONUMENT).isValid()) {
+            return StructureFeature.OCEAN_MONUMENT
+                    .getSpecialUndergroundWaterAnimals();
+        }
+        return super.getMobsAt(var0, var1, var2, var3);
     }
 
     private void injectWorldChunkManager(BiomeSource worldChunkManager) {
@@ -324,7 +360,6 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
             throw new RuntimeException("Failed to update the biome generator field - old value is still present");
         }
     }
-
     /**
      * When {@link #setBiomeGenerator(BiomeGenerator)}, the biome generator will get
      * injected into the vanilla terrain generator, if it was active. This method is
@@ -384,6 +419,16 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         if (this.baseTerrainGenerator instanceof BaseTerrainGeneratorImpl) {
             ((BaseTerrainGeneratorImpl) this.baseTerrainGenerator).replaceWorldChunkManager(worldChunkManager);
         }
+    }
+
+    @Override
+    public void spawnOriginalMobs(final WorldGenRegion var0) {
+        // Copied from NoiseBaseChunkGenerator
+        final ChunkPos var = var0.getCenter();
+        final Biome var2 = var0.getBiome(var.getWorldPosition());
+        final WorldgenRandom var3 = new WorldgenRandom();
+        var3.setDecorationSeed(var0.getSeed(), var.getMinBlockX(), var.getMinBlockZ());
+        NaturalSpawner.spawnMobsForChunkGeneration(var0, var2, var, var3);
     }
 
     @Override
