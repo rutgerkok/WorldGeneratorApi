@@ -54,7 +54,7 @@ Are you a plugin developer? We have [a wiki](https://github.com/rutgerkok/WorldG
 
 ## Limitations
 * There is no way to add custom biomes yet.
-* There is no way to spawn entities yet.
+* There is no way to change entity spawning for a certain location (like Guardians in Ocean Temples).
 * Adding large custom structures (like villages) is cumbersome, as you need to write the code yourself to divide your structures into chunk-sized parts.
 
 ## Plugins using WorldGeneratorApi
