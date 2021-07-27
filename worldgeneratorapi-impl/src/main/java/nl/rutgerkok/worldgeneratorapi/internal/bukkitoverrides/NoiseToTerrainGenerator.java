@@ -10,6 +10,9 @@ import javax.annotation.Nullable;
 
 import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
 
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.DataResult.PartialResult;
+
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -67,11 +70,15 @@ public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
         // need to modify the serialized data :(
 
         // Change default settings into NBT tag
-        Tag result = NoiseGeneratorSettings.DIRECT_CODEC
-                .encode(NoiseGeneratorSettings.bootstrap(), NbtOps.INSTANCE, new CompoundTag()).result().orElseThrow();
+        Either<Tag, PartialResult<Tag>> result = NoiseGeneratorSettings.DIRECT_CODEC
+                .encode(NoiseGeneratorSettings.bootstrap(), NbtOps.INSTANCE, new CompoundTag())
+                .get();
+        Tag resultTag = result.left()
+                .orElseThrow(() -> new RuntimeException("Failed to generate default NoiseGeneratorSettings: "
+                        + result.right().map(PartialResult::message).orElse(null)));
 
         // Modify that tag
-        CompoundTag tag = (CompoundTag) result;
+        CompoundTag tag = (CompoundTag) resultTag;
         if (settings.stoneBlock != null) {
             tag.put("default_block", NbtUtils.writeBlockState(((CraftBlockData) settings.stoneBlock).getState()));
         }
