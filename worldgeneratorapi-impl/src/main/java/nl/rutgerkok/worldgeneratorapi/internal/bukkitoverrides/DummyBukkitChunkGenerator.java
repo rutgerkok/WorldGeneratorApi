@@ -39,6 +39,7 @@ public final class DummyBukkitChunkGenerator extends ChunkGenerator {
     }
 
     @Override
+    @Deprecated
     public ChunkData generateChunkData(World world, Random random, int x, int z, BiomeGrid biome) {
         throw new UnsupportedOperationException("This is a dummy class, used"
                 + " because a custom world generator was registered. However,"

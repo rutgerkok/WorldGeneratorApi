@@ -1,6 +1,5 @@
 package nl.rutgerkok.worldgeneratorapi;
 
-import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
@@ -28,14 +27,17 @@ public interface BaseChunkGenerator {
         BiomeGenerator getBiomeGenerator();
 
         /**
-         * The biome grid. Represents the biomes of this chunk. Can be modified.
-         * (Although if you want to change biome generation, it is better to register
-         * your own {@link BiomeGenerator} instead.)
+         * The biome grid. Represents the biomes of this chunk.
          *
          * @return The biome grid for the chunk.
          * @since 0.1
+         * @deprecated Bukkit deprecated this class. Access stored biomes through
+         *             {@link #getBlocksForChunk()} instead, using
+         *             {@link ChunkData#getBiome(int, int, int)}. (If that method
+         *             doesn't exist, update your Bukkit API.)
          */
-        BiomeGrid getBiomesForChunk();
+        @Deprecated
+        org.bukkit.generator.ChunkGenerator.BiomeGrid getBiomesForChunk();
 
         /**
          * The blocks of the chunk. You should fill the chunk with water and its base

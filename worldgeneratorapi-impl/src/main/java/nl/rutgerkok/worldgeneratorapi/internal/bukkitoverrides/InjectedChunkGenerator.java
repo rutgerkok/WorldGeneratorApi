@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.IntStream;
 
-import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
 import com.mojang.serialization.Codec;
@@ -66,9 +65,11 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         private final int chunkZ;
         private final ChunkDataImpl blocks;
         private final BiomeGenerator biomeGenerator;
+        @Deprecated
         private final BiomeGridImpl biomeGrid;
         public final ChunkAccess internal;
 
+        @SuppressWarnings("deprecation")
         GeneratingChunkImpl(ChunkAccess internal, BiomeGenerator biomeGenerator) {
             this.internal = Objects.requireNonNull(internal, "internal");
             this.chunkX = internal.getPos().x;
@@ -85,7 +86,8 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         }
 
         @Override
-        public BiomeGrid getBiomesForChunk() {
+        @Deprecated
+        public org.bukkit.generator.ChunkGenerator.BiomeGrid getBiomesForChunk() {
             return biomeGrid;
         }
 

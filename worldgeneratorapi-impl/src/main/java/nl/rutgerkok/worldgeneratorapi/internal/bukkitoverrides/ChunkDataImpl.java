@@ -2,12 +2,16 @@ package nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides;
 
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
 import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkBiomeContainer;
 
 public final class ChunkDataImpl implements ChunkData {
     private final ChunkAccess internal;
@@ -21,6 +25,13 @@ public final class ChunkDataImpl implements ChunkData {
 
         this.xOffset = internal.getPos().x * 16;
         this.zOffset = internal.getPos().z * 16;
+    }
+
+    @Override
+    public org.bukkit.block.Biome getBiome(int x, int y, int z) {
+        ChunkBiomeContainer biomeStorage = getHandle().getBiomes();
+        return CraftBlock.biomeBaseToBiome((Registry<Biome>) biomeStorage.biomeRegistry,
+                biomeStorage.getNoiseBiome(x >> 2, y >> 2, z >> 2));
     }
 
     @Override

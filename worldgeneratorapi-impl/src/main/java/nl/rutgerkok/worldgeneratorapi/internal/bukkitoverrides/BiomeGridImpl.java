@@ -9,6 +9,7 @@ import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.chunk.ChunkBiomeContainer;
 
+@Deprecated
 public final class BiomeGridImpl implements BiomeGrid {
     private final ChunkBiomeContainer biomeStorage;
 

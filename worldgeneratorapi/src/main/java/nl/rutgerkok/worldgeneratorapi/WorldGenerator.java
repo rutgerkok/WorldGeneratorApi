@@ -2,7 +2,6 @@ package nl.rutgerkok.worldgeneratorapi;
 
 import org.bukkit.World;
 import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.plugin.Plugin;
 
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
@@ -45,9 +44,7 @@ public interface WorldGenerator {
 
     /**
      * Gets the biome generator currently in use. This method will return a valid
-     * biome generator for both vanilla and custom worlds. Note that modifications
-     * to the biomes made in later stages of world generation (using for example
-     * {@link BiomeGrid}) will not show up in this biome generator.
+     * biome generator for both vanilla and custom worlds.
      *
      * @return The biome generator.
      * @since 0.1
