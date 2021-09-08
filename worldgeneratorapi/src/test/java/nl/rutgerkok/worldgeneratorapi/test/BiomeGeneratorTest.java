@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 
+@Deprecated(forRemoval = true)
 public class BiomeGeneratorTest {
 
     @Test

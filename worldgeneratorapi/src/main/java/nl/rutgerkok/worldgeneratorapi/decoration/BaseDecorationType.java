@@ -8,6 +8,7 @@ package nl.rutgerkok.worldgeneratorapi.decoration;
  *
  * @since 0.3
  */
+@Deprecated(forRemoval = true)
 public enum BaseDecorationType {
 
     /**

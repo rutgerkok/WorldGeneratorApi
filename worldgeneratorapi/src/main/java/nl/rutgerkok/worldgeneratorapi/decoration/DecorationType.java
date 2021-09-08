@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableList;
  *
  * @since 0.2
  */
+@Deprecated(forRemoval = true)
 public enum DecorationType {
     /*
      * For clarity, keep the names and order in sync with Minecraft.

@@ -1,5 +1,7 @@
 package nl.rutgerkok.worldgeneratorapi;
 
+import org.bukkit.generator.ChunkGenerator;
+
 /**
  * Represents a basic terrain generator. This is used to generate the raw
  * terrain shape and to probe the height of terrain that is not yet generated.
@@ -12,7 +14,9 @@ package nl.rutgerkok.worldgeneratorapi;
  * instead.
  *
  * @since 0.3
+ * @deprecated Replaced by the new methods in {@link ChunkGenerator}.
  */
+@Deprecated(forRemoval = true)
 public interface BaseTerrainGenerator extends BaseChunkGenerator {
 
     /**

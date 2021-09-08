@@ -13,13 +13,20 @@ import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
+import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.generator.WorldInfo;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.biome.BiomeSource;
+import nl.rutgerkok.worldgeneratorapi.BaseNoiseProvider;
+import nl.rutgerkok.worldgeneratorapi.BasePopulator;
 import nl.rutgerkok.worldgeneratorapi.Version;
 import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
@@ -42,9 +49,13 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
         }
     }
 
+    @Deprecated
     private final Map<UUID, WorldGeneratorImpl> worldGenerators = new HashMap<>();
+    @Deprecated
     private final PropertyRegistry propertyRegistry = new PropertyRegistryImpl();
+    @Deprecated
     private final Map<WorldRef, Consumer<WorldGenerator>> worldGeneratorModifiers = new HashMap<>();
+    @Deprecated
     private Map<String, World> oldWorldsMap;
 
     /**
@@ -57,6 +68,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
      * @return The world generator, if it needed to be copied over from another
      *         world (transferring only the settings), otherwise empty.
      */
+    @Deprecated
     private Optional<WorldGeneratorImpl> checkForCopiedWorldGenerator(World world) {
         ChunkGenerator chunkGenerator = world.getGenerator();
         if (chunkGenerator instanceof DummyBukkitChunkGenerator) {
@@ -87,11 +99,18 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     }
 
     @Override
+    public BasePopulator createBasePopulatorFromNoiseFunction(BaseNoiseProvider noiseProvider) {
+        return new NoiseProviderToBasePopulator(noiseProvider);
+    }
+
+    @Override
+    @Deprecated
     public ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer) {
         this.worldGeneratorModifiers.putIfAbsent(world, consumer);
         return new DummyBukkitChunkGenerator(this, world);
     }
 
+    @Deprecated(forRemoval = true)
     private void disableWorldGenerators() {
         for (WorldGeneratorImpl worldGenerator : this.worldGenerators.values()) {
             worldGenerator.reset();
@@ -105,6 +124,23 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     }
 
     @Override
+    public BiomeProvider getBiomeProvider(WorldInfo world) throws IllegalStateException {
+        if (!(world instanceof CraftWorld)) {
+            world = getServer().getWorld(world.getUID());
+        }
+
+        if (world instanceof CraftWorld craftWorld) {
+            ServerLevel serverLevel = craftWorld.getHandle();
+            BiomeSource biomeSource = serverLevel.getChunkProvider().getGenerator().getBiomeSource();
+            return BiomeProviderImpl.minecraftToBukkit(serverLevel, biomeSource);
+        }
+
+        throw new IllegalStateException("World not yet loaded");
+    }
+
+    @SuppressWarnings({ "removal", "deprecation" })
+    @Override
+    @Deprecated(forRemoval = true)
     public WorldGenerator getForWorld(World world) {
 
         return worldGenerators.computeIfAbsent(world.getUID(), uuid -> {
@@ -135,13 +171,15 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
             }
 
             // Allow other plugins to modify the world
-            getServer().getPluginManager().callEvent(new WorldGeneratorInitEvent(worldGenerator));
+            WorldGeneratorInitEvent event = new WorldGeneratorInitEvent(worldGenerator);
+            getServer().getPluginManager().callEvent(event);
 
             return worldGenerator;
         });
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public PropertyRegistry getPropertyRegistry() {
         return propertyRegistry;
     }

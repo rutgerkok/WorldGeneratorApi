@@ -1,5 +1,6 @@
 package nl.rutgerkok.worldgeneratorapi;
 
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
@@ -8,7 +9,9 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
  * Generates the basic blocks (just air, stone and water usually) of a chunk.
  *
  * @since 0.1
+ * @deprecated Replaced by the new methods in {@link ChunkGenerator}.
  */
+@Deprecated(forRemoval = true)
 public interface BaseChunkGenerator {
 
     /**

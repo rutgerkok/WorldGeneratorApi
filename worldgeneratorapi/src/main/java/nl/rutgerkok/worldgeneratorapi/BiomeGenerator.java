@@ -3,13 +3,19 @@ package nl.rutgerkok.worldgeneratorapi;
 import java.util.Set;
 
 import org.bukkit.block.Biome;
+import org.bukkit.generator.BiomeProvider;
+import org.bukkit.plugin.Plugin;
 
 import com.google.common.collect.ImmutableSet;
 
 /**
  * This class can tell you what biome ends up where in the world.
  *
+ * @deprecated Replaced by new Bukkit API: {@link BiomeProvider} and
+ *             {@link Plugin#getDefaultBiomeProvider(String, String)}. Note:
+ *             {@link BiomeProvider} uses block coords.
  */
+@Deprecated(forRemoval = true)
 public interface BiomeGenerator {
 
     /**

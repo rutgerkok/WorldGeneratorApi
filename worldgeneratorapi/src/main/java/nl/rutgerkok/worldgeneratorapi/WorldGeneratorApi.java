@@ -1,13 +1,18 @@
 package nl.rutgerkok.worldgeneratorapi;
 
+import java.util.Random;
 import java.util.function.Consumer;
 
+import org.bukkit.HeightMap;
 import org.bukkit.World;
+import org.bukkit.generator.BiomeProvider;
+import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.generator.ChunkGenerator.ChunkData;
+import org.bukkit.generator.WorldInfo;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 /**
@@ -46,9 +51,35 @@ public interface WorldGeneratorApi {
                     + ", which is not compatible. Things may break horribly!"
                     + " You have been warned.");
         }
+
+        // Detect old plugins
+        if (major < 1 || (major == 1 && minor < 3)) {
+            ourselves.getLogger().warning(plugin.getName() + " v" + plugin.getDescription().getVersion()
+                    + ", which was built for " + ourselves.getName() + " v" + major + "." + minor
+                    + ", will not be compatible with " + ourselves.getName() + " v2.0. Please look for an update of "
+                    + plugin.getName());
+        }
         return api;
     }
 
+
+    /**
+     * Creates a terrain generator from a noise function. To use this from your
+     * {@link ChunkGenerator} implementation, call
+     * {@link BasePopulator#generateNoise(WorldInfo, Random, int, int, ChunkData)}
+     * from
+     * {@link ChunkGenerator#generateNoise(WorldInfo, Random, int, int, ChunkData)},
+     * and also call
+     * {@link BasePopulator#getBaseHeight(WorldInfo, Random, int, int, HeightMap)}
+     * from
+     * {@link ChunkGenerator#getBaseHeight(WorldInfo, Random, int, int, HeightMap)}
+     * .
+     *
+     * @param noiseProvider
+     *            The noise provider.
+     * @return The terrain generator.
+     */
+    BasePopulator createBasePopulatorFromNoiseFunction(BaseNoiseProvider noiseProvider);
 
     /**
      * Registers a custom world generator for the given world. Once the world is
@@ -71,8 +102,8 @@ public interface WorldGeneratorApi {
      * If you don't want to modify the base terrain, then you must not use this
      * method. You must also not override Bukkit's
      * {@link Plugin#getDefaultWorldGenerator(String, String)} method. Instead, you
-     * must listen for the {@link WorldGeneratorInitEvent} and modify the world
-     * generator inside that event.
+     * must listen for the WorldGeneratorInitEvent and modify the world generator
+     * inside that event.
      *
      * @param world
      *            The world to create a custom world generator for.
@@ -80,7 +111,12 @@ public interface WorldGeneratorApi {
      *            The custom world generator.
      * @return The world generator.
      * @since 0.2
+     * @deprecated Implement {@link ChunkGenerator} yourself - it nowadays has an
+     *             expanded API. If you used a {@link BaseNoiseGenerator}, we have
+     *             {@link #createBasePopulatorFromNoiseFunction(BaseNoiseProvider)}
+     *             for you.
      */
+    @Deprecated(forRemoval = true)
     ChunkGenerator createCustomGenerator(WorldRef world, Consumer<WorldGenerator> consumer);
 
     /**
@@ -92,13 +128,36 @@ public interface WorldGeneratorApi {
     Version getApiVersion();
 
     /**
+     * Gets the used biome provider for the given world. This method can only be
+     * called once the world is loaded. In practice, that means that you need to
+     * call this method "just in time", so once you're actually generating terrain.
+     *
+     * <p>
+     * This method will either directly return the biome provider set by a plugin,
+     * or a wrapper around the vanilla biome provider. You can store the biome
+     * provider returned by this method, in case you want to use it for your own
+     * biome provider.
+     *
+     * @param world
+     *            The world.
+     * @return The biome provider.
+     * @throws IllegalStateException
+     *             If the world isn't accessible yet.
+     */
+    BiomeProvider getBiomeProvider(WorldInfo world) throws IllegalStateException;
+
+    /**
      * Gets the world generator of the given world.
      *
      * @param world
      *            The world.
      * @return The world generator.
      * @since 0.1
+     * @deprecated Use the new Bukkit methods in {@link ChunkGenerator}, use
+     *             {@link Plugin#getDefaultBiomeProvider(String, String)}, or add
+     *             your {@link BlockPopulator} to the world.
      */
+    @Deprecated(forRemoval = true)
     WorldGenerator getForWorld(World world);
 
     /**

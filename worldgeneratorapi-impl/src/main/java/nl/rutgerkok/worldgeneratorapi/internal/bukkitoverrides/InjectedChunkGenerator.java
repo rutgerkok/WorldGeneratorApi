@@ -58,6 +58,7 @@ import nl.rutgerkok.worldgeneratorapi.internal.WorldDecoratorImpl;
  * but with support to change some settings.
  *
  */
+@Deprecated(forRemoval = true)
 public final class InjectedChunkGenerator extends ChunkGenerator {
     public static class GeneratingChunkImpl implements GeneratingChunk {
 
@@ -69,7 +70,6 @@ public final class InjectedChunkGenerator extends ChunkGenerator {
         private final BiomeGridImpl biomeGrid;
         public final ChunkAccess internal;
 
-        @SuppressWarnings("deprecation")
         GeneratingChunkImpl(ChunkAccess internal, BiomeGenerator biomeGenerator) {
             this.internal = Objects.requireNonNull(internal, "internal");
             this.chunkX = internal.getPos().x;

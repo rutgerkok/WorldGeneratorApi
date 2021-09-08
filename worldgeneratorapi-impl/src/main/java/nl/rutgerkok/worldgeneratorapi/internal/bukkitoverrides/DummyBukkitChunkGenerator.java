@@ -22,6 +22,7 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * brand new world), {@link #getDefaultPopulators(World)} takes over this task.
  *
  */
+@Deprecated(forRemoval = true)
 public final class DummyBukkitChunkGenerator extends ChunkGenerator {
 
     /**

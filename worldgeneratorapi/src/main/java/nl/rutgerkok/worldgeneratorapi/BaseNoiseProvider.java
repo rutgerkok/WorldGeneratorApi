@@ -3,32 +3,28 @@ package nl.rutgerkok.worldgeneratorapi;
 import javax.annotation.Nullable;
 
 import org.bukkit.block.data.BlockData;
-import org.bukkit.generator.BiomeProvider;
+import org.bukkit.generator.WorldInfo;
 
-import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 
 /**
  * Supplies noise values - values lower than 0 results in air or water, values
  * higher than 0 in stone.
  *
- * @since 0.3
- * @deprecated This interface uses the old {@link BiomeGenerator} class. You
- *             should therefore use {@link BaseNoiseProvider} instead.
+ * @since 1.3
  */
-@Deprecated(forRemoval = true)
-public interface BaseNoiseGenerator {
+public interface BaseNoiseProvider {
 
     /**
      * Terrain settings for the noise generator.
      *
-     * @since 0.3
+     * @since 1.3
      *
      */
-    public static final class TerrainSettings {
+    public static final class TerrainConfig {
         /**
          * The block used as stone. Set to null to use the server default.
          *
-         * @since 0.3
+         * @since 1.3
          */
         @Nullable
         public BlockData stoneBlock = null;
@@ -36,7 +32,7 @@ public interface BaseNoiseGenerator {
         /**
          * The block used as water. Set to null to use the server default.
          *
-         * @since 0.3
+         * @since 1.3
          */
         @Nullable
         public BlockData waterBlock = null;
@@ -44,7 +40,7 @@ public interface BaseNoiseGenerator {
         /**
          * The water level. Set to a negative value to use the server default.
          *
-         * @since 0.3
+         * @since 1.3
          */
         public int seaLevel = -1;
 
@@ -54,11 +50,8 @@ public interface BaseNoiseGenerator {
     /**
      * Calculates the noise for a column of 4x4 blocks wide.
      *
-     * @param biomeGenerator
-     *            The biome generator, in case you want to have biome-specific
-     *            noise. Note that you can directly pass the x and z received in
-     *            this method to {@link BiomeGenerator#getZoomedOutBiome(int, int)}
-     *            to get the biome.
+     * @param worldInfo
+     *            The world the noise is generated for.
      * @param buffer
      *            Every entry represents (x y z) 4x8x4 blocks. Entry zero is at
      *            bedrock level and from there it goes upwards. Values lower than 0
@@ -70,23 +63,20 @@ public interface BaseNoiseGenerator {
      *            Column z = blockZ / 4
      * @see #getTerrainSettings() Changing the stone block, the water block and the
      *      water height.
-     * @since 0.3
-     * @deprecated This method uses the old biome generator class. Use
-     *             {@link BaseNoiseProvider#getNoise(BiomeProvider, double[], int, int)}.
+     * @since 1.3
      */
-    @Deprecated(forRemoval = true)
-    void getNoise(BiomeGenerator biomeGenerator, double[] buffer, int x, int z);
-
+    void getNoise(WorldInfo worldInfo, double[] buffer, int x, int z);
 
     /**
      * Gets the desired terrain settings. This method must return a new instance,
      * but with the same settings every time it is called. (If you want different
-     * chunks to have different settings, use {@link WorldDecorator}.)
+     * chunks to have different settings, replace blocks afterwards.)
      *
      * @return The terrain settings.
      * @since 0.3
      */
-    default TerrainSettings getTerrainSettings() {
-        return new TerrainSettings();
+    default TerrainConfig getTerrainSettings() {
+        return new TerrainConfig();
     }
+
 }

@@ -21,6 +21,7 @@ import net.minecraft.world.level.biome.Biomes;
 import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
 
+@Deprecated
 public class InjectedBiomeGenerator extends BiomeSource {
 
     private final static Function<? super Supplier<Biome>, ? extends InjectedBiomeGenerator> BIOME_TO_GENERATOR = biome -> new InjectedBiomeGenerator();

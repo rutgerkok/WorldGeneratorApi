@@ -27,6 +27,7 @@ import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGene
  * WorldGeneratorApi understands.
  *
  */
+@Deprecated
 public final class BaseTerrainGeneratorImpl implements BaseTerrainGenerator {
 
     public static Heightmap.Types fromApi(HeightType heightType) {

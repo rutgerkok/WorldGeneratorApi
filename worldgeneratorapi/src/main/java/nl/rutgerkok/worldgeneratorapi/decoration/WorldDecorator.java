@@ -2,6 +2,8 @@ package nl.rutgerkok.worldgeneratorapi.decoration;
 
 import java.util.List;
 
+import org.bukkit.generator.ChunkGenerator;
+
 import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
 
 /**
@@ -10,7 +12,10 @@ import nl.rutgerkok.worldgeneratorapi.BaseChunkGenerator;
  * remove decorations from the world.
  *
  * @since 0.2
+ * @deprecated Bukkit added various methods to {@link ChunkGenerator} to control
+ *             vanilla decorations.
  */
+@Deprecated(forRemoval = true)
 public interface WorldDecorator {
 
     /**

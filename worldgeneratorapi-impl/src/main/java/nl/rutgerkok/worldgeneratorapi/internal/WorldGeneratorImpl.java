@@ -31,6 +31,7 @@ import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.NoiseToTerrainGenerator;
 
+@Deprecated(forRemoval = true)
 final class WorldGeneratorImpl implements WorldGenerator {
 
 

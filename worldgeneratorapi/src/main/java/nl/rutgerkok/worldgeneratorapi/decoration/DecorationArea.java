@@ -8,6 +8,7 @@ import org.bukkit.block.Furnace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
+import org.bukkit.generator.LimitedRegion;
 
 /**
  * Represents a square area of 32 x 32 blocks which should be populated. (So 2x2
@@ -30,7 +31,9 @@ import org.bukkit.entity.Entity;
  * </pre>
  *
  * @since 0.2
+ * @deprecated Use the new Bukkit class {@link LimitedRegion}.
  */
+@Deprecated(forRemoval = true)
 public interface DecorationArea {
 
     /**

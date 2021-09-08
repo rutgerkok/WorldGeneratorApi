@@ -15,6 +15,7 @@ import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 /**
  * Wraps a vanilla biome generator into a WorldGeneratorApi one.
  */
+@Deprecated
 public final class BiomeGeneratorImpl implements BiomeGenerator {
 
     final Registry<Biome> biomeRegistry;

@@ -1,6 +1,7 @@
 package nl.rutgerkok.worldgeneratorapi;
 
 import org.bukkit.World;
+import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
 
@@ -14,7 +15,11 @@ import nl.rutgerkok.worldgeneratorapi.event.WorldGeneratorInitEvent;
  * {@link Plugin#getDefaultWorldGenerator(String, String)}), otherwise some
  * chunks will generate using the default Minecraft world generator.
  *
+ * @deprecated Use the new Bukkit methods in {@link ChunkGenerator}, use
+ *             {@link Plugin#getDefaultBiomeProvider(String, String)}, or add
+ *             your {@link BlockPopulator} to the world.
  */
+@Deprecated(forRemoval = true)
 public interface WorldGenerator {
 
     /**

@@ -12,6 +12,7 @@ import nl.rutgerkok.worldgeneratorapi.decoration.Decoration;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationType;
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 
+@Deprecated(forRemoval = true)
 final class RecordingWorldDecoratorImpl implements WorldDecorator {
 
     private final WorldDecorator internal;

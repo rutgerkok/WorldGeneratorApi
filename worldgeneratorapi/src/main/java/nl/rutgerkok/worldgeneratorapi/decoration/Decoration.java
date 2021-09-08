@@ -2,6 +2,10 @@ package nl.rutgerkok.worldgeneratorapi.decoration;
 
 import java.util.Random;
 
+import org.bukkit.generator.BlockPopulator;
+import org.bukkit.generator.LimitedRegion;
+import org.bukkit.generator.WorldInfo;
+
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 /**
@@ -9,7 +13,11 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
  * class. These decorations are allowed to cross chunk boundaries.
  *
  * @since 0.2
+ * @deprecated Use the new Bukkit method
+ *             {@link BlockPopulator#populate(WorldInfo, Random, int, int, LimitedRegion)}.
+ * 
  */
+@Deprecated(forRemoval = true)
 public interface Decoration {
 
     /**

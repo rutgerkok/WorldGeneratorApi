@@ -87,6 +87,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
 import nl.rutgerkok.worldgeneratorapi.decoration.DecorationArea;
 
+@Deprecated
 class DecorationAreaImpl implements DecorationArea {
 
     final WorldGenRegion region;

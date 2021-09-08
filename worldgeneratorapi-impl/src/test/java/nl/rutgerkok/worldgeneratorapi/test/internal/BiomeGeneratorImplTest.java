@@ -15,6 +15,7 @@ import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.BiomeGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
 
+@Deprecated
 public class BiomeGeneratorImplTest {
 
     @BeforeAll

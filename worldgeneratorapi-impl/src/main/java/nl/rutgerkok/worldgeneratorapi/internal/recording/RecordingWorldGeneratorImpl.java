@@ -18,6 +18,7 @@ import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
  * in time, or to another world.
  *
  */
+@Deprecated(forRemoval = true)
 public final class RecordingWorldGeneratorImpl implements WorldGenerator {
 
     private final WorldGenerator internal;

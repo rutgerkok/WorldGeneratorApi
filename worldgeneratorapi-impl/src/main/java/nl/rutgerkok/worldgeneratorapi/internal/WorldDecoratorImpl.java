@@ -36,6 +36,7 @@ import nl.rutgerkok.worldgeneratorapi.decoration.DecorationType;
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 import nl.rutgerkok.worldgeneratorapi.internal.bukkitoverrides.InjectedChunkGenerator.GeneratingChunkImpl;
 
+@Deprecated
 public final class WorldDecoratorImpl implements WorldDecorator {
 
     private static final GenerationStep.Decoration[] GENERATION_STEP_DECORATION = GenerationStep.Decoration.values();

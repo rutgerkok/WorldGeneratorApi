@@ -44,6 +44,7 @@ import nl.rutgerkok.worldgeneratorapi.BiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.InjectedBiomeGenerator;
 import nl.rutgerkok.worldgeneratorapi.internal.ReflectionUtil;
 
+@Deprecated(forRemoval = true)
 public final class NoiseToTerrainGenerator implements BaseTerrainGenerator {
 
     private class OurNoiseSampler extends NoiseSampler {

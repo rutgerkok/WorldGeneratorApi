@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.world.WorldEvent;
+import org.bukkit.event.world.WorldInitEvent;
 
 import nl.rutgerkok.worldgeneratorapi.WorldGenerator;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
@@ -21,7 +22,9 @@ import nl.rutgerkok.worldgeneratorapi.WorldRef;
  * any multiworld plugin (like Multiverse).
  *
  * @since 0.2
+ * @deprecated Use {@link WorldInitEvent}.
  */
+@Deprecated(forRemoval = true)
 public class WorldGeneratorInitEvent extends WorldEvent {
 
     private static final HandlerList handlers = new HandlerList();
