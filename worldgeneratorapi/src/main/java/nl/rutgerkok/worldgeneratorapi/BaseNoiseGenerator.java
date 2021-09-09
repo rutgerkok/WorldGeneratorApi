@@ -3,7 +3,7 @@ package nl.rutgerkok.worldgeneratorapi;
 import javax.annotation.Nullable;
 
 import org.bukkit.block.data.BlockData;
-import org.bukkit.generator.BiomeProvider;
+import org.bukkit.generator.WorldInfo;
 
 import nl.rutgerkok.worldgeneratorapi.decoration.WorldDecorator;
 
@@ -72,7 +72,7 @@ public interface BaseNoiseGenerator {
      *      water height.
      * @since 0.3
      * @deprecated This method uses the old biome generator class. Use
-     *             {@link BaseNoiseProvider#getNoise(BiomeProvider, double[], int, int)}.
+     *             {@link BaseNoiseProvider#getNoise(WorldInfo, double[], int, int)}.
      */
     @Deprecated(forRemoval = true)
     void getNoise(BiomeGenerator biomeGenerator, double[] buffer, int x, int z);

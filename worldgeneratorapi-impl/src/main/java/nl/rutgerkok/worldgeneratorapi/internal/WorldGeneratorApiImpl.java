@@ -14,6 +14,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.generator.CustomChunkGenerator;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldInitEvent;
@@ -37,6 +38,7 @@ import nl.rutgerkok.worldgeneratorapi.internal.command.CommandHandler;
 import nl.rutgerkok.worldgeneratorapi.internal.recording.RecordingWorldGeneratorImpl;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
+@SuppressWarnings("removal")
 public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorApi, Listener {
 
     private static final Field SERVER_WORLDS_FIELD;
@@ -138,7 +140,6 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
         throw new IllegalStateException("World not yet loaded");
     }
 
-    @SuppressWarnings({ "removal", "deprecation" })
     @Override
     @Deprecated(forRemoval = true)
     public WorldGenerator getForWorld(World world) {
@@ -260,6 +261,49 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Failed to restore CraftServer.world", e);
             }
+        }
+    }
+
+    @Override
+    public void setBiomeProvider(World world, BiomeProvider biomeProvider) {
+        Objects.requireNonNull(biomeProvider, "biomeProvider");
+
+        // First, set in CraftWorld
+        CraftWorld craftWorld = (CraftWorld) world;
+        try {
+            ReflectionUtil.getFieldOfType(craftWorld, BiomeProvider.class).set(craftWorld, biomeProvider);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to inject biome provider into world", e);
+        }
+
+        // Next, set in Minecraft's ChunkGenerator
+        BiomeSource biomeSource = BiomeProviderImpl.bukkitToMinecraft(craftWorld.getHandle(), biomeProvider);
+        net.minecraft.world.level.chunk.ChunkGenerator chunkGenerator;
+        chunkGenerator = craftWorld.getHandle().getChunkProvider().getGenerator();
+
+        // Bukkit's chunk generator uses a delegate field, in which the biome provider
+        // is stored
+        if (chunkGenerator instanceof CustomChunkGenerator) {
+            try {
+                chunkGenerator = (net.minecraft.world.level.chunk.ChunkGenerator) ReflectionUtil
+                        .getFieldOfType(chunkGenerator, net.minecraft.world.level.chunk.ChunkGenerator.class)
+                        .get(chunkGenerator);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Failed to get CustomChunkGenerator.delegate field");
+            }
+        }
+
+        for (Field field : ReflectionUtil.getAllFieldsOfType(chunkGenerator.getClass(), BiomeSource.class)) {
+            try {
+                field.set(chunkGenerator, biomeSource);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Failed to inject biome source into chunkGenerator." + field.getName(), e);
+            }
+        }
+
+        // Test if it worked (better to catch errors early)
+        if (this.getBiomeProvider(world) != biomeProvider) {
+            throw new RuntimeException("Failed to inject biome provider; unknown reason");
         }
     }
 
