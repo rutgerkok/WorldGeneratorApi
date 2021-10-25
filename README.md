@@ -6,6 +6,10 @@
 [![Latest release](https://img.shields.io/github/release/rutgerkok/WorldGeneratorApi.svg)](https://github.com/rutgerkok/WorldGeneratorApi/releases)
 [![Commits since latest release](https://img.shields.io/github/commits-since/rutgerkok/WorldGeneratorApi/latest.svg)](https://github.com/rutgerkok/WorldGeneratorApi/releases)
 
+
+**⚠️ This README is outdated. See the [changelog of version 1.3](https://github.com/rutgerkok/WorldGeneratorApi/discussions/52) for more information. ⚠️**
+-----------
+
 Designing your own world generator for Bukkit is hard. Bukkit doesn't let you hook into the Minecraft terrain generator, so if you just want to change the shape of the terrain, you would need to rewrite almost the entirety of the Minecraft terrain generator. Alternatively, you can hook into Minecraft internals, but this is tricky and tends to break on every Minecraft update.
 
 WorldGeneratorApi provides a clean API to design your own world generator, while still using components of Minecraft if you want. In just a few lines of code, we can create a complete plugin that generates flat worlds:
