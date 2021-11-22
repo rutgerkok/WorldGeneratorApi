@@ -34,10 +34,9 @@ public final class CommandHandler implements TabExecutor {
 
     private final Map<String, WorldGeneratorApiCommand> commands = new HashMap<>();
 
-    public CommandHandler(Runnable reloader, PropertyRegistry propertyRegistry) {
+    public CommandHandler(PropertyRegistry propertyRegistry) {
         commands.put("set", new PropertyChangeCommand(propertyRegistry));
         commands.put("get", new PropertyChangeCommand(propertyRegistry));
-        commands.put("reload", new ReloadCommand(reloader));
     }
 
     @Override

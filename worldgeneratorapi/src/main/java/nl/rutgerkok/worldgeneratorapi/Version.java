@@ -10,7 +10,7 @@ public interface Version {
     /**
      * Checks if this API is compatible with the expected version number. If your
      * plugin expected version 1.3, and we're on 1.5, then it is likely compatible.
-     * However, if your plugin expects version 2.0 and we're on 1.4, then it's not
+     * However, if your plugin expects version 2.0 and we're on 1.2, then it's not
      * going to work.
      *
      * @param maior

@@ -24,9 +24,13 @@ public final class VersionImpl implements Version {
 
     @Override
     public boolean isCompatibleWith(int maior, int minor) {
-        if (this.maior > maior) {
-            // Maybe this needs to be changed if 2.0 is largely incompatible with 1.0
-            return true;
+        if (maior == 1 && minor < 3) {
+            // Don't accept anything that was built for 1.0 to 1.2
+            return false;
+        }
+        if (maior < 1) {
+            // Don't accept anything that was built for 0.x
+            return false;
         }
         return this.maior == maior && this.minor >= minor;
     }
