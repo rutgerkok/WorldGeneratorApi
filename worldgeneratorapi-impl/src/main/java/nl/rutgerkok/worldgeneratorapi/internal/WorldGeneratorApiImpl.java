@@ -6,8 +6,8 @@ import java.util.Objects;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_17_R1.generator.CustomChunkGenerator;
+import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R1.generator.CustomChunkGenerator;
 import org.bukkit.event.Listener;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.WorldInfo;
@@ -15,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseProvider;
 import nl.rutgerkok.worldgeneratorapi.BasePopulator;
 import nl.rutgerkok.worldgeneratorapi.Version;
@@ -29,7 +30,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
     @Override
     public BasePopulator createBasePopulatorFromNoiseFunction(BaseNoiseProvider noiseProvider) {
-        return new NoiseProviderToBasePopulator(noiseProvider);
+        throw new UnsupportedOperationException("Not supported yet");
     }
 
     @Override
@@ -45,8 +46,8 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
         if (world instanceof CraftWorld craftWorld) {
             ServerLevel serverLevel = craftWorld.getHandle();
-            BiomeSource biomeSource = serverLevel.getChunkProvider().getGenerator().getBiomeSource();
-            return BiomeProviderImpl.minecraftToBukkit(serverLevel, biomeSource);
+            ChunkGenerator chunkGenerator = serverLevel.getChunkSource().getGenerator();
+            return BiomeProviderImpl.minecraftToBukkit(serverLevel, chunkGenerator);
         }
 
         throw new IllegalStateException("World not yet loaded");
@@ -86,7 +87,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
         // Next, set in Minecraft's ChunkGenerator
         BiomeSource biomeSource = BiomeProviderImpl.bukkitToMinecraft(craftWorld.getHandle(), biomeProvider);
         net.minecraft.world.level.chunk.ChunkGenerator chunkGenerator;
-        chunkGenerator = craftWorld.getHandle().getChunkProvider().getGenerator();
+        chunkGenerator = craftWorld.getHandle().getChunkSource().getGenerator();
 
         // Bukkit's chunk generator uses a delegate field, in which the biome provider
         // is stored

@@ -19,10 +19,10 @@ public class FloatPropertyTest {
         WorldRef world = WorldRef.ofName("test");
 
         property.setBiomeDefault(Biome.DESERT, 2);
-        property.setBiomeDefault(Biome.DESERT_HILLS, 6);
+        property.setBiomeDefault(Biome.BEACH, 6);
         assertEquals(0, property.get(world, Biome.SNOWY_BEACH));
         assertEquals(2, property.get(world, Biome.DESERT));
-        assertEquals(6, property.get(world, Biome.DESERT_HILLS));
+        assertEquals(6, property.get(world, Biome.BEACH));
     }
 
     @Test

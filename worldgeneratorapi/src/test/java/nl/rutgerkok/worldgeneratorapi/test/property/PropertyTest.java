@@ -20,10 +20,10 @@ public class PropertyTest {
         WorldRef world = WorldRef.ofName("test");
 
         property.setBiomeDefault(Biome.DESERT, "two");
-        property.setBiomeDefault(Biome.DESERT_HILLS, "six");
+        property.setBiomeDefault(Biome.BEACH, "six");
         assertEquals("zero", property.get(world, Biome.SNOWY_BEACH));
         assertEquals("two", property.get(world, Biome.DESERT));
-        assertEquals("six", property.get(world, Biome.DESERT_HILLS));
+        assertEquals("six", property.get(world, Biome.BEACH));
     }
 
     @Test

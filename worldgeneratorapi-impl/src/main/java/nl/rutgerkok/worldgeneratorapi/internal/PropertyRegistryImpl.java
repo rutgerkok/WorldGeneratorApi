@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_18_R1.block.CraftBlock;
 
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.world.level.biome.Biome;
@@ -58,8 +58,6 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
     public PropertyRegistryImpl() {
         addMinecraftBiomeFloatProperty(TEMPERATURE, Biome::getBaseTemperature);
         addMinecraftBiomeFloatProperty(WETNESS, Biome::getDownfall);
-        addMinecraftBiomeFloatProperty(BASE_HEIGHT, Biome::getDepth);
-        addMinecraftBiomeFloatProperty(HEIGHT_VARIATION, Biome::getScale);
         addMinecraftWorldProperty(WORLD_SEED, world -> (Long) world.getSeed(), -1L);
         addSeaLevelProperty(SEA_LEVEL, world -> (float) world.getSeaLevel());
     }

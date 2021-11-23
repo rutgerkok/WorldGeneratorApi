@@ -38,7 +38,9 @@ public interface PropertyRegistry {
      *
      * @see #getFloat(NamespacedKey, float)
      * @since 0.1
+     * @deprecated No longer used by Minecraft.
      */
+    @Deprecated(forRemoval = true)
     NamespacedKey BASE_HEIGHT = NamespacedKey.minecraft("base_height");
 
     /**
@@ -46,7 +48,9 @@ public interface PropertyRegistry {
      *
      * @see #getFloat(NamespacedKey, float)
      * @since 0.1
+     * @deprecated No longer used by Minecraft.
      */
+    @Deprecated(forRemoval = true)
     NamespacedKey HEIGHT_VARIATION = NamespacedKey.minecraft("height_variation");
 
     /**

@@ -24,16 +24,6 @@ public class PropertyRegistryImplTest {
     }
 
     @Test
-    public void baseHeight() {
-        WorldRef world = WorldRef.ofName("test");
-        PropertyRegistry registry = new PropertyRegistryImpl();
-
-        FloatProperty baseHeight = registry.getFloat(PropertyRegistry.BASE_HEIGHT, 0);
-        assertEquals(0.125, baseHeight.get(world, Biome.DESERT));
-        assertEquals(0.45, baseHeight.get(world, Biome.SNOWY_MOUNTAINS), 0.0001);
-    }
-
-    @Test
     public void customFloat() {
         NamespacedKey customKey = new NamespacedKey(TestFactory.plugin("TestPlugin"), "float");
         WorldRef world = WorldRef.ofName("test");
@@ -55,23 +45,13 @@ public class PropertyRegistryImplTest {
     }
 
     @Test
-    public void heightVariation() {
-        WorldRef world = WorldRef.ofName("test");
-        PropertyRegistry registry = new PropertyRegistryImpl();
-
-        FloatProperty baseHeight = registry.getFloat(PropertyRegistry.HEIGHT_VARIATION, 0);
-        assertEquals(0.05, baseHeight.get(world, Biome.DESERT), 0.0001);
-        assertEquals(0.30, baseHeight.get(world, Biome.SNOWY_MOUNTAINS), 0.0001);
-    }
-
-    @Test
     public void temperature() {
         WorldRef world = WorldRef.ofName("test");
         PropertyRegistry registry = new PropertyRegistryImpl();
 
         FloatProperty temperature = registry.getFloat(PropertyRegistry.TEMPERATURE, 0);
         assertEquals(2, temperature.get(world, Biome.DESERT));
-        assertEquals(0, temperature.get(world, Biome.SNOWY_MOUNTAINS));
+        assertEquals(0, temperature.get(world, Biome.SNOWY_SLOPES));
 
         assertThrows(UnsupportedOperationException.class, () -> {
             temperature.setBiomeDefault(Biome.DESERT, 1.8f);
