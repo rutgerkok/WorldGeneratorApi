@@ -13,22 +13,25 @@ public class VersionImplTest {
 
     @Test
     public void devRelease() {
-        Version version = new VersionImpl("1.2-SNAPSHOT");
+        Version version = new VersionImpl("2.2-SNAPSHOT");
 
-        assertTrue(version.isCompatibleWith(1, 2));
-        assertTrue(version.isCompatibleWith(1, 1));
-        assertFalse(version.isCompatibleWith(1, 3));
+        assertTrue(version.isCompatibleWith(2, 2));
+        assertTrue(version.isCompatibleWith(2, 1));
+        assertFalse(version.isCompatibleWith(2, 3));
     }
 
     @Test
     public void pointRelease() {
-        Version version = new VersionImpl("1.4");
+        Version version = new VersionImpl("2.1");
 
-        assertTrue(version.isCompatibleWith(0, 8));
-        assertTrue(version.isCompatibleWith(1, 2));
-        assertTrue(version.isCompatibleWith(1, 4));
+        assertFalse(version.isCompatibleWith(0, 8));
+        assertFalse(version.isCompatibleWith(1, 2));
+        assertFalse(version.isCompatibleWith(1, 4));
         assertFalse(version.isCompatibleWith(1, 5));
-        assertFalse(version.isCompatibleWith(2, 0));
+        assertTrue(version.isCompatibleWith(2, 0));
+        assertTrue(version.isCompatibleWith(2, 1));
+        assertFalse(version.isCompatibleWith(2, 2));
+
     }
 
     @Test
@@ -38,10 +41,10 @@ public class VersionImplTest {
 
     @Test
     public void twoPointRelease() {
-        Version version = new VersionImpl("1.4.2");
+        Version version = new VersionImpl("2.4.2");
 
-        assertTrue(version.isCompatibleWith(1, 2));
-        assertTrue(version.isCompatibleWith(1, 4));
-        assertFalse(version.isCompatibleWith(1, 5));
+        assertTrue(version.isCompatibleWith(2, 2));
+        assertTrue(version.isCompatibleWith(2, 4));
+        assertFalse(version.isCompatibleWith(2, 5));
     }
 }

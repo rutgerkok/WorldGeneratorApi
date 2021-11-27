@@ -51,7 +51,7 @@ public class PropertyRegistryImplTest {
 
         FloatProperty temperature = registry.getFloat(PropertyRegistry.TEMPERATURE, 0);
         assertEquals(2, temperature.get(world, Biome.DESERT));
-        assertEquals(0, temperature.get(world, Biome.SNOWY_SLOPES));
+        assertEquals(-0.3, temperature.get(world, Biome.SNOWY_SLOPES), 0.001);
 
         assertThrows(UnsupportedOperationException.class, () -> {
             temperature.setBiomeDefault(Biome.DESERT, 1.8f);

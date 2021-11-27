@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.generator.BiomeProvider;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.StringUtil;
 
 import com.google.common.collect.ImmutableList;
@@ -34,9 +38,10 @@ public final class CommandHandler implements TabExecutor {
 
     private final Map<String, WorldGeneratorApiCommand> commands = new HashMap<>();
 
-    public CommandHandler(PropertyRegistry propertyRegistry) {
+    public CommandHandler(Plugin plugin, PropertyRegistry propertyRegistry, Function<World, BiomeProvider> getBiomeProvider) {
         commands.put("set", new PropertyChangeCommand(propertyRegistry));
         commands.put("get", new PropertyChangeCommand(propertyRegistry));
+        commands.put("biomemap", new BiomeMapCommand(plugin, getBiomeProvider));
     }
 
     @Override

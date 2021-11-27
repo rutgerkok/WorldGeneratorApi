@@ -64,7 +64,8 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
 
-        redirectCommand(getCommand("worldgeneratorapi"), new CommandHandler(propertyRegistry));
+        redirectCommand(getCommand("worldgeneratorapi"), new CommandHandler(this, propertyRegistry,
+                this::getBiomeProvider));
     }
 
     private void redirectCommand(PluginCommand command, TabExecutor executor) {
