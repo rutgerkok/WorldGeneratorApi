@@ -102,6 +102,15 @@ public interface WorldGeneratorApi {
     BiomeProvider getBiomeProvider(WorldInfo world) throws IllegalStateException;
 
     /**
+     * Gets the climate sampler for the given world. Used to find out what the
+     * climate (temperature, humidity, etc.) is at a certain point.
+     *
+     * @return The climate sampler.
+     * @since 2.0
+     */
+    ClimateSampler getClimateSampler(WorldInfo world);
+
+    /**
      * Gets the property registry.
      *
      * @return The property registry.

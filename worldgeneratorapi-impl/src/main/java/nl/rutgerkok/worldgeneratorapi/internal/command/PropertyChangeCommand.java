@@ -32,7 +32,7 @@ import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
  * /&lt;command&gt; get [world] [biome] &lt;property&gt
  * </pre>
  */
-final class PropertyChangeCommand extends WorldGeneratorApiCommand {
+public final class PropertyChangeCommand extends WorldGeneratorApiCommand {
 
     private static class Parameters {
         @Nullable
@@ -73,7 +73,7 @@ final class PropertyChangeCommand extends WorldGeneratorApiCommand {
 
     private final PropertyRegistry propertyRegistry;
 
-    PropertyChangeCommand(PropertyRegistry propertyRegistry) {
+    public PropertyChangeCommand(PropertyRegistry propertyRegistry) {
         this.propertyRegistry = Objects.requireNonNull(propertyRegistry, "propertyRegistry");
     }
 

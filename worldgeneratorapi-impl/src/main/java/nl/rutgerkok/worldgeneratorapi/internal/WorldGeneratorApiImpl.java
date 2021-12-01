@@ -18,19 +18,31 @@ import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseProvider;
 import nl.rutgerkok.worldgeneratorapi.BasePopulator;
+import nl.rutgerkok.worldgeneratorapi.ClimateSampler;
 import nl.rutgerkok.worldgeneratorapi.Version;
 import nl.rutgerkok.worldgeneratorapi.WorldGeneratorApi;
+import nl.rutgerkok.worldgeneratorapi.internal.command.BiomeMapCommand;
+import nl.rutgerkok.worldgeneratorapi.internal.command.ClimateCommand;
 import nl.rutgerkok.worldgeneratorapi.internal.command.CommandHandler;
+import nl.rutgerkok.worldgeneratorapi.internal.command.PropertyChangeCommand;
 import nl.rutgerkok.worldgeneratorapi.property.PropertyRegistry;
 
 public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorApi, Listener {
-
 
     private final PropertyRegistry propertyRegistry = new PropertyRegistryImpl();
 
     @Override
     public BasePopulator createBasePopulatorFromNoiseFunction(BaseNoiseProvider noiseProvider) {
         throw new UnsupportedOperationException("Not supported yet");
+    }
+
+    private TabExecutor createCommandHandler() {
+        CommandHandler handler = new CommandHandler();
+        handler.addCommand("set", new PropertyChangeCommand(propertyRegistry));
+        handler.addCommand("get", new PropertyChangeCommand(propertyRegistry));
+        handler.addCommand("biomemap", new BiomeMapCommand(this, this::getBiomeProvider));
+        handler.addCommand("climate", new ClimateCommand(this::getClimateSampler));
+        return handler;
     }
 
     @Override
@@ -40,20 +52,30 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
 
     @Override
     public BiomeProvider getBiomeProvider(WorldInfo world) throws IllegalStateException {
+        CraftWorld craftWorld = getCraftWorld(world);
+        ServerLevel serverLevel = craftWorld.getHandle();
+        ChunkGenerator chunkGenerator = serverLevel.getChunkSource().getGenerator();
+        return BiomeProviderImpl.minecraftToBukkit(serverLevel, chunkGenerator);
+    }
+
+    @Override
+    public ClimateSampler getClimateSampler(WorldInfo world) {
+        CraftWorld craftWorld = getCraftWorld(world);
+        return new ClimateSamplerImpl(craftWorld.getHandle().getChunkSource().getGenerator().climateSampler());
+    }
+
+    private CraftWorld getCraftWorld(WorldInfo world) {
         if (!(world instanceof CraftWorld)) {
             world = getServer().getWorld(world.getUID());
         }
 
         if (world instanceof CraftWorld craftWorld) {
-            ServerLevel serverLevel = craftWorld.getHandle();
-            ChunkGenerator chunkGenerator = serverLevel.getChunkSource().getGenerator();
-            return BiomeProviderImpl.minecraftToBukkit(serverLevel, chunkGenerator);
+            return craftWorld;
         }
 
         throw new IllegalStateException("World not yet loaded");
+
     }
-
-
 
     @Override
     public PropertyRegistry getPropertyRegistry() {
@@ -64,8 +86,7 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
 
-        redirectCommand(getCommand("worldgeneratorapi"), new CommandHandler(this, propertyRegistry,
-                this::getBiomeProvider));
+        redirectCommand(getCommand("worldgeneratorapi"), createCommandHandler());
     }
 
     private void redirectCommand(PluginCommand command, TabExecutor executor) {
