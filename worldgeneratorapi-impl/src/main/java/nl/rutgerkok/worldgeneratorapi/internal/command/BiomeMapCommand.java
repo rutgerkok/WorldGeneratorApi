@@ -343,7 +343,7 @@ public class BiomeMapCommand extends WorldGeneratorApiCommand {
         addBiome(Biome.BIRCH_FOREST, rgb(48, 116, 68));
         // addBiome(Biome.BIRCH_FOREST_HILLS, rgb(31, 5, 50));
         addBiome(Biome.DARK_FOREST, rgb(64, 81, 26));
-        addBiome(Biome.SNOWY_TAIGA, rgb(49, 85, 74));
+        addBiome(Biome.SNOWY_TAIGA, rgb(35, 168, 173));
         // addBiome(Biome.SNOWY_TAIGA_HILLS, rgb(36, 63, 54));
         addBiome(Biome.OLD_GROWTH_PINE_TAIGA, rgb(89, 102, 81)); // Was GIANT_TREE_TAIGA
         // addBiome(Biome.GIANT_TREE_TAIGA_HILLS, rgb(69, 7, 62));
@@ -393,10 +393,10 @@ public class BiomeMapCommand extends WorldGeneratorApiCommand {
         addBiome(Biome.BASALT_DELTAS, rgb(45, 52, 54));
         addBiome(Biome.DRIPSTONE_CAVES, rgb(89, 62, 42));
         addBiome(Biome.LUSH_CAVES, rgb(137, 232, 79));
-        addBiome(Biome.MEADOW, rgb(71, 15, 90)); // Copied from TALL_BIRCH_HILLS
-        addBiome(Biome.GROVE, rgb(89, 125, 114)); // Copied from SNOWY_TAIGA_MOUNTAINS
+        addBiome(Biome.MEADOW, rgb(20, 94, 97));
+        addBiome(Biome.GROVE, rgb(143, 201, 183));
         addBiome(Biome.SNOWY_SLOPES, rgb(205, 205, 229));
-        addBiome(Biome.FROZEN_PEAKS, rgb(160, 160, 160)); // Copied from SNOWY_MOUNTAINS
+        addBiome(Biome.FROZEN_PEAKS, rgb(240, 240, 240));
         addBiome(Biome.JAGGED_PEAKS, rgb(20, 94, 97));
         addBiome(Biome.STONY_PEAKS, rgb(120, 52, 120)); // Copied from MODIFIED_GRAVELLY_MOUNTAINS
         addBiome(Biome.CUSTOM, rgb(0, 0, 0));
