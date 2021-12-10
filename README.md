@@ -6,64 +6,19 @@
 [![Latest release](https://img.shields.io/github/release/rutgerkok/WorldGeneratorApi.svg)](https://github.com/rutgerkok/WorldGeneratorApi/releases)
 [![Commits since latest release](https://img.shields.io/github/commits-since/rutgerkok/WorldGeneratorApi/latest.svg)](https://github.com/rutgerkok/WorldGeneratorApi/releases)
 
+Nowadays, you have many options to edit how your world generates. Bukkit got a hugely expanded world generation API in 2021, and data packs are able to take control over almost any aspect of world generation. But, how would you generate a map like this?
 
-**⚠️ This README is outdated. See the [changelog of version 1.3](https://github.com/rutgerkok/WorldGeneratorApi/discussions/52) for more information. ⚠️**
------------
+![Example biome map](images/biomemap.png)
 
-Designing your own world generator for Bukkit is hard. Bukkit doesn't let you hook into the Minecraft terrain generator, so if you just want to change the shape of the terrain, you would need to rewrite almost the entirety of the Minecraft terrain generator. Alternatively, you can hook into Minecraft internals, but this is tricky and tends to break on every Minecraft update.
+The answer: first, install a data pack that increases ocean size, then install WorldGeneratorApi, then run `/worldgeneratorapi biomemap`.
 
-WorldGeneratorApi provides a clean API to design your own world generator, while still using components of Minecraft if you want. In just a few lines of code, we can create a complete plugin that generates flat worlds:
+WorldGeneratorApi is a modest API, adding some functionality for world generation. It used to be bigger, but most code has been dropped in favor of the new methods in the Bukkit API.
 
-```java
-public class YourPlugin extends JavaPlugin {
-    public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        return WorldGeneratorApi.getInstance(this, 1, 0).createCustomGenerator(WorldRef.ofName(worldName), generator -> {
-            // Code modifying the world generator goes here
-            generator.setBaseTerrainGenerator(new BaseTerrainGenerator() {
-	
-	            @Override
-	            public int getHeight(BiomeGenerator biomeGenerator, int x, int z, HeightType type) {
-	            	// Used by for example village generation to probe if the terrain is not too hilly
-	            	// If calculating the terrain height would be too complex, you can also extend a
-	            	// "BaseNoiseGenerator" instead of a "BaseChunkGenerator" - that class automatically
-	            	// calculates the terrain height based on the noise function you give it
-	                return 70;
-	            }
+* Ability to create biome maps of your world
+* Ability to modify the vanilla biome generator using code
+* Ability to view (and use) noise values for your terrain - temperature, humidity, weirdness, continentalness, erosion, factor, offset and jaggedness.
 
-	            @Override
-	            public void setBlocksInChunk(GeneratingChunk chunk) {
-	                chunk.getBlocksForChunk().setRegion(0, 0, 0, CHUNK_SIZE, 70, CHUNK_SIZE, Material.STONE);
-	            }
-	        });
-        });
-    }
-}
-```
-
-![A decorated, flat world](https://rutgerkok.nl/afbeeldingen/minecraft/worldgeneratorapi.jpg)
-
-As you can see, only the shape of the terrain is modified, the rest of the world generator is untouched. Want to disable flowers and grass? Add `generator.getWorldDecorator().withoutDefaultDecorations(DecorationType.VEGETAL_DECORATION);`. Don't like caves and ravines? Add `generator.getWorldDecorator().withoutDefaultDecorations(DecorationType.CARVING_AIR);`. 
-
-## Features
-* Control the base shape of the terrain.
-* Control the layout of biomes.
-* Disable vanilla resources (caves, flowers, villages, etc.)
-* Add custom resources
-* Supports the async chunk generator of Spigot and Paper
-
-## Tutorials/how to use
-Server admins only need to download this plugin (see the [releases tab](https://github.com/rutgerkok/WorldGeneratorApi/releases)) and place it in their plugins folder, alongside with the plugin that asked you to download this API.
-
-Are you a plugin developer? We have [a wiki](https://github.com/rutgerkok/WorldGeneratorApi/wiki) with serveral tutorials to get you started. The source code also contains lots of JavaDocs.
-
-## Limitations
-* There is no way to add custom biomes yet.
-* There is no way to change entity spawning for a certain location (like Guardians in Ocean Temples).
-* Adding large custom structures (like villages) is cumbersome, as you need to write the code yourself to divide your structures into chunk-sized parts.
-
-## Plugins using WorldGeneratorApi
-* [DoughWorldGenerator](https://github.com/rutgerkok/Dough/) - a plugin that lets you modify the shape of your terrain. It supports all variables from the old Customized world type, plus some variables from the (now defunct) plugin TerrainControl.
-* [PancakeWorldGenerator](https://github.com/rutgerkok/PancakeWorldGenerator/) - generates flat lands, but will all resources (ores, trees, structures, etc.) present. Useful for survival servers that want a flat world.
+Please head to [the wiki](https://github.com/rutgerkok/WorldGeneratorApi/wiki) to learn more.
 
 ## License
 License is [MIT](LICENSE), so you can freely use this API, even in premium plugins. Just put up a note that you're using WorldGeneratorApi.
