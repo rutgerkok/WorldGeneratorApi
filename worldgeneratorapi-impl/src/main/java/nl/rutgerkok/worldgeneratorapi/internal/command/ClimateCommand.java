@@ -50,9 +50,9 @@ public final class ClimateCommand extends WorldGeneratorApiCommand {
                     + BASE_COLOR + "  Weirdness: " + VALUE_COLOR + f.format(point.getWeirdness())
                     + BASE_COLOR + "  Temperature: " + VALUE_COLOR + f.format(point.getTemperature())
                     + BASE_COLOR + "  Humidity: " + VALUE_COLOR + f.format(point.getHumidity())
-                    + BASE_COLOR + "  Factor: " + VALUE_COLOR + f.format(point.getFactor())
-                    + BASE_COLOR + "  Offset: " + VALUE_COLOR + f.format(point.getOffset())
-                    + BASE_COLOR + "  Jaggedness: " + VALUE_COLOR + f.format(point.getJaggedness()));
+                    + BASE_COLOR + "  Factor: " + VALUE_COLOR + f.format(point.getInitialDensity())
+                    + BASE_COLOR + "  Offset: " + VALUE_COLOR + f.format(point.getFinalDensity())
+                    + BASE_COLOR + "  Jaggedness: " + VALUE_COLOR + f.format(point.getRidges()));
             return true;
         }
 

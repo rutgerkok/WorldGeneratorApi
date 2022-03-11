@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_18_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_18_R2.block.CraftBlock;
 
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.world.level.biome.Biome;
@@ -71,7 +71,7 @@ public final class PropertyRegistryImpl implements PropertyRegistry {
                 if (biome == org.bukkit.block.Biome.CUSTOM) {
                     return 0;
                 }
-                Biome base = CraftBlock.biomeToBiomeBase(BuiltinRegistries.BIOME, biome);
+                Biome base = CraftBlock.biomeToBiomeBase(BuiltinRegistries.BIOME, biome).value();
                 return value.apply(base);
             }
 

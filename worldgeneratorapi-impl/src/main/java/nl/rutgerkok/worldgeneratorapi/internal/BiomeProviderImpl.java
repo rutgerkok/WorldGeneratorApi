@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.bukkit.craftbukkit.v1_18_R1.block.CraftBlock;
-import org.bukkit.craftbukkit.v1_18_R1.generator.CustomWorldChunkManager;
+import org.bukkit.craftbukkit.v1_18_R2.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_18_R2.generator.CustomWorldChunkManager;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.WorldInfo;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
@@ -94,7 +95,7 @@ public class BiomeProviderImpl extends BiomeProvider {
     @Override
     public List<org.bukkit.block.Biome> getBiomes(WorldInfo worldInfo) {
         List<org.bukkit.block.Biome> possibleBiomes = new ArrayList<>();
-        for (Biome biome : biomeSource.possibleBiomes()) {
+        for (Holder<Biome> biome : biomeSource.possibleBiomes()) {
             possibleBiomes.add(CraftBlock.biomeBaseToBiome(registry, biome));
         }
         return possibleBiomes;

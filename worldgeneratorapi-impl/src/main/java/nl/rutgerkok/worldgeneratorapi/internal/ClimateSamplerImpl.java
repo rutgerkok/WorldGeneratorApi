@@ -4,93 +4,109 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.core.QuartPos;
 import net.minecraft.world.level.biome.Climate;
-import net.minecraft.world.level.biome.Climate.TargetPoint;
-import net.minecraft.world.level.levelgen.NoiseSampler;
-import net.minecraft.world.level.levelgen.TerrainInfo;
-import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.NoiseRouter;
 import nl.rutgerkok.worldgeneratorapi.ClimateSampler;
 
 public class ClimateSamplerImpl implements ClimateSampler {
 
-    private class ClimatePointImpl implements ClimatePoint {
+    private static class ClimateSamplerClimatePoint implements ClimatePoint {
 
-        private final TargetPoint targetPoint;
-        private final @Nullable TerrainInfo terrainInfoOrNull;
+        protected final Climate.Sampler climateSampler;
+        protected final DensityFunction.SinglePointContext position;
 
-        public ClimatePointImpl(TargetPoint targetPoint, @Nullable TerrainInfo terrainInfoOrNull) {
-            this.targetPoint = Objects.requireNonNull(targetPoint, "targetPoint");
-            this.terrainInfoOrNull = terrainInfoOrNull;
+        public ClimateSamplerClimatePoint(Climate.Sampler climateSampler, int blockX, int blockY, int blockZ) {
+            this.position = new DensityFunction.SinglePointContext(blockX, blockY, blockZ);
+            this.climateSampler = Objects.requireNonNull(climateSampler, "targetPoint");
         }
 
         @Override
         public float getContinentalness() {
-            return Climate.unquantizeCoord(targetPoint.continentalness());
+            return (float) climateSampler.continentalness().compute(position);
+        }
+
+        @Override
+        public float getDepth() {
+            return (float) climateSampler.depth().compute(position);
         }
 
         @Override
         public float getErosion() {
-            return Climate.unquantizeCoord(targetPoint.erosion());
+            return (float) climateSampler.erosion().compute(position);
         }
 
         @Override
-        public float getFactor() {
-            if (this.terrainInfoOrNull == null) {
-                return 0;
-            }
-            return (float) this.terrainInfoOrNull.factor();
+        public float getFinalDensity() {
+            return 0;
         }
 
         @Override
         public float getHumidity() {
-            return Climate.unquantizeCoord(targetPoint.humidity());
+            return (float) climateSampler.humidity().compute(position);
         }
 
         @Override
-        public float getJaggedness() {
-            if (this.terrainInfoOrNull == null) {
-                return 0;
-            }
-            return (float) this.terrainInfoOrNull.jaggedness();
+        public float getInitialDensity() {
+            return 0;
         }
 
         @Override
-        public float getOffset() {
-            if (this.terrainInfoOrNull == null) {
-                return 0;
-            }
-            return (float) this.terrainInfoOrNull.offset();
+        public float getRidges() {
+            return 0;
         }
 
         @Override
         public float getTemperature() {
-            return Climate.unquantizeCoord(targetPoint.temperature());
+            return (float) climateSampler.temperature().compute(position);
         }
 
         @Override
         public float getWeirdness() {
-            return Climate.unquantizeCoord(targetPoint.weirdness());
+            return (float) climateSampler.weirdness().compute(position);
         }
 
     }
 
-    private final Climate.Sampler internal;
+    private static class NoiseRouterClimatePoint extends ClimateSamplerClimatePoint {
+        private final NoiseRouter noiseRouter;
 
-    public ClimateSamplerImpl(Climate.Sampler climateSampler) {
+        public NoiseRouterClimatePoint(Climate.Sampler climateSampler, NoiseRouter noiseRouter, int blockX, int blockY,
+                int blockZ) {
+            super(climateSampler, blockX, blockY, blockZ);
+            this.noiseRouter = Objects.requireNonNull(noiseRouter, "noiseRouter");
+        }
+
+        @Override
+        public float getFinalDensity() {
+            return (float) noiseRouter.finalDensity().compute(position);
+        }
+
+        @Override
+        public float getInitialDensity() {
+            return (float) noiseRouter.initialDensityWithoutJaggedness().compute(position);
+        }
+
+        @Override
+        public float getRidges() {
+            return (float) noiseRouter.ridges().compute(position);
+        }
+    }
+
+    private final Climate.Sampler internal;
+    private final NoiseRouter noiseRouterOrNull;
+
+    public ClimateSamplerImpl(Climate.Sampler climateSampler, @Nullable NoiseRouter noiseRouterOrNull) {
         this.internal = Objects.requireNonNull(climateSampler, "climateSampler");
+        this.noiseRouterOrNull = noiseRouterOrNull;
     }
 
     @Override
     public ClimatePoint getClimatePoint(int x, int y, int z) {
-        TargetPoint targetPoint = internal.sample(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z));
-        if (internal instanceof NoiseSampler noiseSampler) {
-            TerrainInfo terrainInfo = noiseSampler
-                    .terrainInfo(x, z, targetPoint.continentalness(), targetPoint.weirdness(), targetPoint
-                            .erosion(), Blender.empty());
-            return new ClimatePointImpl(targetPoint, terrainInfo);
+        if (this.noiseRouterOrNull == null) {
+            return new ClimateSamplerClimatePoint(internal, x, y, z);
         }
-        return new ClimatePointImpl(targetPoint, null);
+        return new NoiseRouterClimatePoint(internal, noiseRouterOrNull, x, y, z);
     }
 
 }

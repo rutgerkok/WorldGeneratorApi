@@ -24,6 +24,14 @@ public interface ClimateSampler {
         float getContinentalness();
 
         /**
+         * Depth. Function not yet known.
+         *
+         * @return The number.
+         * @since 2.0
+         */
+        float getDepth();
+
+        /**
          * Erosion: the higher the number, the flatter the terrain.
          *
          * @return The number.
@@ -32,14 +40,14 @@ public interface ClimateSampler {
         float getErosion();
 
         /**
-         * Factor: used to make the terrain more hilly. Calculated from
+         * Used to control the final shape of the terrain. Calculated from
          * {@link #getWeirdness()}, {@link #getErosion()}, {@link #getContinentalness()}
          * and the data packs (worldgen/noise_settings).
          *
          * @return The number.
          * @since 2.0
          */
-        float getFactor();
+        float getFinalDensity();
 
         /**
          * Humidity: how wet the biomes will be.
@@ -50,24 +58,29 @@ public interface ClimateSampler {
         float getHumidity();
 
         /**
-         * Jaggedness: used to generate jagged peaks. Calculated from
+         * The initial density. Calculated from
          * {@link #getWeirdness()}, {@link #getErosion()}, {@link #getContinentalness()}
          * and the data packs (worldgen/noise_settings).
          *
          * @return The number.
          * @since 2.0
          */
-        float getJaggedness();
+        float getInitialDensity();
 
         /**
-         * Offset: the base height of the terrain.Calculated from
+         * Ridges: used to generate jagged peaks. Calculated from
          * {@link #getWeirdness()}, {@link #getErosion()}, {@link #getContinentalness()}
          * and the data packs (worldgen/noise_settings).
+         *
+         * <p>
+         * The "Peaks and Valleys" value on the debug screen is calculated from this
+         * value as
+         * {@code -(Math.abs(Math.abs(ridges) - 0.6666667F) - 0.33333334F) * 3F}.
          *
          * @return The number.
          * @since 2.0
          */
-        float getOffset();
+        float getRidges();
 
         /**
          * Temperature: how hot the biomes will be.
