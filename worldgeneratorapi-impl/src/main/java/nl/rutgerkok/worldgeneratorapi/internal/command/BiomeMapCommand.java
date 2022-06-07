@@ -320,6 +320,7 @@ public class BiomeMapCommand extends WorldGeneratorApiCommand {
         addBiome(Biome.FOREST, rgb(5, 102, 33));
         addBiome(Biome.TAIGA, rgb(11, 2, 89));
         addBiome(Biome.SWAMP, rgb(7, 249, 178));
+        addBiome(Biome.MANGROVE_SWAMP, rgb(5, 175, 124));
         addBiome(Biome.RIVER, rgb(0, 0, 255));
         addBiome(Biome.NETHER_WASTES, rgb(255, 0, 0));
         addBiome(Biome.THE_END, rgb(128, 128, 255));
@@ -393,6 +394,7 @@ public class BiomeMapCommand extends WorldGeneratorApiCommand {
         addBiome(Biome.BASALT_DELTAS, rgb(45, 52, 54));
         addBiome(Biome.DRIPSTONE_CAVES, rgb(89, 62, 42));
         addBiome(Biome.LUSH_CAVES, rgb(137, 232, 79));
+        addBiome(Biome.DEEP_DARK, rgb(10, 10, 10));
         addBiome(Biome.MEADOW, rgb(20, 94, 97));
         addBiome(Biome.GROVE, rgb(143, 201, 183));
         addBiome(Biome.SNOWY_SLOPES, rgb(205, 205, 229));
