@@ -6,8 +6,8 @@ import java.util.Objects;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R2.generator.CustomChunkGenerator;
+import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R1.generator.CustomChunkGenerator;
 import org.bukkit.event.Listener;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.WorldInfo;
@@ -16,8 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
-import net.minecraft.world.level.levelgen.NoiseRouter;
+import net.minecraft.world.level.levelgen.RandomState;
 import nl.rutgerkok.worldgeneratorapi.BaseNoiseProvider;
 import nl.rutgerkok.worldgeneratorapi.BasePopulator;
 import nl.rutgerkok.worldgeneratorapi.ClimateSampler;
@@ -63,12 +62,8 @@ public class WorldGeneratorApiImpl extends JavaPlugin implements WorldGeneratorA
     @Override
     public ClimateSampler getClimateSampler(WorldInfo world) {
         CraftWorld craftWorld = getCraftWorld(world);
-        ChunkGenerator generator = craftWorld.getHandle().getChunkSource().getGenerator();
-        NoiseRouter noiseRouter = null;
-        if (generator instanceof NoiseBasedChunkGenerator noiseBasedGenerator) {
-            noiseRouter = noiseBasedGenerator.router();
-        }
-        return new ClimateSamplerImpl(generator.climateSampler(), noiseRouter);
+        RandomState randomState = craftWorld.getHandle().getChunkSource().randomState();
+        return new ClimateSamplerImpl(randomState.sampler(), randomState.router());
     }
 
     private CraftWorld getCraftWorld(WorldInfo world) {

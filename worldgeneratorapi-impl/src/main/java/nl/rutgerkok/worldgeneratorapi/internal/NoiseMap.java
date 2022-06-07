@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 
 import org.bukkit.Color;
 
-import net.minecraft.world.level.levelgen.RandomSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 

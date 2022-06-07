@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.bukkit.craftbukkit.v1_18_R2.block.CraftBlock;
-import org.bukkit.craftbukkit.v1_18_R2.generator.CustomWorldChunkManager;
+import org.bukkit.craftbukkit.v1_19_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_19_R1.generator.CustomWorldChunkManager;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.WorldInfo;
 
@@ -73,7 +73,7 @@ public class BiomeProviderImpl extends BiomeProvider {
 
         // Ok, we need to wrap
         Registry<Biome> worldBiomeRegistry = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
-        return new BiomeProviderImpl(chunkGenerator.getBiomeSource(), chunkGenerator.climateSampler(),
+        return new BiomeProviderImpl(chunkGenerator.getBiomeSource(), world.getChunkSource().randomState().sampler(),
                 worldBiomeRegistry);
     }
 

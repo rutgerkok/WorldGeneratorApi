@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_18_R2.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_19_R1.block.CraftBlock;
 
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.world.level.biome.Biome;
